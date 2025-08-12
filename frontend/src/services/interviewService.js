@@ -1,0 +1,134 @@
+import api from './api';
+
+/**
+ * Interview service for handling interview-related API calls
+ */
+const interviewService = {
+  /**
+   * Create a new interview
+   * @param {Object} interviewData - Interview data
+   * @returns {Promise} - Promise with the creation result
+   */
+  createInterview: async (interviewData) => {
+    try {
+      const response = await api.post('/interviews', interviewData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while creating the interview' };
+    }
+  },
+
+  /**
+   * Get a list of interviews with pagination
+   * @param {number} page - Page number
+   * @param {number} pageSize - Number of items per page
+   * @returns {Promise} - Promise with the interviews list
+   */
+  getInterviews: async (page = 1, pageSize = 10) => {
+    try {
+      const response = await api.get('/interviews', {
+        params: { page, page_size: pageSize }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching interviews' };
+    }
+  },
+
+  /**
+   * Get a specific interview by ID
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the interview data
+   */
+  getInterviewById: async (interviewId) => {
+    try {
+      const response = await api.get(`/interviews/${interviewId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching the interview' };
+    }
+  },
+
+  /**
+   * Update an existing interview
+   * @param {string} interviewId - Interview ID
+   * @param {Object} updateData - Updated interview data
+   * @returns {Promise} - Promise with the update result
+   */
+  updateInterview: async (interviewId, updateData) => {
+    try {
+      const response = await api.put(`/interviews/${interviewId}`, updateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while updating the interview' };
+    }
+  },
+
+  /**
+   * Delete an interview
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the deletion result
+   */
+  deleteInterview: async (interviewId) => {
+    try {
+      const response = await api.delete(`/interviews/${interviewId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while deleting the interview' };
+    }
+  },
+
+  /**
+   * Get interview statistics
+   * @returns {Promise} - Promise with the statistics data
+   */
+  getInterviewStatistics: async () => {
+    try {
+      const response = await api.get('/interviews/stats/summary');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching statistics' };
+    }
+  },
+
+  /**
+   * Upload resume and job description files
+   * @param {string} candidateEmail - Candidate email
+   * @param {File} jdFile - Job description file
+   * @param {File} resumeFile - Resume file
+   * @returns {Promise} - Promise with the upload result
+   */
+  uploadFiles: async (candidateEmail, jdFile, resumeFile) => {
+    try {
+      const formData = new FormData();
+      formData.append('candidate_email', candidateEmail);
+      formData.append('jd', jdFile);
+      formData.append('resume', resumeFile);
+
+      const response = await api.post('/interviews/upload/files', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while uploading files' };
+    }
+  },
+
+  /**
+   * Generate MCQs based on resume and job description
+   * @param {string} candidateEmail - Candidate email
+   * @returns {Promise} - Promise with the generated MCQs
+   */
+  generateMCQs: async (candidateEmail) => {
+    try {
+      const response = await api.post('/interviews/generate-mcqs', { candidate_email: candidateEmail });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
+    }
+  }
+};
+
+export default interviewService;

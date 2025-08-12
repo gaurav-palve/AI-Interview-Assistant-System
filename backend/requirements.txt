@@ -1,0 +1,17 @@
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+motor>=3.3.0
+pydantic[email]>=2.5.0
+python-dotenv>=1.0.0
+passlib[bcrypt]>=1.7.4
+streamlit>=1.28.0
+requests>=2.31.0
+pydantic-settings>=2.1.0
+python-multipart>=0.0.6
+emails>=0.6.0
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+langchain_google_genai 
+langchain_openai
+langchain
+msal 
