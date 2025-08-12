@@ -1,0 +1,23 @@
+# MongoDB Configuration
+MONGO_URI=mongodb://localhost:27017/
+DB_NAME=interview_assistant
+
+# SMTP Configuration for Email Notifications
+# For Gmail with 2-Step Verification enabled, use an App Password
+# To create an App Password: https://myaccount.google.com/apppasswords
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your.email@gmail.com
+SMTP_PASSWORD=your-app-password  # Use App Password if 2FA is enabled
+FROM_EMAIL=your.email@gmail.com
+
+# Microsoft OAuth2 Configuration (only needed if USE_OAUTH2=True)
+MS_CLIENT_ID=your_client_id_here
+MS_CLIENT_SECRET=your_client_secret_here
+MS_TENANT_ID=your_tenant_id_here  # Use 'common' for personal accounts
+
+# Frontend URL for interview links
+FRONTEND_URL=http://localhost:5173
+
+# Set to False to use password authentication instead of OAuth2
+USE_OAUTH2=False

@@ -1,0 +1,1015 @@
+2025-08-12 11:42:48,816 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:42:50,085 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:42:50,141 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:44:02,503 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=rygR6xtfR7sceetdL3Vp5ZUd4FypX37csWYuJ9X8yTo
+2025-08-12 11:44:02,504 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:44:02,506 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=rygR6xtfR7sceetdL3Vp5ZUd4FypX37csWYuJ9X8yTo
+2025-08-12 11:44:02,506 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:44:02,508 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=rygR6xtfR7sceetdL3Vp5ZUd4FypX37csWYuJ9X8yTo
+2025-08-12 11:44:02,509 - app.main - INFO - main.py:63 - Response status: 401
+2025-08-12 11:44:02,511 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=rygR6xtfR7sceetdL3Vp5ZUd4FypX37csWYuJ9X8yTo
+2025-08-12 11:44:02,512 - app.main - INFO - main.py:63 - Response status: 401
+2025-08-12 11:44:05,244 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/signin
+2025-08-12 11:44:05,245 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:05,246 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 11:44:05,247 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'gaurav@gmail.com', 'password': 'admin@123'}
+2025-08-12 11:44:05,263 - passlib.handlers.bcrypt - WARNING - bcrypt.py:622 - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\Team Project\interview_systems_endpoints\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-12 11:44:05,932 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: gaurav@gmail.com
+2025-08-12 11:44:05,935 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:05,955 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:05,956 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:44:05,958 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:05,959 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:05,960 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:44:05,969 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:05,971 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:05,972 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:05,977 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:05,981 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:05,985 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:05,989 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:45,527 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:45,528 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:44:45,531 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:45,532 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:44:45,536 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:45,542 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:45,544 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:45,548 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:51,281 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:51,284 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:51,287 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:51,293 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:55,633 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/emails/test?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:55,634 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:44:55,640 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/test?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:44:55,641 - app.main - INFO - main.py:50 - Request body (JSON): {'test_email': 'gauravpalve28@gmail.com'}
+2025-08-12 11:44:55,644 - app.routes.email_routes - INFO - email_routes.py:136 - Admin 6898d1afe14b88dce6cdfe91 requested to test email configuration with gauravpalve28@gmail.com
+2025-08-12 11:44:55,644 - app.main - INFO - main.py:63 - Response status: 500
+2025-08-12 11:45:58,733 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:45:58,734 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:46:00,046 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:46:00,960 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:46:00,986 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:46:08,949 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:46:08,950 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:46:10,354 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:46:11,217 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:46:11,237 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:46:26,833 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:46:26,834 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:46:28,482 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:46:29,444 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:46:29,466 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:47:13,593 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/test?session_token=9EY88fJ7SOKChb1tS1PKOTZanRmaoWP7kjLmnqxZ0QM
+2025-08-12 11:47:13,593 - app.main - INFO - main.py:50 - Request body (JSON): {'test_email': 'gauravpalve28@gmail.com'}
+2025-08-12 11:47:13,598 - app.main - INFO - main.py:63 - Response status: 401
+2025-08-12 11:47:26,580 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 11:47:26,581 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'gaurav@gmail.com', 'password': 'admin@123'}
+2025-08-12 11:47:26,588 - passlib.handlers.bcrypt - WARNING - bcrypt.py:622 - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\Team Project\interview_systems_endpoints\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-12 11:47:27,288 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: gaurav@gmail.com
+2025-08-12 11:47:27,290 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:47:27,313 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:47:27,314 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:47:27,316 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:47:27,316 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:47:27,318 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:47:27,322 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:47:27,324 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:47:27,329 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:47:27,331 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:47:27,333 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:47:27,336 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:47:27,339 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:48:41,592 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:48:41,593 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:48:41,595 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:48:41,596 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:48:41,597 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:48:41,600 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:48:41,602 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:48:41,605 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:49:53,512 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,514 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:49:53,518 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,518 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'shreyas', 'candidate_email': 'manishjangid15776@gmail.com', 'job_role': 'Tester', 'scheduled_datetime': '2025-08-13T06:18:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 11:49:53,519 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 11:49:53,522 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,522 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:49:53,525 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,526 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'shreyas', 'candidate_email': 'manishjangid15776@gmail.com', 'job_role': 'Tester', 'scheduled_datetime': '2025-08-13T06:18:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 11:49:53,531 - app.services.interview_service - INFO - interview_service.py:51 - Interview scheduled successfully: 689add0965b1aefe24fbe0b4 by 6898d1afe14b88dce6cdfe91 for manishjangid15776@gmail.com
+2025-08-12 11:49:53,531 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:49:53,535 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/upload/files?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,541 - app.main - INFO - main.py:55 - Request body: [binary data]
+2025-08-12 11:49:53,543 - app.routes.upload_resume - INFO - upload_resume.py:32 - Admin 6898d1afe14b88dce6cdfe91 uploaded files for candidate manishjangid15776@gmail.com
+2025-08-12 11:49:53,544 - app.routes.upload_resume - INFO - upload_resume.py:33 - Received upload request: JD=Resume.pdf, Resume=JD-202402-Python-Developer.pdf
+2025-08-12 11:49:53,544 - app.services.resume_upload_service - INFO - resume_upload_service.py:14 - Started processing candidate manishjangid15776@gmail.com
+2025-08-12 11:49:53,954 - app.database - INFO - database.py:75 - Saved candidate manishjangid15776@gmail.com documents to MongoDB in candidate_documents collection.
+2025-08-12 11:49:53,955 - app.services.resume_upload_service - INFO - resume_upload_service.py:23 - Successfully saved files for candidate manishjangid15776@gmail.com
+2025-08-12 11:49:53,956 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:49:53,960 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/emails/send-confirmation?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,961 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 11:49:53,962 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/send-confirmation?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 11:49:53,963 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_email': 'manishjangid15776@gmail.com', 'candidate_name': 'shreyas', 'job_role': 'Tester', 'scheduled_datetime': 'Aug 13, 2025, 11:48:00 AM', 'interview_id': '689add0965b1aefe24fbe0b4'}
+2025-08-12 11:49:53,972 - app.routes.email_routes - INFO - email_routes.py:44 - Admin 6898d1afe14b88dce6cdfe91 requested to send confirmation email to manishjangid15776@gmail.com
+2025-08-12 11:49:53,974 - app.services.email_service - INFO - email_service.py:69 - Connecting to SMTP server: smtp-mail.outlook.com:587
+2025-08-12 11:49:53,975 - app.services.email_service - INFO - email_service.py:70 - Using SMTP username: gaurav.palve28@outlook.com
+2025-08-12 11:49:53,975 - app.services.email_service - INFO - email_service.py:71 - From email: gaurav.palve28@outlook.com
+2025-08-12 11:49:54,143 - app.services.email_service - INFO - email_service.py:76 - SMTP connection established
+2025-08-12 11:49:54,223 - app.services.email_service - INFO - email_service.py:79 - STARTTLS initiated
+2025-08-12 11:50:01,140 - app.services.email_service - ERROR - email_service.py:91 - SMTP Authentication Error: (535, b'5.7.139 Authentication unsuccessful, basic authentication is disabled. [BMXP287CA0003.INDP287.PROD.OUTLOOK.COM 2025-08-12T06:20:02.498Z 08DDD946E93BD0F1]')
+2025-08-12 11:50:01,142 - app.services.email_service - ERROR - email_service.py:101 - Error sending email to manishjangid15776@gmail.com: (535, b'5.7.139 Authentication unsuccessful, basic authentication is disabled. [BMXP287CA0003.INDP287.PROD.OUTLOOK.COM 2025-08-12T06:20:02.498Z 08DDD946E93BD0F1]')
+2025-08-12 11:50:01,144 - app.main - INFO - main.py:63 - Response status: 500
+2025-08-12 11:52:29,540 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:52:29,542 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:52:31,456 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:52:32,368 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:52:32,388 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:52:35,756 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:52:35,757 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:52:37,094 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:52:38,100 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:52:38,126 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:52:51,855 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:52:51,856 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:52:53,478 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:52:54,338 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:52:54,357 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:52:58,155 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:52:58,157 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:52:59,572 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:53:00,534 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:53:00,560 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 11:53:06,348 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 11:53:06,348 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 11:53:07,977 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 11:53:08,837 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 11:53:08,857 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:01:14,128 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:01:14,130 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:01:22,554 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:01:23,439 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:01:23,471 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:01:44,630 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:01:44,631 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:01:46,139 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:01:47,050 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:01:47,079 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:01:51,218 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:01:51,219 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:01:52,934 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:01:53,779 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:01:53,799 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:02:30,840 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:02:30,841 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:02:32,726 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:03:01,223 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:07:57,426 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:07:58,438 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:07:58,478 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:08:54,000 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:08:54,007 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:08:55,206 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:08:56,199 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:08:56,227 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:18:51,826 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:18:51,829 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:18:53,193 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:18:53,971 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:18:53,991 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:18:54,424 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:18:54,425 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:18:55,407 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:18:56,292 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:18:56,334 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:19:08,875 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:19:08,879 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:19:10,650 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:19:11,468 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:19:11,486 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:19:12,903 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:19:12,904 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:19:14,340 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:19:15,226 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:19:15,247 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:19:15,341 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:19:15,342 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:19:16,570 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:19:17,428 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:19:17,460 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:20:47,545 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:20:47,546 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:20:49,401 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:20:50,312 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:20:50,365 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:29:00,876 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:29:00,877 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:29:02,188 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:29:03,138 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:29:03,184 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:33:37,918 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 12:33:37,920 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 12:33:39,596 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 12:33:40,453 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 12:33:40,496 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 12:33:53,897 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/logout?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:53,898 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:33:53,900 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:53,901 - app.main - INFO - main.py:50 - Request body (JSON): {'token': '6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI'}
+2025-08-12 12:33:53,902 - app.main - INFO - main.py:63 - Response status: 400
+2025-08-12 12:33:56,763 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:56,764 - app.main - INFO - main.py:50 - Request body (JSON): {'token': '6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI'}
+2025-08-12 12:33:56,765 - app.main - INFO - main.py:63 - Response status: 400
+2025-08-12 12:33:57,712 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:57,713 - app.main - INFO - main.py:50 - Request body (JSON): {'token': '6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI'}
+2025-08-12 12:33:57,714 - app.main - INFO - main.py:63 - Response status: 400
+2025-08-12 12:33:58,542 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:58,543 - app.main - INFO - main.py:50 - Request body (JSON): {'token': '6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI'}
+2025-08-12 12:33:58,544 - app.main - INFO - main.py:63 - Response status: 400
+2025-08-12 12:33:59,544 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:59,546 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:33:59,549 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:59,550 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:59,551 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:33:59,555 - app.main - INFO - main.py:63 - Response status: 401
+2025-08-12 12:33:59,559 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=6sumzHp9IC8rHuWb2XH6ywwZDgcQrVjzKAHLkIc2NqI
+2025-08-12 12:33:59,560 - app.main - INFO - main.py:63 - Response status: 401
+2025-08-12 12:34:01,457 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/signin
+2025-08-12 12:34:01,457 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:01,460 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 12:34:01,460 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'gaurav@gmail.com', 'password': 'admin@123'}
+2025-08-12 12:34:01,468 - passlib.handlers.bcrypt - WARNING - bcrypt.py:622 - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\Team Project\interview_systems_endpoints\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-12 12:34:02,139 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: gaurav@gmail.com
+2025-08-12 12:34:02,143 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:02,165 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:02,165 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:34:02,167 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:02,169 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:02,170 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:34:02,177 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:02,180 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:02,182 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:02,186 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:02,191 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:02,198 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:02,203 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:56,991 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:56,995 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:56,999 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:57,000 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'rishi', 'candidate_email': 'manishjangid15776@gmail.com', 'job_role': 'app dev', 'scheduled_datetime': '2025-08-13T07:04:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 12:34:57,001 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:34:57,006 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:57,007 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:57,011 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:57,012 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'rishi', 'candidate_email': 'manishjangid15776@gmail.com', 'job_role': 'app dev', 'scheduled_datetime': '2025-08-13T07:04:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 12:34:57,020 - app.services.interview_service - INFO - interview_service.py:51 - Interview scheduled successfully: 689ae79994bc10622f676b2c by 6898d1afe14b88dce6cdfe91 for manishjangid15776@gmail.com
+2025-08-12 12:34:57,021 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:57,026 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/upload/files?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:57,029 - app.main - INFO - main.py:55 - Request body: [binary data]
+2025-08-12 12:34:57,031 - app.routes.upload_resume - INFO - upload_resume.py:32 - Admin 6898d1afe14b88dce6cdfe91 uploaded files for candidate manishjangid15776@gmail.com
+2025-08-12 12:34:57,031 - app.routes.upload_resume - INFO - upload_resume.py:33 - Received upload request: JD=Resume.pdf, Resume=JD-202402-Python-Developer.pdf
+2025-08-12 12:34:57,032 - app.services.resume_upload_service - INFO - resume_upload_service.py:14 - Started processing candidate manishjangid15776@gmail.com
+2025-08-12 12:34:57,445 - app.database - INFO - database.py:75 - Saved candidate manishjangid15776@gmail.com documents to MongoDB in candidate_documents collection.
+2025-08-12 12:34:57,446 - app.services.resume_upload_service - INFO - resume_upload_service.py:23 - Successfully saved files for candidate manishjangid15776@gmail.com
+2025-08-12 12:34:57,447 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:57,452 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/emails/send-confirmation?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:57,454 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:34:57,457 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/send-confirmation?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:34:57,457 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_email': 'manishjangid15776@gmail.com', 'candidate_name': 'rishi', 'job_role': 'app dev', 'scheduled_datetime': 'Aug 13, 2025, 12:34:00 PM', 'interview_id': '689ae79994bc10622f676b2c'}
+2025-08-12 12:34:57,465 - app.routes.email_routes - INFO - email_routes.py:44 - Admin 6898d1afe14b88dce6cdfe91 requested to send confirmation email to manishjangid15776@gmail.com
+2025-08-12 12:34:57,467 - app.services.email_service - INFO - email_service.py:70 - Connecting to SMTP server: smtp.gmail.com:587
+2025-08-12 12:34:57,468 - app.services.email_service - INFO - email_service.py:71 - Using SMTP username: gauravpalve28@gmail.com
+2025-08-12 12:34:57,468 - app.services.email_service - INFO - email_service.py:72 - From email: gauravpalve28@gmail.com
+2025-08-12 12:34:57,469 - app.services.email_service - INFO - email_service.py:76 - === EMAIL CONFIGURATION DEBUG ===
+2025-08-12 12:34:57,469 - app.services.email_service - INFO - email_service.py:77 - SMTP Server: smtp.gmail.com
+2025-08-12 12:34:57,470 - app.services.email_service - INFO - email_service.py:78 - SMTP Port: 587
+2025-08-12 12:34:57,471 - app.services.email_service - INFO - email_service.py:79 - SMTP Username: gauravpalve28@gmail.com
+2025-08-12 12:34:57,471 - app.services.email_service - INFO - email_service.py:80 - Using OAuth2: False
+2025-08-12 12:34:57,472 - app.services.email_service - INFO - email_service.py:81 - From Email: gauravpalve28@gmail.com
+2025-08-12 12:34:57,472 - app.services.email_service - INFO - email_service.py:82 - To Email: manishjangid15776@gmail.com
+2025-08-12 12:34:57,473 - app.services.email_service - INFO - email_service.py:83 - Email Subject: Interview Confirmation - app dev Position
+2025-08-12 12:34:57,474 - app.services.email_service - INFO - email_service.py:84 - Email Body Preview: 
+Dear rishi,
+
+Your interview for the app dev position has been successfully scheduled.
+
+Interview De...
+2025-08-12 12:34:57,474 - app.services.email_service - INFO - email_service.py:85 - === END EMAIL CONFIGURATION DEBUG ===
+2025-08-12 12:34:57,475 - app.services.email_service - INFO - email_service.py:88 - Creating SMTP connection...
+2025-08-12 12:34:58,713 - app.services.email_service - INFO - email_service.py:93 - SMTP connection established
+2025-08-12 12:34:58,949 - app.services.email_service - INFO - email_service.py:98 - Server info: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nSTARTTLS\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 12:34:58,950 - app.services.email_service - INFO - email_service.py:103 - Starting TLS...
+2025-08-12 12:34:59,250 - app.services.email_service - INFO - email_service.py:105 - STARTTLS initiated
+2025-08-12 12:34:59,557 - app.services.email_service - INFO - email_service.py:110 - Server info after TLS: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nAUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 12:34:59,558 - app.services.email_service - INFO - email_service.py:126 - Using password authentication with username: gauravpalve28@gmail.com
+2025-08-12 12:35:00,031 - app.services.email_service - INFO - email_service.py:128 - Password authentication successful
+2025-08-12 12:35:00,032 - app.services.email_service - INFO - email_service.py:132 - Sending email from gauravpalve28@gmail.com to manishjangid15776@gmail.com
+2025-08-12 12:35:01,762 - app.services.email_service - INFO - email_service.py:134 - Email sent successfully
+2025-08-12 12:35:01,993 - app.services.email_service - INFO - email_service.py:138 - SMTP connection closed
+2025-08-12 12:35:01,994 - app.services.email_service - INFO - email_service.py:146 - Interview confirmation email sent to manishjangid15776@gmail.com
+2025-08-12 12:35:01,995 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:36:22,202 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:22,203 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:36:22,209 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:22,211 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:36:22,214 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:22,223 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:36:22,228 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:22,234 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:36:22,238 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:22,245 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:36:22,248 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:22,252 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:36:34,109 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:34,112 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:36:34,114 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:34,114 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:36:34,115 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:34,119 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:36:34,124 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:36:34,128 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:10,392 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:10,393 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:37:10,396 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:10,396 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:37:10,398 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:10,402 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:10,405 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:10,409 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:38,981 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:38,983 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:38,987 - app.main - INFO - main.py:38 - Request: DELETE http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:38,993 - app.services.interview_service - ERROR - interview_service.py:195 - Error deleting interview 6899f57acd769d57b3a0c9a5: Only draft interviews can be deleted
+2025-08-12 12:37:38,994 - app.main - INFO - main.py:63 - Response status: 400
+2025-08-12 12:37:48,163 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:48,166 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:48,169 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:48,172 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:58,192 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:58,193 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:58,199 - app.main - INFO - main.py:38 - Request: PUT http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:58,199 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'sakshi', 'candidate_email': 'gauravpalve28@gmail.com', 'job_role': 'python developer', 'scheduled_datetime': '2025-08-12T08:21:00.000Z', 'status': 'scheduled'}
+2025-08-12 12:37:58,210 - app.services.interview_service - INFO - interview_service.py:160 - Interview 6899f57acd769d57b3a0c9a5 updated successfully by 6898d1afe14b88dce6cdfe91
+2025-08-12 12:37:58,211 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:58,222 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:58,225 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:37:58,227 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:37:58,229 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:38:12,969 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:12,975 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:38:12,979 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/6899f57acd769d57b3a0c9a5?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:12,983 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:38:14,997 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:14,998 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:38:15,000 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:15,001 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:15,001 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:38:15,009 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:38:15,014 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:15,018 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:38:58,097 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:58,098 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:38:58,099 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:58,099 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:38:58,101 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:58,105 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:38:58,107 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:38:58,110 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:01,923 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:01,924 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:01,927 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:01,927 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:01,929 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:01,934 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:01,937 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:01,939 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:01,942 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:01,944 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:01,946 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:01,949 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:05,692 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:05,694 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:05,697 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:05,698 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:05,698 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:05,703 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:05,704 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:05,707 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:05,710 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:05,711 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:05,714 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:05,716 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:06,933 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:06,934 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:06,937 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:06,938 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:06,938 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:06,943 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:06,946 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:06,950 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:09,559 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:09,559 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:09,564 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:09,565 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:09,566 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:09,571 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:09,574 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:09,577 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:09,579 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:09,581 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:09,583 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:09,586 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:18,216 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:18,220 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:18,222 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:18,225 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:20,310 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:20,311 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:20,315 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:20,316 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:20,318 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:20,322 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:20,326 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:20,329 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:20,332 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:20,334 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:20,336 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:20,338 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:25,300 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:25,304 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:25,306 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:25,309 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:28,312 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:28,313 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:28,318 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:28,320 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:28,321 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:39:28,328 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:28,331 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:28,334 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:28,336 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:28,338 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:28,340 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:28,343 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:34,467 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:34,471 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:34,472 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:34,475 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:56,407 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/emails/test?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:56,410 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:39:56,413 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/test?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:39:56,413 - app.main - INFO - main.py:50 - Request body (JSON): {'test_email': 'gauravpalve28@gmail.com'}
+2025-08-12 12:39:56,415 - app.routes.email_routes - INFO - email_routes.py:136 - Admin 6898d1afe14b88dce6cdfe91 requested to test email configuration with gauravpalve28@gmail.com
+2025-08-12 12:39:56,415 - app.services.email_service - INFO - email_service.py:70 - Connecting to SMTP server: smtp.gmail.com:587
+2025-08-12 12:39:56,415 - app.services.email_service - INFO - email_service.py:71 - Using SMTP username: gauravpalve28@gmail.com
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:72 - From email: gauravpalve28@gmail.com
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:76 - === EMAIL CONFIGURATION DEBUG ===
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:77 - SMTP Server: smtp.gmail.com
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:78 - SMTP Port: 587
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:79 - SMTP Username: gauravpalve28@gmail.com
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:80 - Using OAuth2: False
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:81 - From Email: gauravpalve28@gmail.com
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:82 - To Email: gauravpalve28@gmail.com
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:83 - Email Subject: Interview Confirmation - Test Position Position
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:84 - Email Body Preview: 
+Dear Test User,
+
+Your interview for the Test Position position has been successfully scheduled.
+
+In...
+2025-08-12 12:39:56,416 - app.services.email_service - INFO - email_service.py:85 - === END EMAIL CONFIGURATION DEBUG ===
+2025-08-12 12:39:56,417 - app.services.email_service - INFO - email_service.py:88 - Creating SMTP connection...
+2025-08-12 12:39:57,834 - app.services.email_service - INFO - email_service.py:93 - SMTP connection established
+2025-08-12 12:39:58,082 - app.services.email_service - INFO - email_service.py:98 - Server info: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nSTARTTLS\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 12:39:58,083 - app.services.email_service - INFO - email_service.py:103 - Starting TLS...
+2025-08-12 12:39:58,398 - app.services.email_service - INFO - email_service.py:105 - STARTTLS initiated
+2025-08-12 12:39:58,720 - app.services.email_service - INFO - email_service.py:110 - Server info after TLS: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nAUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 12:39:58,721 - app.services.email_service - INFO - email_service.py:126 - Using password authentication with username: gauravpalve28@gmail.com
+2025-08-12 12:39:59,199 - app.services.email_service - INFO - email_service.py:128 - Password authentication successful
+2025-08-12 12:39:59,201 - app.services.email_service - INFO - email_service.py:132 - Sending email from gauravpalve28@gmail.com to gauravpalve28@gmail.com
+2025-08-12 12:40:00,790 - app.services.email_service - INFO - email_service.py:134 - Email sent successfully
+2025-08-12 12:40:01,030 - app.services.email_service - INFO - email_service.py:138 - SMTP connection closed
+2025-08-12 12:40:01,031 - app.services.email_service - INFO - email_service.py:146 - Interview confirmation email sent to gauravpalve28@gmail.com
+2025-08-12 12:40:01,032 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:24,236 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:24,237 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:40:24,239 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:24,240 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:40:24,241 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:24,246 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:24,248 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:24,250 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:24,254 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:24,255 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:24,257 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:24,260 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:26,726 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/logout?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:26,727 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:26,730 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ
+2025-08-12 12:40:26,731 - app.main - INFO - main.py:50 - Request body (JSON): {'token': 'CPZinazLwbnaevfxt57k0aLNEGyfcMaXcvkW16_23iQ'}
+2025-08-12 12:40:26,731 - app.services.auth_service - INFO - auth_service.py:73 - Admin logged out successfully
+2025-08-12 12:40:26,731 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:28,491 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 12:40:28,492 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'gaurav@gmail.com', 'password': 'admin@123'}
+2025-08-12 12:40:29,133 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: gaurav@gmail.com
+2025-08-12 12:40:29,135 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:29,153 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:40:29,155 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:40:29,157 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:40:29,159 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:40:29,159 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:40:29,164 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:29,167 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:40:29,169 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:40:29,172 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:29,173 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:40:29,176 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:40:29,180 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:45:54,413 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:45:54,414 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:45:54,416 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:45:54,417 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:45:54,419 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:45:54,424 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:45:54,427 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:45:54,431 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:45:54,433 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:45:54,437 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:45:54,439 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:45:54,442 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:02,218 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:02,221 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:46:02,224 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:02,225 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:02,225 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:46:02,230 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:02,232 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:02,236 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:17,537 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/6899d8358845aa1714de4846?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:17,539 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:17,542 - app.main - INFO - main.py:38 - Request: DELETE http://localhost:8000/interviews/6899d8358845aa1714de4846?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:17,544 - app.services.interview_service - ERROR - interview_service.py:195 - Error deleting interview 6899d8358845aa1714de4846: Only draft interviews can be deleted
+2025-08-12 12:46:17,544 - app.main - INFO - main.py:63 - Response status: 400
+2025-08-12 12:46:26,441 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:26,442 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:46:26,445 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:26,446 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:46:26,448 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:26,454 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:26,458 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:26,462 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:37,189 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/logout?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:37,192 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:46:37,195 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0
+2025-08-12 12:46:37,197 - app.main - INFO - main.py:50 - Request body (JSON): {'token': 'nOAekI0Cv4O_AH46_CvxIEcYkm70KNCgD5XqfjoVIM0'}
+2025-08-12 12:46:37,197 - app.services.auth_service - INFO - auth_service.py:73 - Admin logged out successfully
+2025-08-12 12:46:37,198 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:14,595 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/signin
+2025-08-12 12:50:14,595 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:14,597 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 12:50:14,598 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'gaurav@gmail.com', 'password': 'admin@123'}
+2025-08-12 12:50:15,270 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: gaurav@gmail.com
+2025-08-12 12:50:15,288 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:15,380 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:15,382 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:50:15,385 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:15,387 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:15,388 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:50:15,398 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:15,403 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:15,411 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:17,263 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:17,266 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:50:17,269 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:17,270 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:17,271 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:50:17,280 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:17,284 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:17,287 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:17,294 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:17,298 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:50:17,306 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:50:17,317 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:51:56,053 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,055 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:51:56,065 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,065 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'sumeet', 'candidate_email': 'gauravpalve28@gmail.com', 'job_role': 'data engineer', 'scheduled_datetime': '2025-08-15T07:21:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 12:51:56,066 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:51:56,070 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,071 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:51:56,074 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,075 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'sumeet', 'candidate_email': 'gauravpalve28@gmail.com', 'job_role': 'data engineer', 'scheduled_datetime': '2025-08-15T07:21:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 12:51:56,081 - app.services.interview_service - INFO - interview_service.py:51 - Interview scheduled successfully: 689aeb9494bc10622f676b32 by 6898d1afe14b88dce6cdfe91 for gauravpalve28@gmail.com
+2025-08-12 12:51:56,082 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:51:56,089 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/upload/files?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,097 - app.main - INFO - main.py:55 - Request body: [binary data]
+2025-08-12 12:51:56,099 - app.routes.upload_resume - INFO - upload_resume.py:32 - Admin 6898d1afe14b88dce6cdfe91 uploaded files for candidate gauravpalve28@gmail.com
+2025-08-12 12:51:56,099 - app.routes.upload_resume - INFO - upload_resume.py:33 - Received upload request: JD=JD-202402-Python-Developer.pdf, Resume=Resume.pdf
+2025-08-12 12:51:56,100 - app.services.resume_upload_service - INFO - resume_upload_service.py:14 - Started processing candidate gauravpalve28@gmail.com
+2025-08-12 12:51:56,412 - app.database - INFO - database.py:75 - Saved candidate gauravpalve28@gmail.com documents to MongoDB in candidate_documents collection.
+2025-08-12 12:51:56,413 - app.services.resume_upload_service - INFO - resume_upload_service.py:23 - Successfully saved files for candidate gauravpalve28@gmail.com
+2025-08-12 12:51:56,415 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:51:56,424 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/emails/send-confirmation?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,425 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:51:56,427 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/send-confirmation?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:51:56,428 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_email': 'gauravpalve28@gmail.com', 'candidate_name': 'sumeet', 'job_role': 'data engineer', 'scheduled_datetime': 'Aug 15, 2025, 12:51:00 PM', 'interview_id': '689aeb9494bc10622f676b32'}
+2025-08-12 12:51:56,428 - app.routes.email_routes - INFO - email_routes.py:44 - Admin 6898d1afe14b88dce6cdfe91 requested to send confirmation email to gauravpalve28@gmail.com
+2025-08-12 12:51:56,429 - app.services.email_service - INFO - email_service.py:70 - Connecting to SMTP server: smtp.gmail.com:587
+2025-08-12 12:51:56,429 - app.services.email_service - INFO - email_service.py:71 - Using SMTP username: gauravpalve28@gmail.com
+2025-08-12 12:51:56,429 - app.services.email_service - INFO - email_service.py:72 - From email: gauravpalve28@gmail.com
+2025-08-12 12:51:56,430 - app.services.email_service - INFO - email_service.py:76 - === EMAIL CONFIGURATION DEBUG ===
+2025-08-12 12:51:56,430 - app.services.email_service - INFO - email_service.py:77 - SMTP Server: smtp.gmail.com
+2025-08-12 12:51:56,431 - app.services.email_service - INFO - email_service.py:78 - SMTP Port: 587
+2025-08-12 12:51:56,431 - app.services.email_service - INFO - email_service.py:79 - SMTP Username: gauravpalve28@gmail.com
+2025-08-12 12:51:56,432 - app.services.email_service - INFO - email_service.py:80 - Using OAuth2: False
+2025-08-12 12:51:56,432 - app.services.email_service - INFO - email_service.py:81 - From Email: gauravpalve28@gmail.com
+2025-08-12 12:51:56,433 - app.services.email_service - INFO - email_service.py:82 - To Email: gauravpalve28@gmail.com
+2025-08-12 12:51:56,434 - app.services.email_service - INFO - email_service.py:83 - Email Subject: Interview Confirmation - data engineer Position
+2025-08-12 12:51:56,434 - app.services.email_service - INFO - email_service.py:84 - Email Body Preview: 
+Dear sumeet,
+
+Your interview for the data engineer position has been successfully scheduled.
+
+Inter...
+2025-08-12 12:51:56,435 - app.services.email_service - INFO - email_service.py:85 - === END EMAIL CONFIGURATION DEBUG ===
+2025-08-12 12:51:56,435 - app.services.email_service - INFO - email_service.py:88 - Creating SMTP connection...
+2025-08-12 12:51:57,858 - app.services.email_service - INFO - email_service.py:93 - SMTP connection established
+2025-08-12 12:51:58,097 - app.services.email_service - INFO - email_service.py:98 - Server info: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nSTARTTLS\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 12:51:58,098 - app.services.email_service - INFO - email_service.py:103 - Starting TLS...
+2025-08-12 12:51:58,405 - app.services.email_service - INFO - email_service.py:105 - STARTTLS initiated
+2025-08-12 12:51:58,710 - app.services.email_service - INFO - email_service.py:110 - Server info after TLS: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nAUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 12:51:58,711 - app.services.email_service - INFO - email_service.py:126 - Using password authentication with username: gauravpalve28@gmail.com
+2025-08-12 12:51:59,173 - app.services.email_service - INFO - email_service.py:128 - Password authentication successful
+2025-08-12 12:51:59,176 - app.services.email_service - INFO - email_service.py:132 - Sending email from gauravpalve28@gmail.com to gauravpalve28@gmail.com
+2025-08-12 12:52:00,799 - app.services.email_service - INFO - email_service.py:134 - Email sent successfully
+2025-08-12 12:52:01,032 - app.services.email_service - INFO - email_service.py:138 - SMTP connection closed
+2025-08-12 12:52:01,033 - app.services.email_service - INFO - email_service.py:146 - Interview confirmation email sent to gauravpalve28@gmail.com
+2025-08-12 12:52:01,034 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:53:10,982 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:53:10,984 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:53:10,989 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:53:10,990 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:53:10,993 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:53:11,005 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:53:11,009 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:53:11,020 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:53:11,024 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:53:11,031 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:53:11,040 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:53:11,045 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:16,964 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:16,966 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:54:16,972 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:16,973 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:54:16,978 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:16,991 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:17,010 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:17,023 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:24,728 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:24,734 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:24,742 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:24,746 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:34,543 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/689aeb9494bc10622f676b32?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:34,545 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:34,553 - app.main - INFO - main.py:38 - Request: PUT http://localhost:8000/interviews/689aeb9494bc10622f676b32?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:34,554 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'aakanksha Bhavsar', 'candidate_email': 'gauravpalve28@gmail.com', 'job_role': 'data engineer', 'scheduled_datetime': '2025-08-15T01:51:00.000Z', 'status': 'scheduled'}
+2025-08-12 12:54:34,564 - app.services.interview_service - INFO - interview_service.py:160 - Interview 689aeb9494bc10622f676b32 updated successfully by 6898d1afe14b88dce6cdfe91
+2025-08-12 12:54:34,566 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:34,598 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:34,609 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:34,617 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:34,622 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:45,642 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:45,643 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:54:45,648 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:45,650 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:54:45,659 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:45,669 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:45,673 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:45,683 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:45,686 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:45,690 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:45,693 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:45,699 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:52,249 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:52,256 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:54:52,262 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:54:52,271 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:55:04,132 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:55:04,134 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:55:04,140 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:55:04,142 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 12:55:04,148 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:55:04,162 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:55:04,171 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:55:04,184 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:55:04,191 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:55:04,201 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:55:04,209 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 12:55:04,218 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 12:56:47,427 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 12:56:47,436 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 12:56:47,447 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 12:56:47,449 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 13:00:08,097 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/logout?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 13:00:08,099 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:00:08,106 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ
+2025-08-12 13:00:08,107 - app.main - INFO - main.py:50 - Request body (JSON): {'token': 'vMpfWu1W0eSX_JpTZ12HezgArnEZw8wv8qhgeuWAraQ'}
+2025-08-12 13:00:08,109 - app.services.auth_service - INFO - auth_service.py:73 - Admin logged out successfully
+2025-08-12 13:00:08,110 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:26,321 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/signup
+2025-08-12 13:03:26,325 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:26,329 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signup
+2025-08-12 13:03:26,330 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'sakshi@gamil.com', 'password': 'admin@123'}
+2025-08-12 13:03:27,155 - app.services.auth_service - INFO - auth_service.py:26 - Admin account created for email: sakshi@gamil.com
+2025-08-12 13:03:27,156 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:41,143 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/signin
+2025-08-12 13:03:41,144 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:41,148 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 13:03:41,148 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'sakshi@gamil.com', 'password': 'admin@123'}
+2025-08-12 13:03:41,983 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: sakshi@gamil.com
+2025-08-12 13:03:41,988 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:42,028 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:03:42,029 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:03:42,031 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:03:42,032 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:03:42,033 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:03:42,038 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:42,041 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:03:42,046 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:03:42,048 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:42,049 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:03:42,052 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:03:42,056 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:44,825 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:44,827 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:04:44,833 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:44,835 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:04:44,839 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:44,848 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:44,852 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:44,860 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:44,865 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:44,869 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:44,873 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:44,879 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:47,036 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:47,038 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:04:47,041 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:47,042 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:47,043 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:04:47,049 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:47,052 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:47,057 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:50,010 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:50,017 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:50,021 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:50,026 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:58,359 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:58,360 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:04:58,363 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:58,364 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:04:58,365 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:58,370 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:58,373 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:58,376 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:58,380 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:58,382 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:04:58,385 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:04:58,389 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:09,330 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:09,331 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:05:09,335 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:09,336 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:05:09,339 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:09,346 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:09,351 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:09,357 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:18,556 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:18,557 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:05:18,561 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:18,564 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:05:18,566 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:18,571 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:18,575 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:18,578 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:18,581 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:18,583 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:18,587 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:18,590 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:25,271 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:25,279 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:05:25,285 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:05:25,291 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:07:57,876 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:57,877 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:07:57,883 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:57,883 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'sakshi g', 'candidate_email': 'gsakshi0809@gmail.com', 'job_role': 'DEVOPS', 'scheduled_datetime': '2025-08-12T07:47:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 13:07:57,885 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:07:57,889 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/interviews/?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:57,891 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:07:57,895 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:57,896 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_name': 'sakshi g', 'candidate_email': 'gsakshi0809@gmail.com', 'job_role': 'DEVOPS', 'scheduled_datetime': '2025-08-12T07:47:00.000Z', 'status': 'scheduled', 'resume_uploaded': False, 'jd_uploaded': False}
+2025-08-12 13:07:57,901 - app.services.interview_service - INFO - interview_service.py:51 - Interview scheduled successfully: 689aef5594bc10622f676b39 by 689aee4794bc10622f676b38 for gsakshi0809@gmail.com
+2025-08-12 13:07:57,902 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:07:57,910 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/interviews/upload/files?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:57,918 - app.main - INFO - main.py:55 - Request body: [binary data]
+2025-08-12 13:07:57,920 - app.routes.upload_resume - INFO - upload_resume.py:32 - Admin 689aee4794bc10622f676b38 uploaded files for candidate gsakshi0809@gmail.com
+2025-08-12 13:07:57,921 - app.routes.upload_resume - INFO - upload_resume.py:33 - Received upload request: JD=JD-202402-Python-Developer.pdf, Resume=Resume.pdf
+2025-08-12 13:07:57,922 - app.services.resume_upload_service - INFO - resume_upload_service.py:14 - Started processing candidate gsakshi0809@gmail.com
+2025-08-12 13:07:58,289 - app.database - INFO - database.py:75 - Saved candidate gsakshi0809@gmail.com documents to MongoDB in candidate_documents collection.
+2025-08-12 13:07:58,291 - app.services.resume_upload_service - INFO - resume_upload_service.py:23 - Successfully saved files for candidate gsakshi0809@gmail.com
+2025-08-12 13:07:58,293 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:07:58,299 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/emails/send-confirmation?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:58,300 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:07:58,303 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/emails/send-confirmation?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:07:58,304 - app.main - INFO - main.py:50 - Request body (JSON): {'candidate_email': 'gsakshi0809@gmail.com', 'candidate_name': 'sakshi g', 'job_role': 'DEVOPS', 'scheduled_datetime': 'Aug 12, 2025, 1:17:00 PM', 'interview_id': '689aef5594bc10622f676b39'}
+2025-08-12 13:07:58,305 - app.routes.email_routes - INFO - email_routes.py:44 - Admin 689aee4794bc10622f676b38 requested to send confirmation email to gsakshi0809@gmail.com
+2025-08-12 13:07:58,306 - app.services.email_service - INFO - email_service.py:70 - Connecting to SMTP server: smtp.gmail.com:587
+2025-08-12 13:07:58,307 - app.services.email_service - INFO - email_service.py:71 - Using SMTP username: gauravpalve28@gmail.com
+2025-08-12 13:07:58,307 - app.services.email_service - INFO - email_service.py:72 - From email: gauravpalve28@gmail.com
+2025-08-12 13:07:58,307 - app.services.email_service - INFO - email_service.py:76 - === EMAIL CONFIGURATION DEBUG ===
+2025-08-12 13:07:58,308 - app.services.email_service - INFO - email_service.py:77 - SMTP Server: smtp.gmail.com
+2025-08-12 13:07:58,309 - app.services.email_service - INFO - email_service.py:78 - SMTP Port: 587
+2025-08-12 13:07:58,309 - app.services.email_service - INFO - email_service.py:79 - SMTP Username: gauravpalve28@gmail.com
+2025-08-12 13:07:58,310 - app.services.email_service - INFO - email_service.py:80 - Using OAuth2: False
+2025-08-12 13:07:58,311 - app.services.email_service - INFO - email_service.py:81 - From Email: gauravpalve28@gmail.com
+2025-08-12 13:07:58,311 - app.services.email_service - INFO - email_service.py:82 - To Email: gsakshi0809@gmail.com
+2025-08-12 13:07:58,312 - app.services.email_service - INFO - email_service.py:83 - Email Subject: Interview Confirmation - DEVOPS Position
+2025-08-12 13:07:58,312 - app.services.email_service - INFO - email_service.py:84 - Email Body Preview: 
+Dear sakshi g,
+
+Your interview for the DEVOPS position has been successfully scheduled.
+
+Interview ...
+2025-08-12 13:07:58,314 - app.services.email_service - INFO - email_service.py:85 - === END EMAIL CONFIGURATION DEBUG ===
+2025-08-12 13:07:58,315 - app.services.email_service - INFO - email_service.py:88 - Creating SMTP connection...
+2025-08-12 13:07:59,769 - app.services.email_service - INFO - email_service.py:93 - SMTP connection established
+2025-08-12 13:08:00,066 - app.services.email_service - INFO - email_service.py:98 - Server info: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nSTARTTLS\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 13:08:00,067 - app.services.email_service - INFO - email_service.py:103 - Starting TLS...
+2025-08-12 13:08:00,385 - app.services.email_service - INFO - email_service.py:105 - STARTTLS initiated
+2025-08-12 13:08:00,791 - app.services.email_service - INFO - email_service.py:110 - Server info after TLS: (250, b'smtp.gmail.com at your service, [202.189.229.36]\nSIZE 35882577\n8BITMIME\nAUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH\nENHANCEDSTATUSCODES\nPIPELINING\nCHUNKING\nSMTPUTF8')
+2025-08-12 13:08:00,791 - app.services.email_service - INFO - email_service.py:126 - Using password authentication with username: gauravpalve28@gmail.com
+2025-08-12 13:08:01,292 - app.services.email_service - INFO - email_service.py:128 - Password authentication successful
+2025-08-12 13:08:01,294 - app.services.email_service - INFO - email_service.py:132 - Sending email from gauravpalve28@gmail.com to gsakshi0809@gmail.com
+2025-08-12 13:08:03,136 - app.services.email_service - INFO - email_service.py:134 - Email sent successfully
+2025-08-12 13:08:03,369 - app.services.email_service - INFO - email_service.py:138 - SMTP connection closed
+2025-08-12 13:08:03,370 - app.services.email_service - INFO - email_service.py:146 - Interview confirmation email sent to gsakshi0809@gmail.com
+2025-08-12 13:08:03,371 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:08,879 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:08,883 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:08,891 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:08,892 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:08,896 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:08,905 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:08,912 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:08,922 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:08,926 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:08,932 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:08,936 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:08,942 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:29,267 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:29,269 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:29,271 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:29,272 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:29,273 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:29,278 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:29,281 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:29,286 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:34,098 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:34,106 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:34,110 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:34,114 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:44,685 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:44,686 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:44,690 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:44,691 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:44,695 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:44,701 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:44,705 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:44,709 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:46,397 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:46,399 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:46,402 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:46,403 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 13:10:46,405 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:46,410 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:46,414 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:46,416 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:46,420 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:46,421 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:10:46,425 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:10:46,428 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:14:37,837 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/logout?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:14:37,839 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:14:37,843 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/logout?session_token=5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI
+2025-08-12 13:14:37,844 - app.main - INFO - main.py:50 - Request body (JSON): {'token': '5erp3wOo3XXrNHmktLh_GcNNgv7V6F-Cd6HC8GJrKfI'}
+2025-08-12 13:14:37,846 - app.services.auth_service - INFO - auth_service.py:73 - Admin logged out successfully
+2025-08-12 13:14:37,846 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 13:23:31,175 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 13:23:31,176 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 13:23:31,180 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 13:23:31,181 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 13:24:26,091 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 13:24:26,092 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 13:24:26,094 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 13:24:26,094 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 14:42:49,388 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 14:42:49,389 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 14:42:49,392 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689aeb9494bc10622f676b32
+2025-08-12 14:42:49,393 - app.main - INFO - main.py:63 - Response status: 422
+2025-08-12 14:43:27,115 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 14:43:27,119 - app.database - INFO - database.py:34 - MongoDB connection closed
+2025-08-12 14:44:04,795 - root - INFO - logger.py:126 - Logger initialized: level=INFO, console=True, file=True
+2025-08-12 14:44:05,676 - app.main - INFO - main.py:69 - Starting up AI Interview Assistant Backend...
+2025-08-12 14:44:05,699 - app.database - INFO - database.py:25 - Connected to MongoDB
+2025-08-12 14:44:46,106 - app.main - INFO - main.py:38 - Request: OPTIONS http://localhost:8000/auth/signin
+2025-08-12 14:44:46,108 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:46,110 - app.main - INFO - main.py:38 - Request: POST http://localhost:8000/auth/signin
+2025-08-12 14:44:46,111 - app.main - INFO - main.py:50 - Request body (JSON): {'email': 'gaurav@gmail.com', 'password': 'admin@123'}
+2025-08-12 14:44:46,133 - passlib.handlers.bcrypt - WARNING - bcrypt.py:622 - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\Team Project\interview_systems_endpoints\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-08-12 14:44:46,536 - app.services.auth_service - INFO - auth_service.py:50 - Admin authenticated successfully: gaurav@gmail.com
+2025-08-12 14:44:46,538 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:46,565 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:46,566 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:44:46,569 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:46,570 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:46,570 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:44:46,577 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:46,581 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:46,583 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:46,587 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:46,590 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:46,616 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:46,620 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:59,345 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:59,346 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:44:59,347 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:59,349 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:44:59,353 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:59,360 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:44:59,363 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:44:59,368 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:01,449 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:01,450 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:46:01,452 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:01,453 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:46:01,455 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:01,462 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:01,466 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:01,470 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:05,505 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:05,508 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:05,513 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:05,518 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:27,138 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:27,139 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:46:27,141 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:27,143 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:27,144 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:46:27,154 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:27,158 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=5&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:27,163 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:27,171 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:27,174 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:27,183 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/stats/summary?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:27,189 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:35,989 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:35,995 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:35,999 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:36,007 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:42,959 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:42,961 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:46:42,964 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:42,965 - app.main - INFO - main.py:63 - Response status: 307
+2025-08-12 14:46:42,969 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:42,975 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:42,979 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/?page=1&page_size=10&session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:42,984 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:44,139 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:44,144 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:46:44,147 - app.main - INFO - main.py:38 - Request: GET http://localhost:8000/interviews/689ae79994bc10622f676b2c?session_token=bP_k9PID0vpNTn_5REmx8jP_HF2m8rMnGa920S-GiQ0
+2025-08-12 14:46:44,150 - app.main - INFO - main.py:63 - Response status: 200
+2025-08-12 14:47:17,242 - app.main - INFO - main.py:74 - Shutting down AI Interview Assistant Backend...
+2025-08-12 14:47:17,245 - app.database - INFO - database.py:34 - MongoDB connection closed
