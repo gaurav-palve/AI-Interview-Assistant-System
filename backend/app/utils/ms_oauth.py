@@ -1,15 +1,29 @@
-import msal
 import base64
 import time
-from ..config import settings
 import logging
+from ..config import settings
 
 logger = logging.getLogger(__name__)
+
+# Try to import msal, but provide fallback if not available
+try:
+    import msal
+    MSAL_AVAILABLE = True
+    logger.info("MSAL module successfully imported")
+except ImportError:
+    MSAL_AVAILABLE = False
+    logger.warning("MSAL module not found. OAuth2 authentication will not be available.")
+    logger.warning("To use OAuth2, install the msal package with: pip install msal")
 
 def get_access_token():
     """
     Get an OAuth2 access token for Microsoft Graph API using MSAL
     """
+    if not MSAL_AVAILABLE:
+        logger.error("Cannot get access token: MSAL module not available")
+        logger.error("Install the msal package with: pip install msal")
+        return None
+        
     try:
         # Initialize the MSAL app
         app = msal.ConfidentialClientApplication(

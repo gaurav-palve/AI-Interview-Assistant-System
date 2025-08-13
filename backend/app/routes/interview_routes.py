@@ -23,12 +23,33 @@ async def create_interview(
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new interview"""
+    logger.info(f"Request to create interview for candidate: {interview_data.candidate_email}")
+    logger.info(f"Interview data: {interview_data}")
+    
     try:
+        # Verify database connection
+        from ..database import verify_database_connection
+        db_ok = await verify_database_connection()
+        if not db_ok:
+            logger.error("Database connection verification failed before creating interview")
+            raise HTTPException(status_code=503, detail="Database service unavailable")
+        
+        # Create interview
         interview_service = InterviewService()
         interview_id = await interview_service.create_interview(
-            interview_data, 
+            interview_data,
             current_user["admin_id"]
         )
+        
+        # Verify the interview was created
+        logger.info(f"Verifying interview creation with ID: {interview_id}")
+        verification = await interview_service.get_interview(interview_id)
+        
+        if not verification:
+            logger.error(f"Failed to verify interview creation. ID: {interview_id}")
+            raise HTTPException(status_code=500, detail="Interview creation verification failed")
+        
+        logger.info(f"Interview created and verified with ID: {interview_id}")
         
         return {
             "message": "Interview created successfully",
@@ -36,9 +57,14 @@ async def create_interview(
             "status": "success"
         }
     except ValueError as e:
+        logger.warning(f"Validation error creating interview: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
         logger.error(f"Error creating interview: {e}")
+        logger.exception("Full exception details:")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/{interview_id}", response_model=InterviewResponse)

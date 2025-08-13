@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import json
-from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes
+from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes
 from .database import connect_to_mongo, close_mongo_connection
 from .utils.logger import get_logger
 
@@ -31,6 +31,7 @@ app.include_router(interview_routes.router)
 app.include_router(upload_resume.router)
 app.include_router(generate_mcq_route.router)
 app.include_router(email_routes.router)
+app.include_router(candidate_routes.router)
 
 # Add request logging middleware
 @app.middleware("http")
@@ -67,7 +68,21 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting up AI Interview Assistant Backend...")
-    await connect_to_mongo()
+    try:
+        # Connect to MongoDB
+        await connect_to_mongo()
+        
+        # Verify database connection and collections
+        from .database import verify_database_connection
+        db_ok = await verify_database_connection()
+        
+        if db_ok:
+            logger.info("Database connection and collections verified successfully")
+        else:
+            logger.error("Database verification failed - some features may not work correctly")
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        logger.error("Application may not function correctly due to startup errors")
 
 @app.on_event("shutdown")
 async def shutdown_event():
