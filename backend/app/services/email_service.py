@@ -7,7 +7,16 @@ import os
 from typing import Optional
 import logging
 from ..config import settings
-from ..utils.ms_oauth import get_access_token, generate_oauth2_string
+
+# Try to import OAuth2 functions, but provide fallback if not available
+try:
+    from ..utils.ms_oauth import get_access_token, generate_oauth2_string, MSAL_AVAILABLE
+except ImportError:
+    # If ms_oauth.py couldn't be imported at all
+    MSAL_AVAILABLE = False
+    get_access_token = None
+    generate_oauth2_string = None
+    logging.warning("OAuth2 functionality not available. Using password authentication only.")
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +44,7 @@ class EmailService:
                 return False
             
             # Create candidate interview URL
+            # Create candidate interview URL - this should match the route in the frontend
             interview_url = f"{self.frontend_url}/candidate/interview/{interview_id}"
             
             # Create message
@@ -112,17 +122,23 @@ Interview System Team
                     logger.error(f"Error getting server info after TLS: {e}")
                 
                 # Login - using OAuth2 or password based on settings
-                if settings.USE_OAUTH2:
+                if settings.USE_OAUTH2 and MSAL_AVAILABLE:
                     logger.info("Using OAuth2 authentication")
                     access_token = get_access_token()
                     if not access_token:
                         logger.error("Failed to get OAuth2 access token")
-                        return False
-                    
-                    auth_string = generate_oauth2_string(self.smtp_username, access_token)
-                    server.auth("XOAUTH2", lambda x: auth_string)
-                    logger.info("OAuth2 authentication successful")
+                        logger.info("Falling back to password authentication")
+                        server.login(self.smtp_username, self.smtp_password)
+                        logger.info("Password authentication successful (fallback)")
+                    else:
+                        auth_string = generate_oauth2_string(self.smtp_username, access_token)
+                        server.auth("XOAUTH2", lambda x: auth_string)
+                        logger.info("OAuth2 authentication successful")
                 else:
+                    if settings.USE_OAUTH2 and not MSAL_AVAILABLE:
+                        logger.warning("OAuth2 requested but MSAL module not available. Falling back to password authentication.")
+                        logger.warning("To use OAuth2, install the msal package with: pip install msal")
+                    
                     logger.info(f"Using password authentication with username: {self.smtp_username}")
                     server.login(self.smtp_username, self.smtp_password)
                     logger.info("Password authentication successful")
@@ -165,6 +181,7 @@ Interview System Team
                 return False
             
             # Create candidate interview URL
+            # Create candidate interview URL - this should match the route in the frontend
             interview_url = f"{self.frontend_url}/candidate/interview/{interview_id}"
             
             # Create message
@@ -240,17 +257,23 @@ Interview System Team
                     logger.error(f"Error getting server info after TLS: {e}")
                 
                 # Login - using OAuth2 or password based on settings
-                if settings.USE_OAUTH2:
+                if settings.USE_OAUTH2 and MSAL_AVAILABLE:
                     logger.info("Using OAuth2 authentication")
                     access_token = get_access_token()
                     if not access_token:
                         logger.error("Failed to get OAuth2 access token")
-                        return False
-                    
-                    auth_string = generate_oauth2_string(self.smtp_username, access_token)
-                    server.auth("XOAUTH2", lambda x: auth_string)
-                    logger.info("OAuth2 authentication successful")
+                        logger.info("Falling back to password authentication")
+                        server.login(self.smtp_username, self.smtp_password)
+                        logger.info("Password authentication successful (fallback)")
+                    else:
+                        auth_string = generate_oauth2_string(self.smtp_username, access_token)
+                        server.auth("XOAUTH2", lambda x: auth_string)
+                        logger.info("OAuth2 authentication successful")
                 else:
+                    if settings.USE_OAUTH2 and not MSAL_AVAILABLE:
+                        logger.warning("OAuth2 requested but MSAL module not available. Falling back to password authentication.")
+                        logger.warning("To use OAuth2, install the msal package with: pip install msal")
+                    
                     logger.info(f"Using password authentication with username: {self.smtp_username}")
                     server.login(self.smtp_username, self.smtp_password)
                     logger.info("Password authentication successful")

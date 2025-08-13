@@ -128,6 +128,34 @@ const interviewService = {
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
     }
+  },
+  
+  /**
+   * Get candidate interview by ID (public endpoint)
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the interview data
+   */
+  getCandidateInterview: async (interviewId) => {
+    try {
+      const response = await api.get(`/candidate/interview/${interviewId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching the interview' };
+    }
+  },
+  
+  /**
+   * Generate MCQs for candidate interview (public endpoint)
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the generated MCQs
+   */
+  generateCandidateMCQs: async (interviewId) => {
+    try {
+      const response = await api.post(`/candidate/generate-mcqs/${interviewId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
+    }
   }
 };
 

@@ -2,6 +2,22 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import interviewService from '../services/interviewService';
 
+// Custom logger for better debugging
+const logger = {
+  info: (message, data) => {
+    console.info(`[CandidateInterview] INFO: ${message}`, data || '');
+  },
+  error: (message, error) => {
+    console.error(`[CandidateInterview] ERROR: ${message}`, error || '');
+  },
+  warn: (message, data) => {
+    console.warn(`[CandidateInterview] WARNING: ${message}`, data || '');
+  },
+  debug: (message, data) => {
+    console.debug(`[CandidateInterview] DEBUG: ${message}`, data || '');
+  }
+};
+
 // Material UI Icons
 import {
   PlayArrow as PlayIcon,
@@ -31,13 +47,15 @@ function CandidateInterview() {
   // Fetch interview details on component mount
   useEffect(() => {
     const fetchInterview = async () => {
+      logger.info(`Fetching interview with ID: ${interviewId}`);
       try {
         setLoading(true);
-        const data = await interviewService.getInterviewById(interviewId);
+        const data = await interviewService.getCandidateInterview(interviewId);
+        logger.info('Interview data retrieved successfully', data);
         setInterview(data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching interview:', err);
+        logger.error('Error fetching interview', err);
         setError(err.detail || 'Failed to load interview details. Please check your interview link.');
       } finally {
         setLoading(false);
@@ -53,24 +71,42 @@ function CandidateInterview() {
    * Start the interview by generating MCQs
    */
   const handleStartInterview = async () => {
-    if (!interview) return;
+    if (!interview) {
+      logger.warn('Attempted to start interview but interview data is not loaded');
+      return;
+    }
 
+    logger.info('Starting interview process', {
+      interviewId,
+      candidateName: interview.candidate_name,
+      candidateEmail: interview.candidate_email
+    });
+    
     setGeneratingMcqs(true);
     setError(null);
 
     try {
       // Generate MCQs based on resume and job description
-      const response = await interviewService.generateMCQs(interview.candidate_email);
+      logger.info('Generating MCQs for interview', { interviewId });
+      const response = await interviewService.generateCandidateMCQs(interviewId);
+      logger.info('MCQs generated successfully', { responseLength: response.length });
       
       // Parse MCQs from response
+      logger.debug('Parsing MCQs from response');
       const parsedMcqs = parseMcqs(response);
+      logger.info('MCQs parsed successfully', {
+        count: parsedMcqs.length,
+        firstQuestion: parsedMcqs[0]?.question
+      });
+      
       setMcqs(parsedMcqs);
       
       // Start the interview
+      logger.info('Starting the interview with generated MCQs');
       setStarted(true);
       setCurrentQuestionIndex(0);
     } catch (err) {
-      console.error('Error generating MCQs:', err);
+      logger.error('Error generating MCQs', err);
       setError(err.detail || 'Failed to generate interview questions. Please try again later.');
     } finally {
       setGeneratingMcqs(false);
@@ -85,6 +121,7 @@ function CandidateInterview() {
   const parseMcqs = (mcqText) => {
     // This is a simple parser for the MCQ format
     // In a real application, you would want a more robust parser
+    logger.debug('Parsing MCQ text', { textLength: mcqText.length });
     const questions = [];
     const lines = mcqText.split('\n');
     
@@ -141,6 +178,11 @@ function CandidateInterview() {
    * @param {string} option - Selected option
    */
   const handleSelectAnswer = (option) => {
+    logger.info('Answer selected', {
+      questionIndex: currentQuestionIndex,
+      selectedOption: option
+    });
+    
     setAnswers({
       ...answers,
       [currentQuestionIndex]: option
@@ -151,9 +193,20 @@ function CandidateInterview() {
    * Move to the next question
    */
   const handleNextQuestion = () => {
+    logger.info('Moving to next question', {
+      currentIndex: currentQuestionIndex,
+      totalQuestions: mcqs.length,
+      selectedAnswer: answers[currentQuestionIndex]
+    });
+    
     if (currentQuestionIndex < mcqs.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      logger.info('Advanced to next question', { newIndex: currentQuestionIndex + 1 });
     } else {
+      logger.info('Interview completed', {
+        totalQuestions: mcqs.length,
+        answersCollected: Object.keys(answers).length
+      });
       setCompleted(true);
     }
   };

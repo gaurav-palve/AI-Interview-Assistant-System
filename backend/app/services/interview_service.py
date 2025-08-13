@@ -14,6 +14,8 @@ class InterviewService:
     
     async def create_interview(self, interview_data: InterviewCreate, created_by: str) -> str:
         """Create a new interview with proper validation and logic"""
+        logger.info(f"Creating interview for candidate: {interview_data.candidate_email}, job role: {interview_data.job_role}")
+        
         try:
             # Validate scheduled datetime is in the future
             # Ensure the scheduled datetime is timezone-aware
@@ -21,8 +23,10 @@ class InterviewService:
             if scheduled_dt.tzinfo is None:
                 # If naive, assume it's in UTC
                 scheduled_dt = scheduled_dt.replace(tzinfo=timezone.utc)
+                logger.info(f"Added UTC timezone to naive datetime: {scheduled_dt}")
                 
             if scheduled_dt <= datetime.now(timezone.utc):
+                logger.warning(f"Invalid scheduled time: {scheduled_dt} is not in the future")
                 raise ValueError("Interview must be scheduled for a future date and time")
             
             # Create interview document
@@ -43,31 +47,93 @@ class InterviewService:
                 }
             }
             
+            logger.info(f"Prepared interview document: {interview_doc}")
+            
+            # Verify database connection before insert
+            from ..database import verify_database_connection
+            db_ok = await verify_database_connection()
+            if not db_ok:
+                logger.error("Database connection verification failed before interview creation")
+                raise RuntimeError("Database connection verification failed")
+            
             # Insert into database
+            logger.info(f"Inserting interview into {SCHEDULED_INTERVIEWS_COLLECTION} collection")
             result = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].insert_one(interview_doc)
+            
+            if not result.acknowledged:
+                logger.error("Insert operation was not acknowledged by MongoDB")
+                raise RuntimeError("Insert operation failed: not acknowledged")
+                
             interview_id = str(result.inserted_id)
+            logger.info(f"Interview created with ID: {interview_id}")
+            
+            # Verify the interview was actually saved
+            verification = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": result.inserted_id})
+            if verification:
+                logger.info(f"Verified interview was saved correctly: {verification['_id']}")
+            else:
+                logger.error(f"Failed to verify interview was saved. ID: {interview_id}")
+                raise RuntimeError("Interview creation verification failed")
             
             # Note: Email generation will be handled by OpenAI LLM
             logger.info(f"Interview scheduled successfully: {interview_id} by {created_by} for {interview_data.candidate_email}")
             return interview_id
             
+        except ValueError as e:
+            logger.error(f"Validation error creating interview: {e}")
+            raise
         except Exception as e:
             logger.error(f"Error creating interview: {e}")
+            logger.exception("Full exception details:")
             raise
     
     async def get_interview(self, interview_id: str) -> Optional[Dict[str, Any]]:
         """Get interview by ID"""
+        logger.info(f"Getting interview with ID: {interview_id}")
+        
         try:
+            # Validate ObjectId format
             if not ObjectId.is_valid(interview_id):
+                logger.warning(f"Invalid ObjectId format: {interview_id}")
                 return None
             
-            interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": ObjectId(interview_id)})
+            # Verify database connection before query
+            from ..database import verify_database_connection
+            db_ok = await verify_database_connection()
+            if not db_ok:
+                logger.error("Database connection verification failed before interview retrieval")
+                raise RuntimeError("Database connection verification failed")
+            
+            # Convert string ID to ObjectId
+            object_id = ObjectId(interview_id)
+            logger.info(f"Converted to ObjectId: {object_id}")
+            
+            # Query the database
+            logger.info(f"Querying {SCHEDULED_INTERVIEWS_COLLECTION} collection for interview")
+            interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": object_id})
+            
             if interview:
+                logger.info(f"Interview found: {interview.get('candidate_name', 'Unknown')}")
                 interview["id"] = str(interview["_id"])
                 return interview
-            return None
+            else:
+                logger.warning(f"Interview not found with ID: {interview_id}")
+                
+                # Debug: List recent interviews to help troubleshoot
+                logger.info("Listing recent interviews for debugging:")
+                cursor = self.db[SCHEDULED_INTERVIEWS_COLLECTION].find().sort("created_at", -1).limit(5)
+                recent_interviews = await cursor.to_list(length=5)
+                
+                if recent_interviews:
+                    for idx, interview in enumerate(recent_interviews):
+                        logger.info(f"Recent interview {idx+1}: ID={interview['_id']}, Candidate={interview.get('candidate_name', 'Unknown')}")
+                else:
+                    logger.warning("No interviews found in the database")
+                
+                return None
         except Exception as e:
             logger.error(f"Error getting interview {interview_id}: {e}")
+            logger.exception("Full exception details:")
             raise
     
     async def get_interviews_by_creator(self, created_by: str, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
@@ -226,4 +292,45 @@ class InterviewService:
             }
         except Exception as e:
             logger.error(f"Error getting interview statistics for {created_by}: {e}")
+            raise
+    
+    async def update_interview_status(self, interview_id: str, status: str) -> bool:
+        """Update interview status without permission check (for candidate use)"""
+        logger.info(f"Attempting to update interview status: ID={interview_id}, new status={status}")
+        try:
+            if not ObjectId.is_valid(interview_id):
+                logger.warning(f"Invalid ObjectId format for interview_id: {interview_id}")
+                return False
+            
+            # Get current interview status for logging
+            current_interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one(
+                {"_id": ObjectId(interview_id)},
+                {"status": 1}
+            )
+            
+            if current_interview:
+                current_status = current_interview.get("status", "unknown")
+                logger.info(f"Current interview status: {current_status}, changing to: {status}")
+            else:
+                logger.warning(f"Interview not found when updating status: {interview_id}")
+                return False
+            
+            # Update database
+            result = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].update_one(
+                {"_id": ObjectId(interview_id)},
+                {"$set": {
+                    "status": status,
+                    "updated_at": datetime.now(timezone.utc)
+                }}
+            )
+            
+            if result.modified_count > 0:
+                logger.info(f"Interview {interview_id} status successfully updated from {current_status} to {status}")
+                return True
+            else:
+                logger.warning(f"Interview {interview_id} status update had no effect (status might already be {status})")
+                return False
+            
+        except Exception as e:
+            logger.error(f"Error updating interview status {interview_id}: {e}")
             raise

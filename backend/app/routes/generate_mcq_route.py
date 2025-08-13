@@ -38,6 +38,9 @@ async def generate_mcqs_route(
         jd_text = await extract_text_from_jd(candidate_email)
         resume_text = await extract_text_from_resume(candidate_email)
         response = await generate_mcqs(jd_text, resume_text)
+        print(30*'*')
+        print(response)
+        print(30*'*')
         return response
     except Exception as e:
         logger.error(f"Error generating MCQs: {str(e)}")
