@@ -4,6 +4,7 @@ from gridfs import GridFS
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from .utils.logger import get_logger
+from app.utils.parse_mcqs import parse_mcqs
 
 logger = get_logger(__name__)
 
@@ -11,7 +12,7 @@ logger = get_logger(__name__)
 AUTH_COLLECTION = "auth_collection"
 SCHEDULED_INTERVIEWS_COLLECTION = "scheduled_interviews"
 CANDIDATE_DOCUMENTS_COLLECTION = "candidate_documents"
-MCQ_RESPONSES_COLLECTION = "mcq_responses"
+MCQS_COLLECTION = "mcqs"
 
 client = None
 db = None
@@ -216,147 +217,38 @@ async def get_jd_from_db(candidate_email: str) -> bytes:
         return None
 
 
-async def save_mcq_responses(interview_id: str, candidate_email: str, mcq_data: dict) -> bool:
-    """
-    Save MCQ responses for a candidate interview
-    
-    Args:
-        interview_id: The ID of the interview
-        candidate_email: The email of the candidate
-        mcq_data: Dictionary containing MCQ questions and responses
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
+
+def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str) -> bool:
     try:
-        logger.info(f"Saving MCQ responses for interview ID: {interview_id}, candidate: {candidate_email}")
+        logger.info(f"Saving MCQ's for interview ID: {interview_id}")
         db = get_database()
-        
-        # Create response document
-        response_doc = {
+
+        # Convert response string into list of dicts
+        parsed_mcqs = parse_mcqs(mcqs_text)
+
+        db[MCQS_COLLECTION].insert_one({
             "interview_id": interview_id,
             "candidate_email": candidate_email,
-            "mcq_data": mcq_data,
-            "submitted_at": datetime.now(timezone.utc)
-        }
-        
-        # Check if responses already exist
-        existing = await db[MCQ_RESPONSES_COLLECTION].find_one({
-            "interview_id": interview_id,
-            "candidate_email": candidate_email
+            "mcqs_text": parsed_mcqs,  # <- structured dict instead of raw text
+            "created_at": datetime.utcnow()
         })
-        
-        if existing:
-            # Update existing responses
-            logger.info(f"Updating existing MCQ responses for interview ID: {interview_id}")
-            result = await db[MCQ_RESPONSES_COLLECTION].update_one(
-                {"_id": existing["_id"]},
-                {"$set": {
-                    "mcq_data": mcq_data,
-                    "submitted_at": datetime.now(timezone.utc),
-                    "updated_at": datetime.now(timezone.utc)
-                }}
-            )
-            success = result.modified_count > 0
-        else:
-            # Insert new responses
-            logger.info(f"Inserting new MCQ responses for interview ID: {interview_id}")
-            result = await db[MCQ_RESPONSES_COLLECTION].insert_one(response_doc)
-            success = result.acknowledged
-        
-        if success:
-            logger.info(f"Successfully saved MCQ responses for interview ID: {interview_id}")
-        else:
-            logger.warning(f"Failed to save MCQ responses for interview ID: {interview_id}")
-        
-        return success
+        return True
     except Exception as e:
-        logger.error(f"Error saving MCQ responses: {e}")
-        logger.exception("Full exception details:")
+        logger.error(f"Error saving generated MCQs: {e}")
         return False
-
-
-async def get_mcq_responses(interview_id: str) -> dict:
-    """
-    Get MCQ responses for a specific interview
     
-    Args:
-        interview_id: The ID of the interview
-        
-    Returns:
-        dict: The MCQ responses or None if not found
-    """
+
+
+async def save_candidate_answer(interview_id: str, candidate_email: str, question: str, answer: str) -> bool:
     try:
-        logger.info(f"Retrieving MCQ responses for interview ID: {interview_id}")
-        db = get_database()
-        
-        response = await db[MCQ_RESPONSES_COLLECTION].find_one({"interview_id": interview_id})
-        
-        if response:
-            logger.info(f"Found MCQ responses for interview ID: {interview_id}")
-            return response
-        else:
-            logger.warning(f"No MCQ responses found for interview ID: {interview_id}")
-            return None
-    except Exception as e:
-        logger.error(f"Error retrieving MCQ responses: {e}")
-        logger.exception("Full exception details:")
-        return None
-    
-
-
-
-def save_mcqs(interview_id:str, candidate_email: str, jd_text: str, resume_text: str, mcqs: list):
-    
-    try:
-        document = {
+        await db[MCQS_COLLECTION].insert_one({
             "interview_id": interview_id,
             "candidate_email": candidate_email,
-            "mcqs": mcqs,
-            "created_at": datetime.utcnow().isoformat()
-        }
-
-        result = db[MCQ_COLLECTION].insert_one(document)
-        logger.info(f"MCQs saved for candidate {candidate_email}, ID: {result.inserted_id}")
-        return result.inserted_id
-
+            "question": question,
+            "candidate_answer": answer,
+            "submitted_at": datetime.utcnow()
+        })
+        return True
     except Exception as e:
-        logger.error(f"Error saving MCQs for {candidate_email}: {e}")
-        raise
-
-
-
-# def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str) -> bool:
-#     try:
-#         logger.info(f"Saving MCQ's for interview ID: {interview_id}")
-#         db = get_database()
-#         db[MCQ_COLLECTION].insert_one({
-#             "interview_id": interview_id,
-#             "candidate_email": candidate_email,
-#             "mcqs_text": mcqs_text,
-#             "created_at": datetime.utcnow()
-#         })
-#         return True
-#     except Exception as e:
-#         logger.error(f"Error saving generated MCQs: {e}")
-#         return False
-    
-
-# def get_generated_mcqs(interview_id: str, candidate_email: str):
-#     return db[MCQ_COLLECTION].find_one({"interview_id": interview_id, "candidate_email": candidate_email})
-
-
-
-# async def save_candidate_answer(interview_id: str, candidate_email: str, question: str, answer: str) -> bool:
-#     try:
-#         await db[MCQ_COLLECTION].insert_one({
-#             "interview_id": interview_id,
-#             "candidate_email": candidate_email,
-#             "question": question,
-#             "candidate_answer": answer,
-#             "submitted_at": datetime.utcnow()
-#         })
-#         return True
-#     except Exception as e:
-#         logger.error(f"Error saving candidate answer: {e}")
-#         return False
+        logger.error(f"Error saving candidate answer: {e}")
+        return False

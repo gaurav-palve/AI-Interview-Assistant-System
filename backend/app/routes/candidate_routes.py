@@ -4,7 +4,7 @@ from ..services.mcq_generation_service import generate_mcqs
 from ..utils.extract_jd_text import extract_text_from_jd
 from ..utils.extract_resume_text import extract_text_from_resume
 from ..utils.logger import get_logger
-from ..database import save_mcq_responses, get_mcq_responses
+from ..database import save_generated_mcqs
 from typing import Dict, Any, List
 from pydantic import BaseModel
 
@@ -128,12 +128,11 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
             # Ensure we have some text to work with
             if len(jd_text.strip()) < 10 and len(resume_text.strip()) < 10:
                 logger.warning("Both JD and resume texts are too short. Using default MCQs.")
-                
                 return generate_default_mcqs()
                 
             response = await generate_mcqs(jd_text, resume_text)
-            print(response)
-            print(30*'*')
+
+            save_generated_mcqs(interview_id=interview_id,candidate_email=candidate_email,mcqs_text=response )
             if not response or len(response.strip()) < 20:
                 logger.warning(f"Generated MCQs are too short or empty. Using default MCQs.")
                 return generate_default_mcqs()
@@ -168,72 +167,6 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
         logger.info("Returning default MCQs due to error")
         return generate_default_mcqs()
 
-@router.post("/submit-mcqs")
-async def submit_mcq_responses(submission: MCQSubmission) -> Dict[str, Any]:
-    """
-    Submit MCQ responses for a candidate interview and mark the interview as completed
-    """
-    logger.info(f"Submitting MCQ responses for interview ID: {submission.interview_id}")
-    
-    try:
-        # Verify database connection
-        from ..database import verify_database_connection
-        db_ok = await verify_database_connection()
-        if not db_ok:
-            logger.error("Database connection verification failed in submit_mcq_responses")
-            raise HTTPException(status_code=503, detail="Database service unavailable")
-        
-        # Get the interview
-        interview_service = InterviewService()
-        interview = await interview_service.get_interview(submission.interview_id)
-        
-        if not interview:
-            logger.warning(f"Interview not found when submitting MCQs: {submission.interview_id}")
-            raise HTTPException(status_code=404, detail="Interview not found")
-        
-        # Verify candidate email matches
-        if interview["candidate_email"] != submission.candidate_email:
-            logger.warning(f"Candidate email mismatch: {submission.candidate_email} vs {interview['candidate_email']}")
-            raise HTTPException(status_code=400, detail="Candidate email mismatch")
-        
-        # Save MCQ responses
-        mcq_data = {
-            "responses": [response.dict() for response in submission.responses],
-            "total_score": submission.total_score,
-            "max_score": submission.max_score,
-            "score_percentage": round((submission.total_score / submission.max_score) * 100) if submission.max_score > 0 else 0
-        }
-        
-        saved = await save_mcq_responses(submission.interview_id, submission.candidate_email, mcq_data)
-        
-        if not saved:
-            logger.error(f"Failed to save MCQ responses for interview ID: {submission.interview_id}")
-            raise HTTPException(status_code=500, detail="Failed to save MCQ responses")
-        
-        # Update interview status to completed
-        logger.info(f"Updating interview status to completed for interview ID: {submission.interview_id}")
-        status_updated = await interview_service.update_interview_status(submission.interview_id, "completed")
-        
-        if not status_updated:
-            logger.warning(f"Failed to update interview status for interview ID: {submission.interview_id}")
-        
-        return {
-            "message": "MCQ responses submitted successfully",
-            "interview_id": submission.interview_id,
-            "status": "completed",
-            "score": {
-                "total": submission.total_score,
-                "max": submission.max_score,
-                "percentage": mcq_data["score_percentage"]
-            }
-        }
-    except HTTPException:
-        # Re-raise HTTP exceptions
-        raise
-    except Exception as e:
-        logger.error(f"Error submitting MCQ responses: {e}")
-        logger.exception("Full exception details:")
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 def generate_default_mcqs():
