@@ -14,6 +14,7 @@ router = APIRouter(prefix="/candidate", tags=["Candidate"])
 # Define request models
 class MCQResponse(BaseModel):
     question: str
+    question_id: int  # Add question_id field
     selected_answer: str
     correct_answer: str
     is_correct: bool
@@ -212,3 +213,76 @@ Answer: b) To test individual components or functions
     
     logger.info(f"Generated default MCQs (length: {len(default_mcqs)} chars)")
     return default_mcqs.strip()
+
+@router.post("/submit-answers/{interview_id}")
+async def submit_candidate_answers(interview_id: str, submission: MCQSubmission):
+    """
+    Submit candidate answers for an interview
+    This endpoint does not require authentication
+    """
+    logger.info(f"Candidate submitting answers for interview ID: {interview_id}")
+    
+    try:
+        # Verify database connection
+        from ..database import verify_database_connection, save_candidate_answer
+        db_ok = await verify_database_connection()
+        if not db_ok:
+            logger.error("Database connection verification failed in submit_candidate_answers")
+            raise HTTPException(status_code=503, detail="Database service unavailable")
+        
+        # Verify interview exists
+        interview_service = InterviewService()
+        interview = await interview_service.get_interview(interview_id)
+        
+        if not interview:
+            logger.warning(f"Interview not found when submitting answers: {interview_id}")
+            raise HTTPException(status_code=404, detail="Interview not found")
+        
+        # Verify candidate email matches
+        if interview["candidate_email"] != submission.candidate_email:
+            logger.warning(f"Candidate email mismatch: {submission.candidate_email} vs {interview['candidate_email']}")
+            raise HTTPException(status_code=400, detail="Candidate email does not match interview")
+        
+        # Save each answer
+        success = True
+
+        for response in submission.responses:
+            # Use question_id from the response
+            question_id = response.question_id
+            is_correct = response.is_correct
+            
+            logger.info(f"Saving answer for question_id={question_id}, question={response.question[:30]}...")
+            
+            result = await save_candidate_answer(
+                interview_id=interview_id,
+                question_id=question_id,
+                candidate_answer=response.selected_answer,
+                is_correct=is_correct
+            )
+            if not result:
+                success = False
+                logger.error(f"Failed to save answer for question_id={question_id}, question={response.question[:30]}...")
+        
+        # Update interview status to completed
+        if success:
+            logger.info(f"Updating interview status to completed for interview ID: {interview_id}")
+            status_updated = await interview_service.update_interview_status(interview_id, "completed")
+            if status_updated:
+                logger.info(f"Successfully updated interview status for interview ID: {interview_id}")
+            else:
+                logger.warning(f"Failed to update interview status for interview ID: {interview_id}")
+        
+        return {
+            "message": "Answers submitted successfully",
+            "interview_id": interview_id,
+            "total_score": submission.total_score,
+            "max_score": submission.max_score,
+            "status": "success" if success else "partial_success"
+        }
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        logger.error(f"Error submitting candidate answers: {e}")
+        logger.exception("Full exception details:")
+        raise HTTPException(status_code=500, detail="Internal server error")

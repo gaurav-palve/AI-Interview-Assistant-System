@@ -156,6 +156,32 @@ const interviewService = {
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
     }
+  },
+  
+  /**
+   * Submit candidate answers for an interview (public endpoint)
+   * @param {string} interviewId - Interview ID
+   * @param {string} candidateEmail - Candidate email
+   * @param {Array} responses - Array of responses with question, selected answer, correct answer, and is_correct flag
+   * @param {number} totalScore - Total score achieved
+   * @param {number} maxScore - Maximum possible score
+   * @returns {Promise} - Promise with the submission result
+   */
+  submitCandidateAnswers: async (interviewId, candidateEmail, responses, totalScore, maxScore) => {
+    try {
+      const submission = {
+        interview_id: interviewId,
+        candidate_email: candidateEmail,
+        responses: responses,
+        total_score: totalScore,
+        max_score: maxScore
+      };
+      
+      const response = await api.post(`/candidate/submit-answers/${interviewId}`, submission);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while submitting answers' };
+    }
   }
 };
 
