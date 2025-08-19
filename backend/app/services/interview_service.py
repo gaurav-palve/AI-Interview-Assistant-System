@@ -246,9 +246,7 @@ class InterviewService:
                 logger.warning(f"User {deleted_by} attempted to delete interview {interview_id} created by {current_interview['created_by']}")
                 return False
             
-            # Only allow deletion of draft interviews
-            if current_interview["status"] != InterviewStatus.DRAFT:
-                raise ValueError("Only draft interviews can be deleted")
+            # Allow deletion of interviews in any status
             
             result = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].delete_one({"_id": ObjectId(interview_id)})
             

@@ -247,13 +247,13 @@ def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str)
     
 
 
-async def save_candidate_answer(interview_id: str, candidate_email: str, question: str, answer: str) -> bool:
+async def save_candidate_answer(interview_id: str, question_id: int, candidate_answer: str, is_correct: bool) -> bool:
     try:
         await db[MCQ_RESPONSES_COLLECTION].insert_one({
             "interview_id": interview_id,
-            "candidate_email": candidate_email,
-            "question": question,
-            "candidate_answer": answer,
+            "question_id": question_id,
+            "candidate_answer": candidate_answer,
+            "is_correct": is_correct,
             "submitted_at": datetime.utcnow()
         })
         return True

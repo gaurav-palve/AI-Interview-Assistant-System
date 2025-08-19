@@ -65,7 +65,11 @@ function InterviewList() {
         setTotalInterviews(response.total || 0);
       } catch (err) {
         console.error('Error deleting interview:', err);
-        setError('Failed to delete interview. Please try again later.');
+        // Display the specific error message from the backend if available
+        const errorMessage = err.detail || 'Failed to delete interview. Please try again later.';
+        setError(errorMessage);
+        // Auto-clear error after 5 seconds
+        setTimeout(() => setError(null), 5000);
       }
     }
   };
@@ -263,6 +267,7 @@ function InterviewList() {
                       <button
                         onClick={() => handleDeleteInterview(interview.id)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        title="Delete interview"
                       >
                         <DeleteIcon className="h-4 w-4" />
                       </button>

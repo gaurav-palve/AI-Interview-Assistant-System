@@ -4,7 +4,7 @@ import os
 class Settings(BaseSettings):
     MONGO_URI: str = 'mongodb://localhost:27017/'
     DB_NAME: str = 'interview_assistant'
-    GOOGLE_API_KEY: str="AIzaSyBlqGgCNQ0tUTG6cy6gpFn0tnWxRDgRj1g"
+    OPENAI_API_KEY: str = ""
     
     # SMTP Configuration for Email Notifications
     SMTP_SERVER: str = 'smtp-mail.outlook.com'

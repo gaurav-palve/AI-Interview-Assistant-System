@@ -74,7 +74,15 @@ const interviewService = {
       const response = await api.delete(`/interviews/${interviewId}`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred while deleting the interview' };
+      // Enhanced error handling to capture specific backend error messages
+      if (error.response?.data?.detail) {
+        // If the backend provides a specific error message, use it
+        throw { detail: error.response.data.detail };
+      } else if (error.response?.status === 404) {
+        throw { detail: 'Interview not found or access denied' };
+      } else {
+        throw { detail: 'An error occurred while deleting the interview' };
+      }
     }
   },
 
