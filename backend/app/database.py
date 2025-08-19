@@ -13,6 +13,7 @@ AUTH_COLLECTION = "auth_collection"
 SCHEDULED_INTERVIEWS_COLLECTION = "scheduled_interviews"
 CANDIDATE_DOCUMENTS_COLLECTION = "candidate_documents"
 MCQS_COLLECTION = "mcqs"
+MCQ_RESPONSES_COLLECTION = "mcq_responses"
 
 client = None
 db = None
@@ -42,7 +43,7 @@ async def connect_to_mongo():
         logger.info(f"Available collections: {collections}")
         
         # Ensure required collections exist
-        required_collections = [AUTH_COLLECTION, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION]
+        required_collections = [AUTH_COLLECTION, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION, MCQS_COLLECTION, MCQ_RESPONSES_COLLECTION]
         for collection in required_collections:
             if collection not in collections:
                 logger.warning(f"Collection {collection} does not exist. Creating it now.")
@@ -82,6 +83,13 @@ async def verify_database_connection():
         # Check if we can read from the interviews collection
         count = await db[SCHEDULED_INTERVIEWS_COLLECTION].count_documents({})
         logger.info(f"Number of interviews in the database: {count}")
+        
+        # Also check MCQ collections
+        mcq_count = await db[MCQS_COLLECTION].count_documents({})
+        logger.info(f"Number of MCQs in the database: {mcq_count}")
+        
+        mcq_responses_count = await db[MCQ_RESPONSES_COLLECTION].count_documents({})
+        logger.info(f"Number of MCQ responses in the database: {mcq_responses_count}")
         
         return True
     except Exception as e:
@@ -219,9 +227,6 @@ async def get_jd_from_db(candidate_email: str) -> bytes:
 
 
 def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str) -> bool:
-    """
-    Save MCQs with unique question_id for easier updates later.
-    """
     try:
         logger.info(f"Saving MCQ's for interview ID: {interview_id}")
         db = get_database()
@@ -229,21 +234,10 @@ def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str)
         # Convert response string into list of dicts
         parsed_mcqs = parse_mcqs(mcqs_text)
 
-        # Assign unique question_id
-        structured_mcqs = []
-        for idx, mcq in enumerate(parsed_mcqs, start=1):
-            structured_mcqs.append({
-                "question_id": idx,  # ✅ unique identifier
-                "question": mcq["question"],
-                "answer": mcq["answer"],
-                "candidate_answer": None,
-                "created_at": datetime.utcnow()
-            })
-
         db[MCQS_COLLECTION].insert_one({
             "interview_id": interview_id,
             "candidate_email": candidate_email,
-            "mcqs_text": structured_mcqs,
+            "mcqs_text": parsed_mcqs,  # <- structured dict instead of raw text
             "created_at": datetime.utcnow()
         })
         return True
@@ -253,34 +247,16 @@ def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str)
     
 
 
-async def save_candidate_answer(interview_id: str, question_id: int, candidate_answer: str, is_correct:bool) -> bool:
-    
+async def save_candidate_answer(interview_id: str, candidate_email: str, question: str, answer: str) -> bool:
     try:
-        db = get_database()
-
-        result = await db[MCQS_COLLECTION].update_one(
-            {
-                "interview_id": interview_id,
-                "mcqs_text.question_id": question_id # ✅ match by ID
-            },
-            {
-                "$set": {
-                    "mcqs_text.$.candidate_answer": candidate_answer,
-                    "mcqs_text.$.is_correct":is_correct,
-                    "mcqs_text.$.submitted_at": datetime.utcnow()
-                }
-            }
-        )
-
-        if result.modified_count > 0:
-            logger.info(f"Saved candidate answer for interview_id={interview_id}, question_id={question_id}")
-            return True
-        else:
-            logger.warning(f"No matching question found for interview_id={interview_id}, question_id={question_id}")
-            return False
-
+        await db[MCQ_RESPONSES_COLLECTION].insert_one({
+            "interview_id": interview_id,
+            "candidate_email": candidate_email,
+            "question": question,
+            "candidate_answer": answer,
+            "submitted_at": datetime.utcnow()
+        })
+        return True
     except Exception as e:
         logger.error(f"Error saving candidate answer: {e}")
         return False
-
-
