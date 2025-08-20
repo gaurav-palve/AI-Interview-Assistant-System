@@ -1,4 +1,5 @@
 from ..llm_models.openai_llm import get_openai_llm
+from ..llm_models.gemini_llm import get_gemini_llm
 from langchain.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage
 import logging
@@ -58,12 +59,8 @@ Answer: b) PUT
         )
 
         formatted_prompt = prompt.format(jd=jd_text, resume=resume_text)
-
-        # Get OpenAI API key from environment or settings
-        api_key = os.getenv("OPENAI_API_KEY")
-        
         # Use OpenAI LLM instead of Gemini
-        llm = get_openai_llm(api_key=api_key)
+        llm = get_openai_llm()
         response = await llm.ainvoke([HumanMessage(content=formatted_prompt)])
 
         logger.info("MCQ generation successful with OpenAI.")

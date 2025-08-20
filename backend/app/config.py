@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     MONGO_URI: str = 'mongodb://localhost:27017/'
     DB_NAME: str = 'interview_assistant'
     OPENAI_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""  
     
     # SMTP Configuration for Email Notifications
     SMTP_SERVER: str = 'smtp-mail.outlook.com'
