@@ -32,7 +32,7 @@ function MainLayout({ children }) {
     { path: '/interviews', label: 'Interviews', icon: <AssignmentIcon /> },
     { path: '/interviews/new', label: 'New Interview', icon: <AddIcon /> },
     { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
-    { path: '/email-settings', label: 'Email Settings', icon: <EmailIcon /> },
+    
   ];
 
   // Handle logout
