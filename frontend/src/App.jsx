@@ -15,6 +15,7 @@ import InterviewDetail from './pages/InterviewDetail';
 import InterviewEdit from './pages/InterviewEdit';
 import FileUpload from './pages/FileUpload';
 import MCQGeneration from './pages/MCQGeneration';
+import MCQReport from './pages/MCQReport';
 import Statistics from './pages/Statistics';
 import NotFound from './pages/NotFound';
 
@@ -110,7 +111,13 @@ function App() {
             </ProtectedRoute>
           } />
           
-          
+          <Route path="/interviews/:interviewId/mcq-report" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <MCQReport />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
           
           {/* 404 Not Found route */}
           <Route path="/404" element={<NotFound />} />
@@ -124,3 +131,4 @@ function App() {
 }
 
 export default App;
+ 

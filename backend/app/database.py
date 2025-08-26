@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from .utils.logger import get_logger
 from app.utils.parse_mcqs import parse_mcqs
+from datetime import datetime
+from typing import List, Dict
+from bson import ObjectId
 
 logger = get_logger(__name__)
 
@@ -282,3 +285,66 @@ async def save_candidate_answer(interview_id: str, question_id: int, candidate_a
     except Exception as e:
         logger.error(f"Error saving candidate answer: {e}")
         return False
+
+
+
+async def get_mcq_answers(interview_id: str) -> List[Dict]:
+    """
+    Fetch candidate MCQ answers for a given interview_id.
+    
+    Steps:
+    1. Fetch interview details (to get candidate name).
+    2. Fetch MCQ answers from MCQS_COLLECTION using the interview_id.
+    3. Extract question, correct answer, candidate's answer, correctness, and candidate email.
+    4. Return structured list of extracted data.
+    
+    :param interview_id: The ID of the interview to fetch MCQs for.
+    :return: List of dictionaries containing candidate answers and related details.
+    """
+    try:
+        db = get_database()
+        extracted_data = []
+
+        # Step 1: Get the interview record (fetch candidate name from scheduled interviews)
+        interview_record = await db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": ObjectId(interview_id)})
+        if not interview_record:
+            logger.warning(f"No record found in {SCHEDULED_INTERVIEWS_COLLECTION} for _id={interview_id}")
+            return []  # Exit early if no interview record found
+
+        candidate_name = interview_record.get("candidate_name", "")
+
+        # Step 2: Get MCQ answers for the given interview
+        record = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
+        if not record:
+            logger.warning(f"No record found in {MCQS_COLLECTION} for interview_id={interview_id}")
+            return []
+
+        candidate_email = record.get("candidate_email", "")
+        logger.info(f"Found candidate_email: {candidate_email} for interview_id={interview_id}")
+        
+        # Add candidate name and email as a separate entry (if needed by frontend/report)
+        metadata_entry = {
+            "candidate_name": candidate_name,
+            "candidate_email": candidate_email
+        }
+        extracted_data.append(metadata_entry)
+
+        # Step 3: Extract and structure MCQ data
+        for mcq in record.get("mcqs_text", []):
+            extracted_data.append({
+                "interview_id": record.get("interview_id"),
+                "question": mcq.get("question"),
+                "answer": mcq.get("answer"),
+                "candidate_answer": mcq.get("candidate_answer"),
+                "is_correct": mcq.get("is_correct"),
+                "candidate_email": candidate_email,
+                "candidate_name": candidate_name
+            })
+
+        # Log success
+        logger.info(f"Extracted {len(extracted_data) - 1} MCQs for interview_id={interview_id}")  
+        return extracted_data
+
+    except Exception as e:
+        logger.error(f"Error fetching candidate answers for interview_id={interview_id}: {e}")
+        return [] 

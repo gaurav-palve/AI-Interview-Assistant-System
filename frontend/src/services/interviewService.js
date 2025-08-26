@@ -190,7 +190,22 @@ const interviewService = {
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while submitting answers' };
     }
+  },
+  
+  /**
+   * Get MCQ report for an interview
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the MCQ report data
+   */
+  getMCQReport: async (interviewId) => {
+    try {
+      const response = await api.post(`/mcq-report/mcq-report-generation`, { interview_id: interviewId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching MCQ report' };
+    }
   }
 };
 
 export default interviewService;
+ 

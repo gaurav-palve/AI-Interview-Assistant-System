@@ -13,7 +13,8 @@ import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Assessment as ReportIcon
 } from '@mui/icons-material';
 
 /**
@@ -264,6 +265,15 @@ function InterviewList() {
                       >
                         <EditIcon className="h-4 w-4" />
                       </Link>
+                      {interview.status === 'completed' && (
+                        <Link
+                          to={`/interviews/${interview.id}/mcq-report`}
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
+                          title="View MCQ Report"
+                        >
+                          <ReportIcon className="h-4 w-4" />
+                        </Link>
+                      )}
                       <button
                         onClick={() => handleDeleteInterview(interview.id)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"

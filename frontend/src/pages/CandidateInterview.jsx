@@ -255,12 +255,17 @@ function CandidateInterview() {
         // Prepare responses for submission
         const responses = mcqs.map((mcq, index) => {
           const selectedAnswer = answers[index] || '';
+          // Normalize whitespace for accurate comparison
+          // Replace multiple spaces with a single space and trim
+          const normalizedSelectedAnswer = selectedAnswer.replace(/\s+/g, ' ').trim();
+          const normalizedCorrectAnswer = (mcq.correctAnswer || '').replace(/\s+/g, ' ').trim();
+          
           return {
             question: mcq.question,
             question_id: index + 1, // Add question_id (1-based index)
             selected_answer: selectedAnswer,
             correct_answer: mcq.correctAnswer || '',
-            is_correct: selectedAnswer === mcq.correctAnswer
+            is_correct: normalizedSelectedAnswer === normalizedCorrectAnswer
           };
         });
         
