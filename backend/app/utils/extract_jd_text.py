@@ -1,6 +1,8 @@
 from PyPDF2 import PdfReader
 import io
 import logging
+import fitz  # PyMuPDF
+import pymupdf
 from ..database import get_jd_from_db
 
 logger = logging.getLogger(__name__)
@@ -20,21 +22,47 @@ async def extract_text_from_jd(candidate_email):
         
         logger.info(f"Successfully retrieved JD for candidate: {candidate_email} (size: {len(jd)} bytes)")
         
-        # Process the PDF
+        # Try PyPDF2 first
         try:
             pdf_stream = io.BytesIO(jd)
-            reader = PdfReader(pdf_stream)
+            reader = PdfReader(pdf_stream, strict=False)  # allow minor corruption
             text = ""
             for page in reader.pages:
-                text += page.extract_text() + "\n"
-            
+                page_text = page.extract_text() or ""
+                text += page_text + "\n"
+
             extracted_text = text.strip()
-            logger.info(f"Successfully extracted text from JD (length: {len(extracted_text)} chars)")
-            return extracted_text
+            if extracted_text:
+                logger.info(f"Successfully extracted text from JD with PyPDF2 (length: {len(extracted_text)} chars)")
+                return extracted_text
+            else:
+                logger.warning("PyPDF2 returned empty text, trying PyMuPDF fallback...")
+
         except Exception as e:
-            logger.error(f"Error processing JD PDF: {e}")
-            return generate_default_jd_text(candidate_email)
-            
+            logger.error(f"PyPDF2 failed to process JD PDF: {e}")
+
+        # Fallback: Use PyMuPDF
+        try:
+            logger.info("Attempting to extract text using PyMuPDF as fallback...")
+            text = ""
+            with fitz.open(stream=jd, filetype="pdf") as doc:
+                for page in doc:
+                    text += page.get_text("text") + "\n"
+
+            extracted_text = text.strip()
+            if extracted_text:
+                logger.info(f"Successfully extracted text from JD with PyMuPDF (length: {len(extracted_text)} chars)")
+                return extracted_text
+            else:
+                logger.warning("PyMuPDF returned empty text, using default JD...")
+
+        except Exception as e:
+            logger.error(f"PyMuPDF failed to process JD PDF: {e}")
+
+        # If everything fails, log JD preview and fallback
+        logger.error(f"JD could not be parsed. First 100 bytes: {jd[:100]}")
+        return generate_default_jd_text(candidate_email)
+    
     except Exception as e:
         logger.error(f"Error retrieving JD from database: {e}")
         return generate_default_jd_text(candidate_email)

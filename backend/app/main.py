@@ -1,98 +1,128 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import json
-from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes
-from .database import connect_to_mongo, close_mongo_connection
-from .utils.logger import get_logger
+import asyncio
 
-# Get logger for this module
+from .routes import (
+    auth_routes,
+    interview_routes,
+    upload_resume,
+    generate_mcq_route,
+    email_routes,
+    candidate_routes,
+    voice_interview_routes,
+    websocket_routes,
+)
+from .database import connect_to_mongo, close_mongo_connection, verify_database_connection
+from .utils.logger import get_logger
+from .utils.websocket_manager import set_event_loop
+
 logger = get_logger(__name__)
 
-app = FastAPI(title="AI Interview Assistant Backend")
 
-# Add CORS middleware
+# Define lifespan handler (replaces @app.on_event)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting up AI Interview Assistant Backend...")
+
+    try:
+        # Set up WebSocket event loop for broadcasting
+        loop = asyncio.get_event_loop()
+        set_event_loop(loop)
+        logger.info(" WebSocket event loop configured")
+
+        # Connect to MongoDB
+        await connect_to_mongo()
+
+        # Verify database connection
+        db_ok = await verify_database_connection()
+        if db_ok:
+            logger.info(" Database connection and collections verified successfully")
+        else:
+            logger.error(" Database verification failed - some features may not work correctly")
+
+    except Exception as e:
+        logger.error(f" Error during startup: {e}")
+        logger.error("Application may not function correctly due to startup errors")
+
+    # Yield control to the application
+    yield
+
+    # Shutdown logic
+    logger.info("Shutting down AI Interview Assistant Backend...")
+    await close_mongo_connection()
+
+
+# Create FastAPI app with lifespan
+app = FastAPI(title="AI Interview Assistant Backend", lifespan=lifespan)
+
+
+# Add CORS middleware with permissive settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8501", "http://127.0.0.1:8501",  # Streamlit default ports
-        "http://localhost:5173", "http://127.0.0.1:5173",  # Vite default ports
-        "http://localhost:3000", "http://127.0.0.1:3000",  # React default ports
-        "http://localhost:8000", "http://127.0.0.1:8000",  # Backend API ports (for testing)
-        "http://localhost:5000", "http://127.0.0.1:5000",  # Flask default ports
-    ],
+    allow_origins=["*"],  # Allow all origins (debugging, restrict in prod)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
-# Register routes
+
+# Add a middleware to ensure CORS headers are present in all responses
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
+
+# Request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f" Request: {request.method} {request.url}")
+
+    try:
+        body = await request.body()
+        if body:
+            try:
+                body_str = body.decode()
+                if body_str:
+                    try:
+                        body_json = json.loads(body_str)
+                        logger.info(f" Request body (JSON): {body_json}")
+                    except Exception:
+                        logger.info(f" Request body (raw): {body_str}")
+            except Exception:
+                logger.info(" Request body: [binary data]")
+    except Exception as e:
+        logger.error(f" Error reading request body: {e}")
+
+    response = await call_next(request)
+    logger.info(f" Response status: {response.status_code}")
+    return response
+
+
+# Register routers
 app.include_router(auth_routes.router)
 app.include_router(interview_routes.router)
 app.include_router(upload_resume.router)
 app.include_router(generate_mcq_route.router)
 app.include_router(email_routes.router)
 app.include_router(candidate_routes.router)
+app.include_router(voice_interview_routes.router)
+app.include_router(websocket_routes.router)
 
-# Add request logging middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    logger.info(f"Request: {request.method} {request.url}")
-    
-    # Log request body for debugging
-    try:
-        body = await request.body()
-        if body:
-            try:
-                # Try to parse as JSON for better logging
-                body_str = body.decode()
-                if body_str:
-                    try:
-                        body_json = json.loads(body_str)
-                        logger.info(f"Request body (JSON): {body_json}")
-                    except:
-                        # If not JSON, log as string
-                        logger.info(f"Request body: {body_str}")
-            except:
-                logger.info("Request body: [binary data]")
-    except Exception as e:
-        logger.error(f"Error reading request body: {e}")
-    
-    # Process the request and get the response
-    response = await call_next(request)
-    
-    # Log response status
-    logger.info(f"Response status: {response.status_code}")
-    
-    return response
 
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Starting up AI Interview Assistant Backend...")
-    try:
-        # Connect to MongoDB
-        await connect_to_mongo()
-        
-        # Verify database connection and collections
-        from .database import verify_database_connection
-        db_ok = await verify_database_connection()
-        
-        if db_ok:
-            logger.info("Database connection and collections verified successfully")
-        else:
-            logger.error("Database verification failed - some features may not work correctly")
-    except Exception as e:
-        logger.error(f"Error during startup: {e}")
-        logger.error("Application may not function correctly due to startup errors")
+# Health endpoints
+# @app.get("/")
+# async def root():
+#     return {"message": "AI Interview Assistant Backend is running!"}
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Shutting down AI Interview Assistant Backend...")
-    await close_mongo_connection()
 
-@app.get("/")
-async def root():
-    return {"message": "AI Interview Assistant Backend is running!"}
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+# @app.get("/health")
+# async def health_check():
+#     return {"status": "healthy"}

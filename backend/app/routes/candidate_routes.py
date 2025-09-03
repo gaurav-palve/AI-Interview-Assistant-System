@@ -56,20 +56,26 @@ async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:
             logger.warning(f"Interview not found: {interview_id}")
             raise HTTPException(status_code=404, detail="Interview not found")
         
-        # Return only the necessary information for the candidate
+        # Return all necessary information for the candidate (including voice interview fields)
         logger.info(f"Successfully retrieved interview {interview_id} for candidate {interview.get('candidate_email', 'unknown')}")
         
-        # Create response with only the necessary fields
+        # Create response with all necessary fields for voice interview
         response = {
             "id": interview["id"],
             "candidate_name": interview["candidate_name"],
             "candidate_email": interview["candidate_email"],
             "job_role": interview["job_role"],
+            "job_description": interview.get("job_description", ""),
             "scheduled_datetime": interview["scheduled_datetime"],
-            "status": interview["status"]
+            "status": interview["status"],
+            "duration": interview.get("duration", 15),  # Default to 15 minutes
+            "interview_type": interview.get("interview_type", "technical_and_behavioral"),
+            "title": interview.get("title", interview["job_role"]),  # Use job_role as title if not set
+            "created_at": interview.get("created_at"),
+            "updated_at": interview.get("updated_at")
         }
         
-        logger.info(f"Returning interview data to candidate: {response}")
+        logger.info(f"Returning complete interview data to candidate: {response}")
         return response
     except HTTPException:
         # Re-raise HTTP exceptions
@@ -263,10 +269,11 @@ async def submit_candidate_answers(interview_id: str, submission: MCQSubmission)
                 success = False
                 logger.error(f"Failed to save answer for question_id={question_id}, question={response.question[:30]}...")
         
-        # Update interview status to completed
+        # Update interview status to mcq_completed instead of completed
+        # This allows the system to know MCQs are done but voice interview should start next
         if success:
-            logger.info(f"Updating interview status to completed for interview ID: {interview_id}")
-            status_updated = await interview_service.update_interview_status(interview_id, "completed")
+            logger.info(f"Updating interview status to mcq_completed for interview ID: {interview_id}")
+            status_updated = await interview_service.update_interview_status(interview_id, "mcq_completed")
             if status_updated:
                 logger.info(f"Successfully updated interview status for interview ID: {interview_id}")
             else:
