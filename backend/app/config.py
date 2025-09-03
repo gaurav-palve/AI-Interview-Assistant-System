@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""  
     
+    # ElevenLabs Configuration
+    ELEVENLABS_API_KEY: str = ""   # Will be loaded from .env
+    ELEVENLABS_AGENT_ID: str = ""  # Will be loaded from .env
+    
     # SMTP Configuration for Email Notifications
     SMTP_SERVER: str = 'smtp-mail.outlook.com'
     SMTP_PORT: str = '587'
@@ -24,7 +28,6 @@ class Settings(BaseSettings):
     USE_OAUTH2: bool = True
 
     FRONTEND_URL: str
-    
     class Config:
         env_file = ".env"
         case_sensitive = False
