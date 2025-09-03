@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import interviewService from '../services/interviewService';
-
+import CameraProctor from '../components/CameraProctor';
 // Custom logger for better debugging
 const logger = {
   info: (message, data) => {
@@ -28,7 +28,8 @@ import {
   Timer as TimerIcon,
   QuestionAnswer as QuestionIcon,
   School as SchoolIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  Videocam as VideocamIcon
 } from '@mui/icons-material';
 
 /**
@@ -47,10 +48,12 @@ function CandidateInterview() {
   const [answers, setAnswers] = useState({});
   const [completed, setCompleted] = useState(false);
   const [generatingMcqs, setGeneratingMcqs] = useState(false);
-  const [instructionTimer, setInstructionTimer] = useState(60); // 2 minutes in seconds
+  const [instructionTimer, setInstructionTimer] = useState(60); // 1 minute in seconds
   const [timerActive, setTimerActive] = useState(false);
   const [mcqsGenerated, setMcqsGenerated] = useState(false);
   const timerRef = useRef(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraStatus, setCameraStatus] = useState('inactive');
 
   // Fetch interview details on component mount
   useEffect(() => {
@@ -84,6 +87,7 @@ function CandidateInterview() {
     } else if (timerActive && instructionTimer === 0) {
       // Timer finished, show MCQs if they're generated
       if (mcqsGenerated) {
+        // Start the test without delay
         setStarted(true);
       }
       setTimerActive(false);
@@ -116,6 +120,9 @@ function CandidateInterview() {
     
     // Start MCQ generation in the background
     generateMcqsInBackground();
+    
+    // Log that the instructions have started
+    logger.info('Starting instruction timer');
   };
 
   /**
@@ -290,6 +297,8 @@ function CandidateInterview() {
         // Continue to completion screen even if submission fails
       }
       
+      // Stop camera when interview is completed
+      setCameraActive(false);
       setCompleted(true);
     }
   };
@@ -439,6 +448,15 @@ function CandidateInterview() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
+          {/* Camera component - positioned at the right middle side */}
+          {cameraActive && (
+            <div className="absolute right-7 bottom-0 transform -translate-y-1/2 mr-[-7px]">
+              <CameraProctor
+                active={cameraActive}
+                onStatusChange={setCameraStatus}
+              />
+            </div>
+          )}
           <div className="bg-white shadow-xl rounded-lg overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
@@ -531,7 +549,11 @@ function CandidateInterview() {
               {/* Start button */}
               <div className="flex justify-center">
                 <button
-                  onClick={handleStartInstructions}
+                  onClick={() => {
+                    // Start camera when the assessment begins
+                    setCameraActive(true);
+                    handleStartInstructions();
+                  }}
                   disabled={timerActive || generatingMcqs}
                   className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
                 >
@@ -543,6 +565,7 @@ function CandidateInterview() {
                   ) : (
                     <span className="flex items-center">
                       <PlayIcon className="mr-2" />
+                      <VideocamIcon className="mr-1" />
                       Begin Assessment
                     </span>
                   )}
@@ -560,7 +583,7 @@ function CandidateInterview() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto relative">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
@@ -577,6 +600,13 @@ function CandidateInterview() {
           
           {/* Question content */}
           <div className="p-6">
+            {/* Camera component - positioned at the right middle side */}
+            <div className="absolute right-7 top-1/2 transform -translate-y-1/2 mr-[-260px]">
+              <CameraProctor
+                active={cameraActive}
+                onStatusChange={setCameraStatus}
+              />
+            </div>
             <div className="mb-8">
               <div className="bg-gray-50 rounded-lg p-5 border border-gray-200 mb-6">
                 <p className="text-lg font-medium text-gray-900">
