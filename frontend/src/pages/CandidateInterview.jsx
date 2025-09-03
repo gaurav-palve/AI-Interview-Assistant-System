@@ -96,6 +96,30 @@ function CandidateInterview() {
     };
   }, [timerActive, instructionTimer, mcqsGenerated]);
 
+  // Effect to check interview status and redirect to voice interview if needed
+  useEffect(() => {
+    const checkInterviewStatus = async () => {
+      if (!completed || !interview) return; // Only run when completed is true and interview exists
+      
+      try {
+        // Fetch the latest interview status
+        const data = await interviewService.getCandidateInterview(interviewId);
+        logger.info('Checking interview status after MCQ completion', data);
+        
+        // If status is mcq_completed, redirect to voice interview
+        if (data.status === "mcq_completed") {
+          logger.info('MCQs completed, redirecting to voice interview');
+          // Redirect to voice interview page
+          navigate(`/voice-interview/${interviewId}`);
+        }
+      } catch (err) {
+        logger.error('Error checking interview status', err);
+      }
+    };
+    
+    checkInterviewStatus();
+  }, [completed, interviewId, navigate, interview]);
+
   /**
    * Start the instruction timer and begin MCQ generation in the background
    */
@@ -400,8 +424,10 @@ function CandidateInterview() {
     );
   }
 
+  
   // Render completed state
   if (completed) {
+    
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4">
         <div className="max-w-md w-full bg-white shadow-xl rounded-lg p-8 animate-fadeIn">
@@ -411,23 +437,23 @@ function CandidateInterview() {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-center text-gray-900 mb-4">
-            Interview Completed
+            MCQ Assessment Completed
           </h1>
           <p className="text-center text-gray-700 mb-6">
-            Thank you for completing the interview. Your responses have been recorded.
+            Thank you for completing the MCQ portion. Your responses have been recorded.
           </p>
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-r-md">
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-md">
             <div className="flex">
-              <InfoIcon className="h-5 w-5 text-green-500 flex-shrink-0" />
+              <InfoIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
               <div className="ml-3">
-                <p className="text-sm text-green-700">
-                  You will be contacted with the results of your interview soon.
+                <p className="text-sm text-blue-700">
+                  Please wait while we prepare your voice interview. You will be redirected automatically.
                 </p>
               </div>
             </div>
           </div>
-          <div className="text-center text-gray-500 text-sm mt-8">
-            <p>You may now close this window.</p>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
           </div>
         </div>
       </div>

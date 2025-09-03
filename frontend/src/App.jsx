@@ -21,6 +21,8 @@ import NotFound from './pages/NotFound';
 // Candidate Pages
 import CandidateInterview from './pages/CandidateInterview';
 
+// Voice interview
+import VoiceInterview from './pages/VoiceInterview';
 /**
  * Main App component
  * Sets up routing and authentication
@@ -114,6 +116,9 @@ function App() {
           
           {/* 404 Not Found route */}
           <Route path="/404" element={<NotFound />} />
+          
+          {/* Voice interview route - Make it public for candidates */}
+          <Route path="/voice-interview/:interviewId" element={<VoiceInterview />} />
           
           {/* Redirect any unknown routes to 404 */}
           <Route path="*" element={<Navigate to="/404" replace />} />

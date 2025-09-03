@@ -88,15 +88,10 @@ class InterviewService:
             raise
     
     async def get_interview(self, interview_id: str) -> Optional[Dict[str, Any]]:
-        """Get interview by ID"""
+        """Get interview by ID - supports both ObjectId and custom string IDs"""
         logger.info(f"Getting interview with ID: {interview_id}")
         
         try:
-            # Validate ObjectId format
-            if not ObjectId.is_valid(interview_id):
-                logger.warning(f"Invalid ObjectId format: {interview_id}")
-                return None
-            
             # Verify database connection before query
             from ..database import verify_database_connection
             db_ok = await verify_database_connection()
@@ -104,33 +99,63 @@ class InterviewService:
                 logger.error("Database connection verification failed before interview retrieval")
                 raise RuntimeError("Database connection verification failed")
             
-            # Convert string ID to ObjectId
-            object_id = ObjectId(interview_id)
-            logger.info(f"Converted to ObjectId: {object_id}")
+            # Try to find by ObjectId first (for MongoDB-generated IDs)
+            interview = None
+            if ObjectId.is_valid(interview_id):
+                logger.info(f"Trying to find interview by ObjectId: {interview_id}")
+                object_id = ObjectId(interview_id)
+                interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": object_id})
+                
+                if interview:
+                    logger.info(f"Interview found by ObjectId: {interview.get('candidate_name', 'Unknown')}")
+                    interview["id"] = str(interview["_id"])
+                    return interview
             
-            # Query the database
-            logger.info(f"Querying {SCHEDULED_INTERVIEWS_COLLECTION} collection for interview")
-            interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": object_id})
+            # If not found by ObjectId, try to find by custom "id" field
+            logger.info(f"Trying to find interview by custom id field: {interview_id}")
+            interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"id": interview_id})
             
             if interview:
-                logger.info(f"Interview found: {interview.get('candidate_name', 'Unknown')}")
-                interview["id"] = str(interview["_id"])
+                logger.info(f"Interview found by custom id: {interview.get('candidate_name', 'Unknown')}")
+                # Ensure the "id" field is set for consistency
+                if "id" not in interview:
+                    interview["id"] = str(interview.get("_id", interview_id))
                 return interview
+            
+            # If still not found, try searching in the interviews collection (not scheduled_interviews)
+            logger.info(f"Trying to find interview in 'interviews' collection: {interview_id}")
+            interview = await self.db.interviews.find_one({"id": interview_id})
+            
+            if interview:
+                logger.info(f"Interview found in interviews collection: {interview.get('candidate_name', 'Unknown')}")
+                # Ensure the "id" field is set for consistency
+                if "id" not in interview:
+                    interview["id"] = str(interview.get("_id", interview_id))
+                return interview
+            
+            logger.warning(f"Interview not found with ID: {interview_id}")
+            
+            # Debug: List recent interviews to help troubleshoot
+            logger.info("Listing recent interviews for debugging:")
+            cursor = self.db[SCHEDULED_INTERVIEWS_COLLECTION].find().sort("created_at", -1).limit(5)
+            recent_interviews = await cursor.to_list(length=5)
+            
+            if recent_interviews:
+                for idx, interview in enumerate(recent_interviews):
+                    logger.info(f"Recent interview {idx+1}: ID={interview.get('_id', 'N/A')}, Custom ID={interview.get('id', 'N/A')}, Candidate={interview.get('candidate_name', 'Unknown')}")
             else:
-                logger.warning(f"Interview not found with ID: {interview_id}")
+                logger.warning("No interviews found in scheduled_interviews collection")
                 
-                # Debug: List recent interviews to help troubleshoot
-                logger.info("Listing recent interviews for debugging:")
-                cursor = self.db[SCHEDULED_INTERVIEWS_COLLECTION].find().sort("created_at", -1).limit(5)
-                recent_interviews = await cursor.to_list(length=5)
-                
-                if recent_interviews:
-                    for idx, interview in enumerate(recent_interviews):
-                        logger.info(f"Recent interview {idx+1}: ID={interview['_id']}, Candidate={interview.get('candidate_name', 'Unknown')}")
-                else:
-                    logger.warning("No interviews found in the database")
-                
-                return None
+            # Also check interviews collection
+            cursor = self.db.interviews.find().sort("created_at", -1).limit(5)
+            recent_interviews = await cursor.to_list(length=5)
+            
+            if recent_interviews:
+                logger.info("Recent interviews in 'interviews' collection:")
+                for idx, interview in enumerate(recent_interviews):
+                    logger.info(f"Interview {idx+1}: ID={interview.get('_id', 'N/A')}, Custom ID={interview.get('id', 'N/A')}, Candidate={interview.get('candidate_name', 'Unknown')}")
+            
+            return None
         except Exception as e:
             logger.error(f"Error getting interview {interview_id}: {e}")
             logger.exception("Full exception details:")
@@ -293,41 +318,84 @@ class InterviewService:
             raise
     
     async def update_interview_status(self, interview_id: str, status: str) -> bool:
-        """Update interview status without permission check (for candidate use)"""
+        """Update interview status without permission check (for candidate use) - supports both ObjectId and custom string IDs"""
         logger.info(f"Attempting to update interview status: ID={interview_id}, new status={status}")
         try:
-            if not ObjectId.is_valid(interview_id):
-                logger.warning(f"Invalid ObjectId format for interview_id: {interview_id}")
-                return False
+            # Try to update by ObjectId first
+            if ObjectId.is_valid(interview_id):
+                logger.info(f"Trying to update interview by ObjectId: {interview_id}")
+                
+                # Get current interview status for logging
+                current_interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one(
+                    {"_id": ObjectId(interview_id)},
+                    {"status": 1}
+                )
+                
+                if current_interview:
+                    current_status = current_interview.get("status", "unknown")
+                    logger.info(f"Current interview status: {current_status}, changing to: {status}")
+                    
+                    # Update database
+                    result = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].update_one(
+                        {"_id": ObjectId(interview_id)},
+                        {"$set": {
+                            "status": status,
+                            "updated_at": datetime.now(timezone.utc)
+                        }}
+                    )
+                    
+                    if result.modified_count > 0:
+                        logger.info(f"Interview {interview_id} status successfully updated from {current_status} to {status}")
+                        return True
             
-            # Get current interview status for logging
+            # Try to update by custom "id" field in scheduled_interviews collection
+            logger.info(f"Trying to update interview by custom id in scheduled_interviews: {interview_id}")
             current_interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one(
-                {"_id": ObjectId(interview_id)},
+                {"id": interview_id},
                 {"status": 1}
             )
             
             if current_interview:
                 current_status = current_interview.get("status", "unknown")
                 logger.info(f"Current interview status: {current_status}, changing to: {status}")
-            else:
-                logger.warning(f"Interview not found when updating status: {interview_id}")
-                return False
+                
+                result = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].update_one(
+                    {"id": interview_id},
+                    {"$set": {
+                        "status": status,
+                        "updated_at": datetime.now(timezone.utc)
+                    }}
+                )
+                
+                if result.modified_count > 0:
+                    logger.info(f"Interview {interview_id} status successfully updated from {current_status} to {status}")
+                    return True
             
-            # Update database
-            result = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].update_one(
-                {"_id": ObjectId(interview_id)},
-                {"$set": {
-                    "status": status,
-                    "updated_at": datetime.now(timezone.utc)
-                }}
+            # Try to update in interviews collection
+            logger.info(f"Trying to update interview by custom id in interviews collection: {interview_id}")
+            current_interview = await self.db.interviews.find_one(
+                {"id": interview_id},
+                {"status": 1}
             )
             
-            if result.modified_count > 0:
-                logger.info(f"Interview {interview_id} status successfully updated from {current_status} to {status}")
-                return True
-            else:
-                logger.warning(f"Interview {interview_id} status update had no effect (status might already be {status})")
-                return False
+            if current_interview:
+                current_status = current_interview.get("status", "unknown")
+                logger.info(f"Current interview status: {current_status}, changing to: {status}")
+                
+                result = await self.db.interviews.update_one(
+                    {"id": interview_id},
+                    {"$set": {
+                        "status": status,
+                        "updated_at": datetime.now(timezone.utc)
+                    }}
+                )
+                
+                if result.modified_count > 0:
+                    logger.info(f"Interview {interview_id} status successfully updated from {current_status} to {status}")
+                    return True
+            
+            logger.warning(f"Interview not found when updating status: {interview_id}")
+            return False
             
         except Exception as e:
             logger.error(f"Error updating interview status {interview_id}: {e}")
