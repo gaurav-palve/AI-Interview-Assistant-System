@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import json
+from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes, camera_integration_route
+from .database import connect_to_mongo, close_mongo_connection
 import asyncio
 
 from .routes import (
@@ -65,6 +67,18 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Register routes
+app.include_router(auth_routes.router)
+app.include_router(interview_routes.router)
+app.include_router(upload_resume.router)
+app.include_router(generate_mcq_route.router)
+app.include_router(email_routes.router)
+app.include_router(candidate_routes.router)
+app.include_router(camera_integration_route.router)
+
+# Add request logging middleware
     expose_headers=["*"],
     max_age=600,
 )

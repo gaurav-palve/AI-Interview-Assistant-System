@@ -190,6 +190,47 @@ const interviewService = {
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while submitting answers' };
     }
+  },
+
+  /**
+   * Start the camera with specified resolution
+   * @param {number} width - Camera width in pixels
+   * @param {number} height - Camera height in pixels
+   * @returns {Promise} - Promise with the start result
+   */
+  startCamera: async (width = 640, height = 480) => {
+    try {
+      const response = await api.post('/camera/start', { width, height });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while starting the camera' };
+    }
+  },
+
+  /**
+   * Stop the camera
+   * @returns {Promise} - Promise with the stop result
+   */
+  stopCamera: async () => {
+    try {
+      const response = await api.post('/camera/stop');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while stopping the camera' };
+    }
+  },
+
+  /**
+   * Get camera status and statistics
+   * @returns {Promise} - Promise with the camera status and statistics
+   */
+  getCameraStatus: async () => {
+    try {
+      const response = await api.get('/camera/status');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while getting camera status' };
+    }
   }
 };
 
