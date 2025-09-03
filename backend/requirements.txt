@@ -15,3 +15,6 @@ langchain_google_genai
 langchain_openai
 langchain
 msal 
+opencv-python
+mediapipe
+ultralytics

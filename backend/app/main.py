@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import json
-from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes
+from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes, camera_integration_route
 from .database import connect_to_mongo, close_mongo_connection
 from .utils.logger import get_logger
 
@@ -32,6 +32,7 @@ app.include_router(upload_resume.router)
 app.include_router(generate_mcq_route.router)
 app.include_router(email_routes.router)
 app.include_router(candidate_routes.router)
+app.include_router(camera_integration_route.router)
 
 # Add request logging middleware
 @app.middleware("http")
