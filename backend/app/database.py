@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from .utils.logger import get_logger
 from app.utils.parse_mcqs import parse_mcqs
+import uuid
 
 logger = get_logger(__name__)
 
@@ -13,6 +14,7 @@ AUTH_COLLECTION = "auth_collection"
 SCHEDULED_INTERVIEWS_COLLECTION = "scheduled_interviews"
 CANDIDATE_DOCUMENTS_COLLECTION = "candidate_documents"
 MCQS_COLLECTION = "mcqs"
+VOICE_INTERVIEW_SESSIONS_COLLECTION = "voice_interview_sessions"
 
 client = None
 db = None
@@ -42,7 +44,13 @@ async def connect_to_mongo():
         logger.info(f"Available collections: {collections}")
         
         # Ensure required collections exist
-        required_collections = [AUTH_COLLECTION, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION]
+        required_collections = [
+            AUTH_COLLECTION, 
+            SCHEDULED_INTERVIEWS_COLLECTION, 
+            CANDIDATE_DOCUMENTS_COLLECTION,
+            MCQS_COLLECTION,
+            VOICE_INTERVIEW_SESSIONS_COLLECTION
+        ]
         for collection in required_collections:
             if collection not in collections:
                 logger.warning(f"Collection {collection} does not exist. Creating it now.")
@@ -282,3 +290,122 @@ async def save_candidate_answer(interview_id: str, question_id: int, candidate_a
     except Exception as e:
         logger.error(f"Error saving candidate answer: {e}")
         return False
+
+
+# Voice Interview Session Functions
+
+async def create_voice_session(interview_id: str, candidate_id: str) -> dict:
+    """Create a new voice interview session"""
+    from app.models.voice_interview_model import voice_interview_session_dict
+
+    try:
+        db = get_database()
+
+        # Generate a unique session ID
+        session_id = str(uuid.uuid4())
+
+        # Create session document
+        session = voice_interview_session_dict(
+            interview_id=interview_id,
+            candidate_id=candidate_id,
+            session_id=session_id
+        )
+
+        # Insert into database
+        await db[VOICE_INTERVIEW_SESSIONS_COLLECTION].insert_one(session)
+
+        logger.info(f"Created voice interview session {session_id}")
+        return session
+    except Exception as e:
+        logger.error(f"Error creating voice session: {str(e)}")
+        raise
+
+async def create_voice_session_with_id(interview_id: str, candidate_id: str, session_id: str) -> dict:
+    """Create a new voice interview session with a specific session_id"""
+    from app.models.voice_interview_model import voice_interview_session_dict
+    from bson import ObjectId
+
+    try:
+        db = get_database()
+
+        # Create session document with provided session_id
+        session = voice_interview_session_dict(
+            interview_id=interview_id,
+            candidate_id=candidate_id,
+            session_id=session_id
+        )
+
+        # Add initial metadata
+        session["status"] = "active"
+        session["started_at"] = datetime.now(timezone.utc)
+
+        # Insert into database
+        insert_result = await db[VOICE_INTERVIEW_SESSIONS_COLLECTION].insert_one(session)
+        session["_id"] = str(insert_result.inserted_id)  # Convert ObjectId to string
+
+        logger.info(f"Created voice interview session {session_id}")
+        return session
+    except Exception as e:
+        logger.error(f"Error creating voice session with id {session_id}: {str(e)}")
+        raise
+
+async def get_voice_session(session_id: str) -> dict:
+    """Get a voice interview session by ID"""
+    try:
+        db = get_database()
+        
+        session = await db[VOICE_INTERVIEW_SESSIONS_COLLECTION].find_one(
+            {"session_id": session_id}
+        )
+        
+        return session
+    except Exception as e:
+        logger.error(f"Error getting voice session {session_id}: {str(e)}")
+        return None
+
+async def update_voice_session(session_id: str, updates: dict) -> dict:
+    """Update a voice interview session"""
+    from app.models.voice_interview_model import update_voice_session_dict
+    
+    try:
+        db = get_database()
+        
+        # Get current session
+        current_session = await get_voice_session(session_id)
+        if not current_session:
+            logger.error(f"Session {session_id} not found for update")
+            return None
+        
+        # Create updated session document
+        updates["updated_at"] = datetime.now(timezone.utc)
+        
+        # Update in database
+        result = await db[VOICE_INTERVIEW_SESSIONS_COLLECTION].update_one(
+            {"session_id": session_id},
+            {"$set": updates}
+        )
+        
+        if result.modified_count > 0:
+            logger.info(f"Updated voice session {session_id}")
+            return await get_voice_session(session_id)
+        else:
+            logger.warning(f"No changes made to voice session {session_id}")
+            return current_session
+    except Exception as e:
+        logger.error(f"Error updating voice session {session_id}: {str(e)}")
+        return None
+
+async def get_sessions_by_interview(interview_id: str) -> list:
+    """Get all voice sessions for an interview"""
+    try:
+        db = get_database()
+        
+        cursor = db[VOICE_INTERVIEW_SESSIONS_COLLECTION].find(
+            {"interview_id": interview_id}
+        )
+        
+        sessions = await cursor.to_list(length=100)
+        return sessions
+    except Exception as e:
+        logger.error(f"Error getting sessions for interview {interview_id}: {str(e)}")
+        return []

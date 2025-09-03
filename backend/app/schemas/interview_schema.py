@@ -7,6 +7,7 @@ class InterviewStatus(str, Enum):
     DRAFT = "draft"
     SCHEDULED = "scheduled"
     IN_PROGRESS = "in_progress"
+    MCQ_COMPLETED = "mcq_completed"  # Added for transition between MCQ and voice interview
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 

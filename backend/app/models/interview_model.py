@@ -1,7 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from enum import Enum
-
 class InterviewStatus(str, Enum):
     DRAFT = "draft"
     SCHEDULED = "scheduled"
@@ -84,4 +83,36 @@ def candidate_dict(
         "resume_url": resume_url,
         "notes": notes,
         "created_at": datetime.now(timezone.utc)
+    }
+
+# ===========================================================================================================================
+# Voice interview session model
+
+def voice_interview_session_dict(
+    interview_id: str,
+    candidate_id: str,
+    session_id: str,
+    status: str = "pending"
+):
+    """Create a voice interview session document"""
+    return {
+        "interview_id": interview_id,
+        "candidate_id": candidate_id,
+        "session_id": session_id,
+        "status": status,
+        "started_at": None,
+        "completed_at": None,
+        "duration_seconds": None,
+        "agent_id": None,
+        "conversation_id": None,
+        "transcript": None,
+        "communication_score": None,
+        "technical_score": None,
+        "confidence_score": None,
+        "overall_score": None,
+        "feedback": None,
+        "audio_file_path": None,
+        "metadata": {},
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
     }
