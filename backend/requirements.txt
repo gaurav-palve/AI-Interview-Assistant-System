@@ -15,10 +15,6 @@ langchain_google_genai
 langchain_openai
 langchain
 msal 
-alembic
-elevenlabs
-pyaudio
-openai
-pillow
-fitz
-pymupdf
+opencv-python
+mediapipe
+ultralytics
