@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import voiceInterviewService from '../services/voiceInterviewService';
 import interviewService from '../services/interviewService';
+import { useCamera } from '../contexts/CameraContext';
 
 import VoiceInterviewControls from '../components/VoiceInterview/VoiceInterviewControls';
 import AudioRecorder from '../components/VoiceInterview/AudioRecorder';
 import TranscriptDisplay from '../components/VoiceInterview/TranscriptDisplay';
 import VoiceInterviewResults from '../components/VoiceInterview/VoiceInterviewResults';
+import CameraProctor from '../components/CameraProctor';
 
-import { ArrowLeft, AlertCircle, Loader2, Mic, Download, Clock, CheckCircle, Volume2, Wifi, WifiOff, MessageSquare, Zap, Brain, Heart } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Loader2, Mic, Download, Clock, CheckCircle, Volume2, Wifi, WifiOff, MessageSquare, Zap, Brain, Heart, Camera } from 'lucide-react';
 
 // Constants
 const WS_RECONNECT_DELAY = 3000;
@@ -151,6 +153,7 @@ const VoiceInterview = () => {
   const [userMessage, setUserMessage] = useState('');
   const [audioLevel, setAudioLevel] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
+  const { toggleDetection, isActive } = useCamera();
   const [aiThinking, setAiThinking] = useState(false);
   const [interviewProgress, setInterviewProgress] = useState(0);
 
@@ -214,92 +217,109 @@ const VoiceInterview = () => {
     handleWebSocketMessage,
     status === 'active'
   );
+// Define loadInterview BEFORE the useEffect that uses it
+const loadInterview = useCallback(async () => {
+  if (interview) return; // Skip if we already have interview data
+  
+  try {
+    setLoading(true);
+    setError(null);
 
-  // Load interview data on mount
-  useEffect(() => {
-    loadInterview();
-  }, [interviewId]);
+    // Get interview data
+    const interviewData = await interviewService.getCandidateInterview(interviewId);
 
-  const loadInterview = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Get interview data
-      const interviewData = await interviewService.getCandidateInterview(interviewId);
-
-      if (!interviewData) {
-        throw new Error('Interview not found');
-      }
-
-      setInterview(interviewData);
-
-      // Generate candidate ID
-      const tempCandidateId = `candidate-${interviewData.candidate_email || Date.now()}`;
-      setCandidateId(tempCandidateId);
-
-
-    } catch (err) {
-      setError(err.message || 'Failed to load interview data');
-      console.error('Error loading interview:', err);
-    } finally {
-      setLoading(false);
+    if (!interviewData) {
+      throw new Error('Interview not found');
     }
+
+    setInterview(interviewData);
+
+    // Generate candidate ID
+    const tempCandidateId = `candidate-${interviewData.candidate_email || Date.now()}`;
+    setCandidateId(tempCandidateId);
+
+
+  } catch (err) {
+    setError(err.message || 'Failed to load interview data');
+    console.error('Error loading interview:', err);
+  } finally {
+    setLoading(false);
+  }
+}, [interview, interviewId]);
+
+// Load interview data on mount and enable detection
+useEffect(() => {
+  // Only load interview data if we don't have it
+  if (!interview) {
+    loadInterview();
+  }
+  
+  // Enable detection for voice interview
+  toggleDetection(true);
+  
+  // Cleanup on unmount
+  return () => {
+    // Detection will be managed by the context
   };
+}, [interviewId, toggleDetection, loadInterview, interview]);
 
-  const startInterview = async () => {
-    try {
-      setError(null);
-      setIsProcessing(true);
+const startInterview = useCallback(async () => {
+  try {
+    setError(null);
+    setIsProcessing(true);
 
-      const response = await voiceInterviewService.startVoiceInterview(
-        interviewId,
-        candidateId
+    const response = await voiceInterviewService.startVoiceInterview(
+      interviewId,
+      candidateId
+    );
+
+    if (!response) {
+      throw new Error('Failed to start interview session');
+    }
+
+    setVoiceSession(response);
+    setStatus('active');
+    durationTracker.start();
+    
+    // Detection is already enabled
+
+  } catch (err) {
+    setError(err.message || 'Failed to start voice interview');
+    console.error('Error starting interview:', err);
+  } finally {
+    setIsProcessing(false);
+  }
+}, [interviewId, candidateId, durationTracker]);
+const stopInterview = useCallback(async () => {
+  try {
+    setIsProcessing(true);
+    durationTracker.stop();
+
+    if (voiceSession) {
+      const completedSession = await voiceInterviewService.completeVoiceInterview(
+        voiceSession.session_id,
+        durationTracker.duration
       );
 
-      if (!response) {
-        throw new Error('Failed to start interview session');
-      }
-
-      setVoiceSession(response);
-      setStatus('active');
-      durationTracker.start();
-
-    } catch (err) {
-      setError(err.message || 'Failed to start voice interview');
-      console.error('Error starting interview:', err);
-    } finally {
-      setIsProcessing(false);
+      setVoiceSession(completedSession);
+      setStatus('completed');
+      setResults(completedSession);
+      // Disable detection when interview is completed
+      toggleDetection(false);
+      // Camera will be managed by the context
     }
-  };
 
-  const stopInterview = async () => {
-    try {
-      setIsProcessing(true);
-      durationTracker.stop();
-
-      if (voiceSession) {
-        const completedSession = await voiceInterviewService.completeVoiceInterview(
-          voiceSession.session_id,
-          durationTracker.duration
-        );
-
-        setVoiceSession(completedSession);
-        setStatus('completed');
-        setResults(completedSession);
-      }
-
-    } catch (err) {
-      setError(err.message || 'Failed to stop voice interview');
-      console.error('Error stopping interview:', err);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  } catch (err) {
+    setError(err.message || 'Failed to stop voice interview');
+    console.error('Error stopping interview:', err);
+  } finally {
+    setIsProcessing(false);
+  }
+}, [voiceSession, durationTracker, toggleDetection]);
 
   const handleInterviewComplete = useCallback(() => {
     stopInterview();
-  }, []);
+  }, [stopInterview]);
 
   const handleRecordingComplete = useCallback((audioBlob) => {
     console.log('Recording completed:', audioBlob);
@@ -411,6 +431,17 @@ ${transcript}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+      {/* Camera element - small version in corner */}
+      {isActive && (
+        <div className="absolute top-4 right-4 z-50" style={{ width: '180px', height: '135px' }}>
+          <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
+            <CameraProctor
+              detectionEnabled={true} // Enable detection during voice interview
+            />
+          </div>
+        </div>
+      )}
+      
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -708,4 +739,4 @@ ${transcript}`;
   );
 };
 
-export default VoiceInterview;
+export default React.memo(VoiceInterview);

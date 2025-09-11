@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import interviewService from '../services/interviewService';
 import CameraProctor from '../components/CameraProctor';
+import { useCamera } from '../contexts/CameraContext';
 // Custom logger for better debugging
 const logger = {
   info: (message, data) => {
@@ -42,7 +43,7 @@ function CandidateInterview() {
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [started, setStarted] = useState(false);
+  const [phase, setPhase] = useState('instructions'); // 'instructions', 'waiting', 'mcq', 'completed'
   const [mcqs, setMcqs] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -52,8 +53,7 @@ function CandidateInterview() {
   const [timerActive, setTimerActive] = useState(false);
   const [mcqsGenerated, setMcqsGenerated] = useState(false);
   const timerRef = useRef(null);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [cameraStatus, setCameraStatus] = useState('inactive');
+  const { startCamera, stopCamera, isActive } = useCamera();
 
   // Fetch interview details on component mount
   useEffect(() => {
@@ -75,6 +75,12 @@ function CandidateInterview() {
 
     if (interviewId) {
       fetchInterview();
+      // Start instruction timer automatically when component mounts
+      setTimerActive(true);
+      // Start MCQ generation in the background
+      generateMcqsInBackground();
+      // Start camera
+      startCamera();
     }
   }, [interviewId]);
 
@@ -88,7 +94,10 @@ function CandidateInterview() {
       // Timer finished, show MCQs if they're generated
       if (mcqsGenerated) {
         // Start the test without delay
-        setStarted(true);
+        setPhase('mcq');
+      } else {
+        // Set phase to waiting if MCQs are not yet generated
+        setPhase('waiting');
       }
       setTimerActive(false);
     }
@@ -112,21 +121,28 @@ function CandidateInterview() {
         
         // If status is mcq_completed, redirect to voice interview
         if (data.status === "mcq_completed") {
-          logger.info('MCQs completed, redirecting to voice interview');
-          // Redirect to voice interview page
-          navigate(`/voice-interview/${interviewId}`);
+          logger.info('MCQs completed, redirecting to voice interview instructions');
+          // Redirect to voice interview instructions page
+          navigate(`/voice-interview-instructions/${interviewId}`);
         }
       } catch (err) {
         logger.error('Error checking interview status', err);
       }
     };
-    
     checkInterviewStatus();
   }, [completed, interviewId, navigate, interview]);
+  
+  // Stop camera when component unmounts
+  useEffect(() => {
+    return () => {
+      // Don't stop camera here - it will be managed by the context
+    };
+  }, []);
 
   /**
    * Start the instruction timer and begin MCQ generation in the background
    */
+  // This function is now called automatically on component mount
   const handleStartInstructions = async () => {
     if (!interview) {
       logger.warn('Attempted to start interview but interview data is not loaded');
@@ -172,11 +188,10 @@ function CandidateInterview() {
       
       setMcqs(parsedMcqs);
       setMcqsGenerated(true);
-      
       // If timer has already finished, start the interview
-      if (instructionTimer === 0) {
+      if (instructionTimer === 0 || phase === 'waiting') {
         logger.info('Timer already finished, starting the interview with generated MCQs');
-        setStarted(true);
+        setPhase('mcq');
         setCurrentQuestionIndex(0);
       }
     } catch (err) {
@@ -321,8 +336,8 @@ function CandidateInterview() {
         // Continue to completion screen even if submission fails
       }
       
-      // Stop camera when interview is completed
-      setCameraActive(false);
+      // Phase is completed, but camera stays active for voice interview
+      setPhase('completed');
       setCompleted(true);
     }
   };
@@ -435,10 +450,19 @@ function CandidateInterview() {
 
   
   // Render completed state
-  if (completed) {
+  if (phase === 'completed') {
     
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4">
+        {/* Camera component - small version in corner */}
+        <div className="absolute top-0 right-4 z-60">
+          <div className="bg-black rounded-lg overflow-hidden shadow-xl" style={{ width: '180px', height: '135px' }}>
+            <CameraProctor
+              detectionEnabled={false} // Disable detection on completion page
+            />
+          </div>
+        </div>
+        
         <div className="max-w-md w-full bg-white shadow-xl rounded-lg p-8 animate-fadeIn">
           <div className="flex items-center justify-center text-green-500 mb-6">
             <div className="bg-green-100 p-3 rounded-full">
@@ -469,20 +493,20 @@ function CandidateInterview() {
     );
   }
 
-  // Render interview instructions (not started)
-  if (!started) {
+  // Render interview instructions or waiting state
+  if (phase === 'instructions' || phase === 'waiting') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          {/* Camera component - positioned at the right middle side */}
-          {cameraActive && (
-            <div className="absolute right-7 bottom-0 transform -translate-y-1/2 mr-[-7px]">
+          {/* Camera component - positioned at the top right corner */}
+          <div className="absolute top-4 right-4 z-50" style={{ width: '180px', height: '135px' }}>
+            <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
               <CameraProctor
-                active={cameraActive}
-                onStatusChange={setCameraStatus}
+                detectionEnabled={phase === 'mcq'} // Only enable detection during MCQ phase
               />
             </div>
-          )}
+          </div>
+          
           <div className="bg-white shadow-xl rounded-lg overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
@@ -577,16 +601,21 @@ function CandidateInterview() {
                 <button
                   onClick={() => {
                     // Start camera when the assessment begins
-                    setCameraActive(true);
+                    // Camera is already started by the context
                     handleStartInstructions();
                   }}
-                  disabled={timerActive || generatingMcqs}
+                  disabled={timerActive || generatingMcqs || phase === 'waiting'}
                   className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
                 >
                   {timerActive ? (
                     <span className="flex items-center">
                       <TimerIcon className="mr-2" />
                       Reading Time: {formatTime(instructionTimer)}
+                    </span>
+                  ) : phase === 'waiting' ? (
+                    <span className="flex items-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                      Preparing Questions...
                     </span>
                   ) : (
                     <span className="flex items-center">
@@ -626,13 +655,16 @@ function CandidateInterview() {
           
           {/* Question content */}
           <div className="p-6">
-            {/* Camera component - positioned at the right middle side */}
-            <div className="absolute right-7 top-1/2 transform -translate-y-1/2 mr-[-260px]">
-              <CameraProctor
-                active={cameraActive}
-                onStatusChange={setCameraStatus}
-              />
-            </div>
+            {/* Camera component - positioned at the top right corner */}
+            {isActive && (
+              <div className="absolute top-4 right-4 z-50" style={{ width: '180px', height: '135px' }}>
+                <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
+                  <CameraProctor
+                    detectionEnabled={true} // Enable detection during MCQ phase
+                  />
+                </div>
+              </div>
+            )}
             <div className="mb-8">
               <div className="bg-gray-50 rounded-lg p-5 border border-gray-200 mb-6">
                 <p className="text-lg font-medium text-gray-900">
