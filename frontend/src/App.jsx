@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { CameraProvider } from './contexts/CameraContext';
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -23,6 +24,7 @@ import CandidateInterview from './pages/CandidateInterview';
 
 // Voice interview
 import VoiceInterview from './pages/VoiceInterview';
+import VoiceInterviewInstructions from './pages/VoiceInterviewInstructions';
 /**
  * Main App component
  * Sets up routing and authentication
@@ -30,7 +32,8 @@ import VoiceInterview from './pages/VoiceInterview';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <CameraProvider>
+        <Router>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -117,13 +120,15 @@ function App() {
           {/* 404 Not Found route */}
           <Route path="/404" element={<NotFound />} />
           
-          {/* Voice interview route - Make it public for candidates */}
+          {/* Voice interview routes - Make them public for candidates */}
+          <Route path="/voice-interview-instructions/:interviewId" element={<VoiceInterviewInstructions />} />
           <Route path="/voice-interview/:interviewId" element={<VoiceInterview />} />
           
           {/* Redirect any unknown routes to 404 */}
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </CameraProvider>
     </AuthProvider>
   );
 }

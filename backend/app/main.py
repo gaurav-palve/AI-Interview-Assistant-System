@@ -67,6 +67,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 # Register routes
@@ -78,10 +80,6 @@ app.include_router(email_routes.router)
 app.include_router(candidate_routes.router)
 app.include_router(camera_integration_route.router)
 
-# Add request logging middleware
-    expose_headers=["*"],
-    max_age=600,
-)
 
 
 # Add a middleware to ensure CORS headers are present in all responses

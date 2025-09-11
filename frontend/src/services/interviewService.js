@@ -198,12 +198,30 @@ const interviewService = {
    * @param {number} height - Camera height in pixels
    * @returns {Promise} - Promise with the start result
    */
-  startCamera: async (width = 640, height = 480) => {
+  startCamera: async (width = 640, height = 480, enableDetection = false) => {
     try {
-      const response = await api.post('/camera/start', { width, height });
+      const response = await api.post('/camera/start', {
+        width,
+        height,
+        enable_detection: enableDetection
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while starting the camera' };
+    }
+  },
+  
+  /**
+   * Toggle cheating detection
+   * @param {boolean} enable - Whether to enable detection
+   * @returns {Promise} - Promise with the toggle result
+   */
+  toggleDetection: async (enable) => {
+    try {
+      const response = await api.post('/camera/toggle_detection', { enable });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while toggling detection' };
     }
   },
 
