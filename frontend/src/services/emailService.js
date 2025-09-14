@@ -29,6 +29,32 @@ const emailService = {
   },
 
   /**
+   * Send custom interview confirmation email
+   * @param {string} candidateEmail - Candidate email
+   * @param {string} candidateName - Candidate name
+   * @param {string} jobRole - Job role
+   * @param {string} scheduledDateTime - Scheduled date and time
+   * @param {string} interviewId - Interview ID
+   * @param {string} customBody - Custom email body content
+   * @returns {Promise} - Promise with the send result
+   */
+  sendCustomConfirmationEmail: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, customBody) => {
+    try {
+      const response = await api.post('/emails/send-custom-confirmation', {
+        candidate_email: candidateEmail,
+        candidate_name: candidateName,
+        job_role: jobRole,
+        scheduled_datetime: scheduledDateTime,
+        interview_id: interviewId,
+        custom_body: customBody
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while sending custom confirmation email' };
+    }
+  },
+
+  /**
    * Send interview reminder email
    * @param {string} candidateEmail - Candidate email
    * @param {string} candidateName - Candidate name

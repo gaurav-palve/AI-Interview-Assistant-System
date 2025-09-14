@@ -15,6 +15,13 @@ class EmailConfirmationRequest(BaseModel):
     scheduled_datetime: str
     interview_id: str
 
+class CustomEmailConfirmationRequest(BaseModel):
+    candidate_email: EmailStr
+    candidate_name: str
+    job_role: str
+    scheduled_datetime: str
+    interview_id: str
+    custom_body: str
 class EmailReminderRequest(BaseModel):
     candidate_email: EmailStr
     candidate_name: str
@@ -162,3 +169,50 @@ async def test_email_configuration(
     except Exception as e:
         logger.error(f"Error sending test email: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error sending test email: {str(e)}")
+
+@router.post("/send-custom-confirmation")
+async def send_custom_confirmation_email(
+    request: CustomEmailConfirmationRequest,
+    session_token: str = Query(None)
+):
+    """
+    Send custom interview confirmation email to candidate
+    
+    Requires authentication with a valid session token
+    """
+    # Verify session
+    session_data = await verify_session(session_token)
+    if not session_data:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    admin_id = session_data.get("admin_id")
+    logger.info(f"Admin {admin_id} requested to send custom confirmation email to {request.candidate_email}")
+    
+    try:
+        email_service = EmailService()
+        
+        # Check if SMTP credentials are configured
+        if not email_service.smtp_username or not email_service.smtp_password:
+            raise HTTPException(
+                status_code=500,
+                detail="SMTP credentials not configured. Please check your .env file."
+            )
+        
+        result = await email_service.send_custom_confirmation_email(
+            candidate_email=request.candidate_email,
+            candidate_name=request.candidate_name,
+            job_role=request.job_role,
+            scheduled_datetime=request.scheduled_datetime,
+            interview_id=request.interview_id,
+            custom_body=request.custom_body
+        )
+        
+        if result:
+            return {"message": "Custom confirmation email sent successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send custom confirmation email")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error sending custom confirmation email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error sending custom confirmation email: {str(e)}")

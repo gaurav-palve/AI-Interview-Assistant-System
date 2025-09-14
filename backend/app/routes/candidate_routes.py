@@ -41,7 +41,7 @@ async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:
     
     try:
         # Verify database connection
-        from ..database import verify_database_connection
+        from ..database import verify_database_connection, get_database, MCQS_COLLECTION
         db_ok = await verify_database_connection()
         if not db_ok:
             logger.error("Database connection verification failed in candidate route")
@@ -56,10 +56,90 @@ async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:
             logger.warning(f"Interview not found: {interview_id}")
             raise HTTPException(status_code=404, detail="Interview not found")
         
-        # Return all necessary information for the candidate (including voice interview fields)
+        # Check if MCQs already exist for this interview
+        db = get_database()
+        existing_mcqs = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
+        
+        # If MCQs don't exist, trigger generation in the background
+        if not existing_mcqs:
+            logger.info(f"MCQs not found for interview {interview_id}. Triggering background generation.")
+            
+            # Start MCQ generation in a background task
+            # We'll use asyncio.create_task to run this in the background
+            import asyncio
+            
+            # Define the background task
+            async def generate_mcqs_background():
+                try:
+                    # Get candidate email
+                    candidate_email = interview["candidate_email"]
+                    
+                    # Extract JD and resume text
+                    logger.info(f"Extracting JD text for candidate: {candidate_email}")
+                    jd_text = await extract_text_from_jd(candidate_email)
+                    if not jd_text:
+                        logger.warning(f"Using empty JD text for candidate: {candidate_email}")
+                        jd_text = ""
+                    else:
+                        logger.info(f"Successfully extracted JD text for candidate: {candidate_email} (length: {len(jd_text)} chars)")
+                    
+                    logger.info(f"Extracting resume text for candidate: {candidate_email}")
+                    resume_text = await extract_text_from_resume(candidate_email)
+                    if not resume_text:
+                        logger.warning(f"Using empty resume text for candidate: {candidate_email}")
+                        resume_text = ""
+                    else:
+                        logger.info(f"Successfully extracted resume text for candidate: {candidate_email} (length: {len(resume_text)} chars)")
+                    
+                    # Generate MCQs
+                    if len(jd_text.strip()) < 10 and len(resume_text.strip()) < 10:
+                        logger.warning("Both JD and resume texts are too short. Using default MCQs.")
+                        mcqs_text = generate_default_mcqs()
+                    else:
+                        logger.info(f"Generating MCQs for candidate: {candidate_email}")
+                        mcqs_text = await generate_mcqs(jd_text, resume_text)
+                        
+                        if not mcqs_text or len(mcqs_text.strip()) < 20:
+                            logger.warning(f"Generated MCQs are too short or empty. Using default MCQs.")
+                            mcqs_text = generate_default_mcqs()
+                    
+                    # Save generated MCQs
+                    save_generated_mcqs(
+                        interview_id=interview_id,
+                        candidate_email=candidate_email,
+                        mcqs_text=mcqs_text
+                    )
+                    
+                    # Update interview status
+                    await interview_service.update_interview_status(interview_id, "in_progress")
+                    logger.info(f"Successfully generated and saved MCQs for interview {interview_id}")
+                    
+                except Exception as e:
+                    logger.error(f"Error in background MCQ generation: {e}")
+                    logger.exception("Full exception details:")
+                    
+                    # Try to save default MCQs as fallback
+                    try:
+                        default_mcqs = generate_default_mcqs()
+                        save_generated_mcqs(
+                            interview_id=interview_id,
+                            candidate_email=interview["candidate_email"],
+                            mcqs_text=default_mcqs
+                        )
+                        logger.info(f"Saved default MCQs for interview {interview_id} after generation failure")
+                    except Exception as e2:
+                        logger.error(f"Failed to save default MCQs: {e2}")
+            
+            # Start the background task
+            asyncio.create_task(generate_mcqs_background())
+            logger.info(f"Started background MCQ generation for interview {interview_id}")
+        else:
+            logger.info(f"MCQs already exist for interview {interview_id}")
+        
+        # Return all necessary information for the candidate
         logger.info(f"Successfully retrieved interview {interview_id} for candidate {interview.get('candidate_email', 'unknown')}")
         
-        # Create response with all necessary fields for voice interview
+        # Create response with all necessary fields
         response = {
             "id": interview["id"],
             "candidate_name": interview["candidate_name"],
@@ -72,7 +152,8 @@ async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:
             "interview_type": interview.get("interview_type", "technical_and_behavioral"),
             "title": interview.get("title", interview["job_role"]),  # Use job_role as title if not set
             "created_at": interview.get("created_at"),
-            "updated_at": interview.get("updated_at")
+            "updated_at": interview.get("updated_at"),
+            "mcqs_status": "ready" if existing_mcqs else "generating"
         }
         
         logger.info(f"Returning complete interview data to candidate: {response}")
@@ -94,12 +175,40 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
     logger.info(f"Request to generate MCQs for interview ID: {interview_id}")
     try:
         # Verify database connection
-        from ..database import verify_database_connection
+        from ..database import verify_database_connection, get_database, MCQS_COLLECTION
         db_ok = await verify_database_connection()
         if not db_ok:
             logger.error("Database connection verification failed in generate_candidate_mcqs")
             raise HTTPException(status_code=503, detail="Database service unavailable")
+        
+        # Check if MCQs already exist for this interview
+        db = get_database()
+        existing_mcqs = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
+        
+        # If MCQs already exist, return them instead of generating new ones
+        if existing_mcqs:
+            logger.info(f"MCQs already exist for interview {interview_id}, returning existing MCQs")
             
+            # If MCQs are stored in structured format, convert to text format
+            if isinstance(existing_mcqs["mcqs_text"], list):
+                # Structured format - convert to text
+                mcqs_list = existing_mcqs["mcqs_text"]
+                mcqs_text = ""
+                
+                for mcq in mcqs_list:
+                    question_text = mcq["question"]
+                    answer_text = mcq["answer"]
+                    
+                    # Extract options from question text if needed
+                    mcqs_text += f"{question_text}\n"
+                    mcqs_text += f"Answer: {answer_text}\n\n"
+                    
+                return mcqs_text.strip()
+            else:
+                # Already in text format
+                return existing_mcqs["mcqs_text"]
+            
+        # If MCQs don't exist, proceed with generation
         interview_service = InterviewService()
         interview = await interview_service.get_interview(interview_id)
         
@@ -135,14 +244,20 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
             # Ensure we have some text to work with
             if len(jd_text.strip()) < 10 and len(resume_text.strip()) < 10:
                 logger.warning("Both JD and resume texts are too short. Using default MCQs.")
-                return generate_default_mcqs()
+                default_mcqs = generate_default_mcqs()
+                save_generated_mcqs(interview_id=interview_id, candidate_email=candidate_email, mcqs_text=default_mcqs)
+                return default_mcqs
                 
             response = await generate_mcqs(jd_text, resume_text)
 
-            save_generated_mcqs(interview_id=interview_id,candidate_email=candidate_email,mcqs_text=response )
             if not response or len(response.strip()) < 20:
                 logger.warning(f"Generated MCQs are too short or empty. Using default MCQs.")
-                return generate_default_mcqs()
+                default_mcqs = generate_default_mcqs()
+                save_generated_mcqs(interview_id=interview_id, candidate_email=candidate_email, mcqs_text=default_mcqs)
+                return default_mcqs
+            
+            # Save the generated MCQs
+            save_generated_mcqs(interview_id=interview_id, candidate_email=candidate_email, mcqs_text=response)
                 
             logger.info(f"Successfully generated MCQs for candidate: {candidate_email} (length: {len(response)} chars)")
             logger.info(f"MCQs preview: {response[:200]}...")
@@ -162,7 +277,9 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
             
             # Return default MCQs instead of failing
             logger.info("Returning default MCQs due to error")
-            return generate_default_mcqs()
+            default_mcqs = generate_default_mcqs()
+            save_generated_mcqs(interview_id=interview_id, candidate_email=candidate_email, mcqs_text=default_mcqs)
+            return default_mcqs
     except HTTPException:
         # Re-raise HTTP exceptions
         raise

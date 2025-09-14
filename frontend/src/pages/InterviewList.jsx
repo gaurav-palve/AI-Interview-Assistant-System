@@ -142,14 +142,14 @@ function InterviewList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Interviews</h1>
-        <Link
+        <h1 className="text-3xl font-bold text-primary-500 font-serif animate-fadeIn animate-sparkle">Interviews</h1>
+        {/* <Link
           to="/interviews/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          className="inline-flex items-center px-6 py-2 border border-transparent rounded-full shadow-md text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 transform hover:-translate-y-1 transition-all duration-300"
         >
           <AddIcon className="-ml-1 mr-2 h-5 w-5" />
           New Interview
-        </Link>
+        </Link> */}
       </div>
 
       {error && (
@@ -163,52 +163,66 @@ function InterviewList() {
       )}
 
       {/* Search and Filter */}
-      <div className="card p-4">
+      <div className="card p-4 shadow-lg border-t-4 border-primary-500 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0 md:space-x-4">
           <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SearchIcon className="h-5 w-5 text-gray-400" />
-            </div>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              placeholder="Search interviews..."
+              className="block w-full px-4 py-2 border border-gray-300 rounded-md leading-5 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm search-bar-animate"
+              placeholder="✨ Search interviews..."
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center">
-              <FilterIcon className="h-5 w-5 text-gray-400 mr-2" />
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div className="flex items-center space-x-2">
+                <div className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm font-serif min-w-[120px] flex items-center justify-between">
+                  <span className="text-gray-900 dark:text-white">
+                    {statusFilter === 'all' ? 'All Statuses' :
+                     statusFilter === 'scheduled' ? 'Scheduled' :
+                     statusFilter === 'in_progress' ? 'In Progress' :
+                     statusFilter === 'completed' ? 'Completed' : 'Cancelled'}
+                  </span>
+                  <FilterIcon className="h-5 w-5 text-primary-500 ml-2" />
+                </div>
+              </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               >
                 <option value="all">All Statuses</option>
-                <option value="draft">Draft</option>
                 <option value="scheduled">Scheduled</option>
                 <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            <select
-              value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
-              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value={5}>5 per page</option>
-              <option value={10}>10 per page</option>
-              <option value={25}>25 per page</option>
-              <option value={50}>50 per page</option>
-            </select>
+            <div className="relative">
+              <div className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm font-serif min-w-[120px] flex items-center justify-between">
+                <span className="text-gray-900 dark:text-white">
+                  {pageSize} per page
+                </span>
+                <FilterIcon className="h-5 w-5 text-primary-500 ml-2" />
+              </div>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              >
+                <option value={5}>5 per page</option>
+                <option value={10}>10 per page</option>
+                <option value={25}>25 per page</option>
+                <option value={50}>50 per page</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Interviews Table */}
-      <div className="card overflow-hidden">
+      <div className="card overflow-hidden shadow-lg border-t-4 border-secondary-500 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
@@ -216,28 +230,28 @@ function InterviewList() {
         ) : filteredInterviews.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
+              <thead className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider font-serif animate-fadeIn" style={{ animationDelay: '0.3s' }}>
                     Candidate
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider font-serif animate-fadeIn" style={{ animationDelay: '0.4s' }}>
                     Job Role
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider font-serif animate-fadeIn" style={{ animationDelay: '0.5s' }}>
                     Scheduled Date
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider font-serif animate-fadeIn" style={{ animationDelay: '0.6s' }}>
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wider font-serif animate-fadeIn" style={{ animationDelay: '0.7s' }}>
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredInterviews.map((interview) => (
-                  <tr key={interview.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                {filteredInterviews.map((interview, index) => (
+                  <tr key={interview.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: `${0.3 + (index * 0.1)}s` }}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{interview.candidate_name}</div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">{interview.candidate_email}</div>
@@ -279,13 +293,13 @@ function InterviewList() {
           </div>
         ) : (
           <div className="py-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400">No interviews found. Create your first interview!</p>
+            <p className="text-gray-500 dark:text-gray-400 font-serif">No interviews found. Create your first interview!</p>
             <Link
               to="/interviews/new"
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="mt-4 inline-flex items-center px-6 py-2 border border-transparent rounded-full shadow-md text-sm font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 transform hover:-translate-y-1 transition-all duration-300"
             >
               <AddIcon className="-ml-1 mr-2 h-5 w-5" />
-              New Interview
+              Create Interview
             </Link>
           </div>
         )}

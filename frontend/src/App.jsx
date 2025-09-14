@@ -17,6 +17,7 @@ import InterviewEdit from './pages/InterviewEdit';
 import FileUpload from './pages/FileUpload';
 import MCQGeneration from './pages/MCQGeneration';
 import Statistics from './pages/Statistics';
+import ResumeScreening from './pages/ResumeScreening';
 import NotFound from './pages/NotFound';
 
 // Candidate Pages
@@ -115,7 +116,13 @@ function App() {
             </ProtectedRoute>
           } />
           
-          
+          <Route path="/resume-screening" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ResumeScreening />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
           
           {/* 404 Not Found route */}
           <Route path="/404" element={<NotFound />} />

@@ -30,7 +30,7 @@ export const CameraProvider = ({ children }) => {
   const [isInitializing, setIsInitializing] = useState(false);
 
   // Window size for camera (fixed size for consistent UI)
-  const windowSize = { width: 210, height: 150 };
+  const windowSize = { width: 180, height: 135 };
 
   // Start the camera
   const startCamera = async () => {

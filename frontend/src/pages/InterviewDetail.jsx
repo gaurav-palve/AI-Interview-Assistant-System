@@ -16,7 +16,9 @@ import {
   Event as EventIcon,
   Error as ErrorIcon,
   Upload as UploadIcon,
-  QuestionAnswer as MCQIcon
+  QuestionAnswer as MCQIcon,
+  Check as CheckIcon,
+  Assignment as AssignmentIcon
 } from '@mui/icons-material';
 
 /**
@@ -133,25 +135,28 @@ function InterviewDetail() {
             onClick={() => navigate('/interviews')}
             className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
-            <ArrowBackIcon className="h-6 w-6" />
+           
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Interview Details</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-serif animate-fadeIn" style={{ fontFamily: '"Times New Roman", Times, serif', textTransform: 'capitalize' }}>
+            <AssignmentIcon className="h-8 w-8 mr-2 text-primary-500 animate-pulse-slow" />
+            Interview Details
+          </h1>
         </div>
         {interview && (
           <div className="flex space-x-2">
             <Link
               to={`/interviews/${id}/edit`}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-full shadow-sm text-xs font-medium text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform hover:-translate-y-1 transition-all duration-300"
             >
-              <EditIcon className="-ml-1 mr-2 h-5 w-5" />
+              <EditIcon className="-ml-0.5 mr-1 h-4 w-4 animate-pulse-slow" />
               Edit
             </Link>
             <button
               type="button"
               onClick={handleDeleteInterview}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-full shadow-sm text-xs font-medium text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transform hover:-translate-y-1 transition-all duration-300"
             >
-              <DeleteIcon className="-ml-1 mr-2 h-5 w-5" />
+              <DeleteIcon className="-ml-0.5 mr-1 h-4 w-4 animate-pulse-slow" />
               Delete
             </button>
           </div>
@@ -176,28 +181,45 @@ function InterviewDetail() {
       ) : interview ? (
         <div className="space-y-6">
           {/* Interview Header */}
-          <div className="card">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex-1">
-                <div className="flex items-center mb-2">
-                  <JobIcon className="h-5 w-5 text-gray-500 mr-2" />
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{interview.job_role}</h2>
+          <div className="card shadow-xl border border-gray-700 rounded-xl overflow-hidden text-white animate-fadeIn transform hover:scale-[1.01] transition-all duration-300" style={{ background: 'linear-gradient(180deg, #2B2B2B 0%, #3A3A3A 100%)' }}>
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center mb-4">
+                    <JobIcon className="h-6 w-6 text-white mr-2" />
+                    <h2 className="text-2xl font-bold text-white font-serif">{interview.job_role}</h2>
+                  </div>
+                  <div className="flex items-center text-white/90 mb-4">
+                    <PersonIcon className="h-5 w-5 mr-1" />
+                    <span className="mr-4 font-medium">{interview.candidate_name}</span>
+                    <EmailIcon className="h-5 w-5 mr-1" />
+                    <span>{interview.candidate_email}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <EventIcon className="h-5 w-5 text-white mr-2" />
+                    <span className="text-white/90 font-medium">
+                      Scheduled for: {formatDate(interview.scheduled_datetime)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center text-gray-500 dark:text-gray-400 mb-4">
-                  <PersonIcon className="h-5 w-5 mr-1" />
-                  <span className="mr-4">{interview.candidate_name}</span>
-                  <EmailIcon className="h-5 w-5 mr-1" />
-                  <span>{interview.candidate_email}</span>
-                </div>
-                <div className="flex items-center">
-                  <EventIcon className="h-5 w-5 text-gray-500 mr-2" />
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Scheduled for: {formatDate(interview.scheduled_datetime)}
-                  </span>
+                <div className="mt-4 md:mt-0">
+                  <div className="bg-white/20 px-4 py-2 rounded-full text-white font-medium">
+                    {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 md:mt-0">
-                {getStatusBadge(interview.status)}
+            </div>
+            <div className="bg-white/10 p-4 border-t border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <span className="text-white font-bold">75%</span>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-white font-medium">Your Progress</p>
+                    <p className="text-white/70 text-sm">Keep up the great work!</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -205,8 +227,10 @@ function InterviewDetail() {
           {/* Interview Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* File Status */}
-            <div className="card">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">File Status</h3>
+            <div className="card shadow-lg border border-gray-700 rounded-xl p-6 animate-fadeIn transform hover:scale-[1.01] transition-all duration-300" style={{ animationDelay: '0.2s' }}>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 font-serif border-b border-gray-200 dark:border-gray-700 pb-2 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                File Status
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -244,7 +268,7 @@ function InterviewDetail() {
                   <div className="mt-4">
                     <Link
                       to={`/upload?email=${encodeURIComponent(interview.candidate_email)}`}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transform hover:-translate-y-1 transition-all duration-300"
                     >
                       <UploadIcon className="h-4 w-4 mr-1" />
                       Upload Files
@@ -266,8 +290,10 @@ function InterviewDetail() {
             </div>
 
             {/* Metadata */}
-            <div className="card">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Interview Metadata</h3>
+            <div className="card shadow-lg border border-gray-700 rounded-xl p-6 animate-fadeIn transform hover:scale-[1.01] transition-all duration-300" style={{ animationDelay: '0.3s' }}>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 font-serif border-b border-gray-200 dark:border-gray-700 pb-2 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+                Interview Metadata
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Created At:</span>
@@ -305,13 +331,6 @@ function InterviewDetail() {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
             <Link
-              to={`/interviews/${id}/edit`}
-              className="btn btn-primary"
-            >
-              <EditIcon className="h-5 w-5 mr-1" />
-              Edit Interview
-            </Link>
-            <Link
               to={`/upload?email=${encodeURIComponent(interview.candidate_email)}`}
               className="btn btn-secondary"
             >
@@ -320,7 +339,7 @@ function InterviewDetail() {
             </Link>
             <Link
               to={`/mcq?email=${encodeURIComponent(interview.candidate_email)}`}
-              className="btn btn-outline"
+              className="btn btn-outline rounded-full"
             >
               <MCQIcon className="h-5 w-5 mr-1" />
               Generate MCQs

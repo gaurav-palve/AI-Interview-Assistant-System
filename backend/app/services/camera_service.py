@@ -214,7 +214,7 @@ def camera_processing_thread(width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
                 # Process frame for cheating detection
                 process_frame_for_cheating(frame)
                 # Resize frame to match display size and improve performance
-                resized_frame = cv2.resize(frame, (210, 150))
+                resized_frame = cv2.resize(frame, (180, 135))
                 
                 # Encode and put in queue for streaming with higher quality
                 _, buffer = cv2.imencode('.jpg', resized_frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
