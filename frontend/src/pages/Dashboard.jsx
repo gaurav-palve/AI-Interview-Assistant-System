@@ -14,7 +14,8 @@ import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   TrendingUp as TrendingUpIcon,
-  People as PeopleIcon
+  People as PeopleIcon,
+  Notifications as NotificationsIcon
 } from '@mui/icons-material';
 
 /**
@@ -27,8 +28,19 @@ function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [greeting, setGreeting] = useState('Hello');
+  const [notificationCount, setNotificationCount] = useState(3);
 
   // Fetch interviews and stats on component mount
+  // Set greeting based on time of day
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 18) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+  }, []);
+
+  // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -108,19 +120,6 @@ function Dashboard() {
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      <div className="flex items-center justify-between">
-        <h1 className="text-4xl font-bold">Dashboard</h1>
-        <div className="flex space-x-2">
-          <Link
-            to="/interviews/new"
-            className="btn btn-primary"
-          >
-            <AddIcon className="-ml-1 mr-2 h-5 w-5" />
-            New Interview
-          </Link>
-        </div>
-      </div>
-
       {error && (
         <div className="bg-danger-50 border-l-4 border-danger-500 p-4 rounded-r-md animate-slideIn">
           <div className="flex">
@@ -132,83 +131,97 @@ function Dashboard() {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         <Link
           to="/interviews/new"
-          className="card flex items-center p-6 hover:bg-gray-50 transition-colors group"
+          className="card flex flex-col items-center p-6 hover:bg-gray-50 transition-all duration-300 group hover:shadow-xl rounded-xl border border-gray-200 transform hover:-translate-y-2 animate-fadeIn"
+          style={{ animationDelay: '0.1s' }}
         >
-          <div className="flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg group-hover:scale-110 transition-transform">
-            <AddIcon className="h-7 w-7" />
+          <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow-lg group-hover:scale-110 transition-transform mb-3">
+            <AddIcon className="h-8 w-8" />
           </div>
-          <div className="ml-5">
-            <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">New Interview</h3>
-            <p className="mt-1 text-sm text-gray-500">Schedule a new interview</p>
-          </div>
+          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors font-serif text-center">New Interview</h3>
+          <p className="mt-1 text-sm text-gray-500 text-center">Schedule a new interview</p>
         </Link>
 
         <Link
           to="/interviews"
-          className="card flex items-center p-6 hover:bg-gray-50 transition-colors group"
+          className="card flex flex-col items-center p-6 hover:bg-gray-50 transition-all duration-300 group hover:shadow-xl rounded-xl border border-gray-200 transform hover:-translate-y-2 animate-fadeIn"
+          style={{ animationDelay: '0.2s' }}
         >
-          <div className="flex-shrink-0 flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-secondary-500 to-secondary-600 text-white shadow-lg group-hover:scale-110 transition-transform">
-            <AssignmentIcon className="h-7 w-7" />
+          <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow-lg group-hover:scale-110 transition-transform mb-3">
+            <AssignmentIcon className="h-8 w-8" />
           </div>
-          <div className="ml-5">
-            <h3 className="text-xl font-semibold text-gray-900 group-hover:text-secondary-600 transition-colors">Manage Interviews</h3>
-            <p className="mt-1 text-sm text-gray-500">View and manage interviews</p>
+          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors font-serif text-center">Manage Interviews</h3>
+          <p className="mt-1 text-sm text-gray-500 text-center">View and manage interviews</p>
+        </Link>
+        
+        <Link
+          to="/statistics"
+          className="card flex flex-col items-center p-6 hover:bg-gray-50 transition-all duration-300 group hover:shadow-xl rounded-xl border border-gray-200 transform hover:-translate-y-2 animate-fadeIn"
+          style={{ animationDelay: '0.3s' }}
+        >
+          <div className="flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 text-white shadow-lg group-hover:scale-110 transition-transform mb-3">
+            <StatsIcon className="h-8 w-8" />
           </div>
+          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition-colors font-serif text-center">Statistics</h3>
+          <p className="mt-1 text-sm text-gray-500 text-center">View interview analytics</p>
         </Link>
       </div>
 
       {/* Statistics */}
       {stats && (
-        <div className="card">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-            <StatsIcon className="h-5 w-5 mr-2 text-primary-600" />
-            Interview Statistics
+        <div className="card shadow-lg border-t-4 border-primary-500 animate-fadeIn hover:shadow-xl transition-all duration-300" style={{ animationDelay: '0.4s' }}>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+            <StatsIcon className="h-6 w-6 mr-2 text-primary-600" />
+            <span className="text-gray-800 font-serif">
+              Your Statistics
+            </span>
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="stats-card stats-card-primary flex flex-col items-center justify-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 text-primary-600 mb-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="stats-card stats-card-primary flex flex-col items-center justify-center p-3 rounded-lg hover:shadow-md transition-all duration-300 hover:bg-primary-50 animate-fadeIn" style={{ animationDelay: '0.5s' }}>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 text-primary-600 mb-2 transform hover:scale-110 transition-transform">
                 <AssignmentIcon className="h-6 w-6" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.total_interviews || 0}</p>
-              <p className="text-sm font-medium text-primary-600">Total Interviews</p>
+              <p className="text-2xl font-bold text-gray-900 font-serif">{stats.total_interviews || 0}</p>
+              <p className="text-xs font-medium text-primary-600">Total Interviews</p>
             </div>
             
-            <div className="stats-card stats-card-secondary flex flex-col items-center justify-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-secondary-100 text-secondary-600 mb-3">
+            <div className="stats-card stats-card-secondary flex flex-col items-center justify-center p-3 rounded-lg hover:shadow-md transition-all duration-300 hover:bg-secondary-50 animate-fadeIn" style={{ animationDelay: '0.6s' }}>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-secondary-100 text-secondary-600 mb-2 transform hover:scale-110 transition-transform">
                 <ScheduleIcon className="h-6 w-6" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.status_breakdown?.scheduled || 0}</p>
-              <p className="text-sm font-medium text-secondary-600">Scheduled</p>
+              <p className="text-2xl font-bold text-gray-900 font-serif">{stats.status_breakdown?.scheduled || 0}</p>
+              <p className="text-xs font-medium text-secondary-600">Scheduled</p>
             </div>
             
-            <div className="stats-card stats-card-accent flex flex-col items-center justify-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-accent-100 text-accent-600 mb-3">
+            <div className="stats-card stats-card-accent flex flex-col items-center justify-center p-3 rounded-lg hover:shadow-md transition-all duration-300 hover:bg-accent-50 animate-fadeIn" style={{ animationDelay: '0.7s' }}>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-accent-100 text-accent-600 mb-2 transform hover:scale-110 transition-transform">
                 <CompletedIcon className="h-6 w-6" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.status_breakdown?.completed || 0}</p>
-              <p className="text-sm font-medium text-accent-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-900 font-serif">{stats.status_breakdown?.completed || 0}</p>
+              <p className="text-xs font-medium text-accent-600">Completed</p>
             </div>
             
-            <div className="stats-card stats-card-warning flex flex-col items-center justify-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-warning-100 text-warning-600 mb-3">
+            <div className="stats-card stats-card-warning flex flex-col items-center justify-center p-3 rounded-lg hover:shadow-md transition-all duration-300 hover:bg-warning-50 animate-fadeIn" style={{ animationDelay: '0.8s' }}>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-warning-100 text-warning-600 mb-2 transform hover:scale-110 transition-transform">
                 <PeopleIcon className="h-6 w-6" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.status_breakdown?.draft || 0}</p>
-              <p className="text-sm font-medium text-warning-600">Drafts</p>
+              <p className="text-2xl font-bold text-gray-900 font-serif">{stats.status_breakdown?.draft || 0}</p>
+              <p className="text-xs font-medium text-warning-600">Drafts</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Recent Interviews */}
-      <div className="card">
+      <div className="card shadow-lg border-t-4 border-secondary-500 animate-fadeIn hover:shadow-xl transition-all duration-300" style={{ animationDelay: '0.9s' }}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-            <TrendingUpIcon className="h-5 w-5 mr-2 text-primary-600" />
-            Recent Interviews
+          <h2 className="text-2xl font-semibold flex items-center">
+            <TrendingUpIcon className="h-6 w-6 mr-2 text-secondary-500" />
+            <span className="text-gray-800 font-serif">
+              Recent Interviews
+            </span>
           </h2>
           <Link
             to="/interviews"

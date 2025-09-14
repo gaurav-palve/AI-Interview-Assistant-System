@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import interviewService from '../services/interviewService';
@@ -26,6 +26,9 @@ function InterviewCreate() {
   const [resumeFile, setResumeFile] = useState(null);
   const [jdFile, setJdFile] = useState(null);
   const [createdInterview, setCreatedInterview] = useState(null);
+  
+  // Email content state variable
+  const [emailBody, setEmailBody] = useState("");
   const navigate = useNavigate();
   
   // Initialize react-hook-form
@@ -44,6 +47,25 @@ function InterviewCreate() {
   const candidateEmail = watch('candidate_email');
   const jobRole = watch('job_role');
   const scheduledDateTime = watch('scheduled_datetime');
+  
+  // Update email body when form values change
+  useEffect(() => {
+    const updatedEmailBody = `Dear ${candidateName || 'Candidate'},
+
+Your interview for the ${jobRole || 'Job Position'} position has been successfully scheduled.
+
+Interview Details:
+- Position: ${jobRole || 'Job Position'}
+- Date & Time: ${scheduledDateTime ? format(new Date(scheduledDateTime), 'PPpp') : 'Scheduled Date and Time'}
+- Interview Link: ${window.location.origin}/candidate/interview/[Interview ID will be generated]
+
+Please click on the interview link at the scheduled time. You will see instructions and a start button. When you're ready, click the start button to begin the interview.
+
+Best regards,
+Interview System Team`;
+    
+    setEmailBody(updatedEmailBody);
+  }, [candidateName, candidateEmail, jobRole, scheduledDateTime]);
 
   /**
    * Handle resume file selection
@@ -108,12 +130,18 @@ function InterviewCreate() {
   const sendConfirmationEmail = async (interviewData) => {
     setIsSendingEmail(true);
     try {
-      await emailService.sendInterviewConfirmation(
+      // The email body is already updated with the form values, just replace the interview link
+      const customEmailBody = emailBody
+        .replace(`${window.location.origin}/candidate/interview/[Interview ID will be generated]`, `${window.location.origin}/candidate/interview/${interviewData.id}`);
+
+      // Send the custom email
+      await emailService.sendCustomConfirmationEmail(
         interviewData.candidate_email,
         interviewData.candidate_name,
         interviewData.job_role,
         format(new Date(interviewData.scheduled_datetime), 'PPpp'),
-        interviewData.id
+        interviewData.id,
+        customEmailBody
       );
       setSuccess('Interview created and confirmation email sent successfully!');
     } catch (err) {
@@ -459,26 +487,14 @@ function InterviewCreate() {
                 <p className="text-sm text-gray-500">To: {candidateEmail || 'candidate@example.com'}</p>
                 <p className="text-sm text-gray-500">Subject: Interview Confirmation - {jobRole || 'Job Position'}</p>
                 <div className="border-t border-gray-200 pt-2 mt-2">
-                  <p className="text-sm text-gray-700">Dear {candidateName || 'Candidate'},</p>
-                  <p className="text-sm text-gray-700 mt-2">
-                    Your interview for the {jobRole || 'Job Position'} position has been successfully scheduled.
-                  </p>
-                  <p className="text-sm text-gray-700 mt-2">
-                    Interview Details:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-gray-700 ml-2">
-                    <li>Position: {jobRole || 'Job Position'}</li>
-                    <li>Date & Time: {scheduledDateTime ? format(new Date(scheduledDateTime), 'PPpp') : 'Scheduled Date and Time'}</li>
-                    <li>Interview Link: [Candidate Dashboard URL]</li>
-                  </ul>
-                  <p className="text-sm text-gray-700 mt-2">
-                    Please click on the interview link at the scheduled time. You will see instructions and a start button.
-                    When you're ready, click the start button to begin the interview.
-                  </p>
-                  <p className="text-sm text-gray-700 mt-2">
-                    Best regards,<br />
-                    Interview System Team
-                  </p>
+                  {/* Editable email body */}
+                  <textarea
+                    id="emailBody"
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-sm text-gray-700 focus:border-primary-500 focus:ring-primary-500"
+                    rows="12"
+                  />
                 </div>
               </div>
             </div>

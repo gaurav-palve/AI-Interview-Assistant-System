@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import sharedImage from '../shared image.png';
 import { useParams, useNavigate } from 'react-router-dom';
 import interviewService from '../services/interviewService';
 import CameraProctor from '../components/CameraProctor';
@@ -30,8 +31,11 @@ import {
   QuestionAnswer as QuestionIcon,
   School as SchoolIcon,
   Assignment as AssignmentIcon,
-  Videocam as VideocamIcon
+  Videocam as VideocamIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
+
+// Logo component removed
 
 /**
  * CandidateInterview page component
@@ -52,7 +56,10 @@ function CandidateInterview() {
   const [instructionTimer, setInstructionTimer] = useState(60); // 1 minute in seconds
   const [timerActive, setTimerActive] = useState(false);
   const [mcqsGenerated, setMcqsGenerated] = useState(false);
+  const [mcqTimer, setMcqTimer] = useState(3600); // 1 hour in seconds for the MCQ test
+  const [mcqTimerActive, setMcqTimerActive] = useState(false);
   const timerRef = useRef(null);
+  const mcqTimerRef = useRef(null);
   const { startCamera, stopCamera, isActive } = useCamera();
 
   // Fetch interview details on component mount
@@ -64,6 +71,15 @@ function CandidateInterview() {
         const data = await interviewService.getCandidateInterview(interviewId);
         logger.info('Interview data retrieved successfully', data);
         setInterview(data);
+        
+        // Check if MCQs are already ready based on the mcqs_status field
+        if (data.mcqs_status === 'ready') {
+          logger.info('MCQs are already ready according to interview data');
+          // We'll still call generateMcqsInBackground to fetch the actual MCQs,
+          // but we know they're ready
+          setMcqsGenerated(true);
+        }
+        
         setError(null);
       } catch (err) {
         logger.error('Error fetching interview', err);
@@ -94,10 +110,17 @@ function CandidateInterview() {
       // Timer finished, show MCQs if they're generated
       if (mcqsGenerated) {
         // Start the test without delay
+        logger.info('Timer finished and MCQs are ready, starting MCQ phase');
         setPhase('mcq');
+        // Start the MCQ timer
+        setMcqTimerActive(true);
       } else {
         // Set phase to waiting if MCQs are not yet generated
+        logger.info('Timer finished but MCQs are not ready yet, entering waiting phase');
         setPhase('waiting');
+        
+        // Try to generate MCQs again immediately
+        generateMcqsInBackground();
       }
       setTimerActive(false);
     }
@@ -108,6 +131,50 @@ function CandidateInterview() {
       }
     };
   }, [timerActive, instructionTimer, mcqsGenerated]);
+
+  // Effect to poll for MCQ status when in waiting phase
+  useEffect(() => {
+    let pollInterval = null;
+    
+    if (phase === 'waiting' && !mcqsGenerated) {
+      logger.info('Starting polling for MCQ status');
+      
+      // Poll every 3 seconds
+      pollInterval = setInterval(async () => {
+        try {
+          logger.info('Polling for MCQs');
+          // Try to generate/fetch MCQs again
+          const response = await interviewService.generateCandidateMCQs(interviewId);
+          
+          if (response && response.length > 0) {
+            logger.info('MCQs fetched successfully during polling', { responseLength: response.length });
+            
+            // Parse MCQs from response
+            const parsedMcqs = parseMcqs(response);
+            logger.info('MCQs parsed successfully during polling', {
+              count: parsedMcqs.length,
+              firstQuestion: parsedMcqs[0]?.question
+            });
+            
+            setMcqs(parsedMcqs);
+            setMcqsGenerated(true);
+            setPhase('mcq');
+            setCurrentQuestionIndex(0);
+            setMcqTimerActive(true);
+          }
+        } catch (err) {
+          logger.error('Error polling for MCQs', err);
+          // Don't set error state here to avoid disrupting the UI
+        }
+      }, 3000);
+    }
+    
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [phase, mcqsGenerated, interviewId]);
 
   // Effect to check interview status and redirect to voice interview if needed
   useEffect(() => {
@@ -157,9 +224,7 @@ function CandidateInterview() {
     
     // Start the timer
     setTimerActive(true);
-    
-    // Start MCQ generation in the background
-    generateMcqsInBackground();
+
     
     // Log that the instructions have started
     logger.info('Starting instruction timer');
@@ -208,8 +273,7 @@ function CandidateInterview() {
    * @returns {Array} - Array of parsed MCQ objects
    */
   const parseMcqs = (mcqText) => {
-    // This is a simple parser for the MCQ format
-    // In a real application, you would want a more robust parser
+    // This is a parser for the MCQ format from the backend
     logger.debug('Parsing MCQ text', { textLength: mcqText.length });
     const questions = [];
     const lines = mcqText.split('\n');
@@ -230,7 +294,7 @@ function CandidateInterview() {
         if (currentQuestion && currentOptions.length > 0) {
           questions.push({
             question: currentQuestion,
-            options: currentOptions,
+            options: currentOptions.map(opt => opt.replace(/^[a-d][\)\.]\s*/i, '')), // Remove option letter
             correctAnswer: correctAnswer
           });
         }
@@ -246,7 +310,13 @@ function CandidateInterview() {
       }
       // Answer line
       else if (/^answer:/i.test(trimmedLine)) {
-        correctAnswer = trimmedLine.replace(/^answer:\s*/i, '').trim();
+        // Extract just the option text without the letter
+        const answerMatch = trimmedLine.match(/^answer:\s*[a-d][\)\.]\s*(.*)/i);
+        if (answerMatch && answerMatch[1]) {
+          correctAnswer = answerMatch[1].trim();
+        } else {
+          correctAnswer = trimmedLine.replace(/^answer:\s*/i, '').trim();
+        }
       }
     }
     
@@ -254,10 +324,17 @@ function CandidateInterview() {
     if (currentQuestion && currentOptions.length > 0) {
       questions.push({
         question: currentQuestion,
-        options: currentOptions,
+        options: currentOptions.map(opt => opt.replace(/^[a-d][\)\.]\s*/i, '')), // Remove option letter
         correctAnswer: correctAnswer
       });
     }
+    
+    // Log the parsed questions for debugging
+    logger.debug('Parsed MCQs', {
+      count: questions.length,
+      firstQuestion: questions[0]?.question,
+      firstOptions: questions[0]?.options
+    });
     
     return questions;
   };
@@ -453,40 +530,67 @@ function CandidateInterview() {
   if (phase === 'completed') {
     
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4">
-        {/* Camera component - small version in corner */}
-        <div className="absolute top-0 right-4 z-60">
-          <div className="bg-black rounded-lg overflow-hidden shadow-xl" style={{ width: '180px', height: '135px' }}>
-            <CameraProctor
-              detectionEnabled={false} // Disable detection on completion page
-            />
-          </div>
-        </div>
-        
-        <div className="max-w-md w-full bg-white shadow-xl rounded-lg p-8 animate-fadeIn">
-          <div className="flex items-center justify-center text-green-500 mb-6">
-            <div className="bg-green-100 p-3 rounded-full">
-              <CheckIcon className="h-12 w-12" />
+      <div className="min-h-screen bg-neutrino-gradient text-white">
+        {/* Header with Neutrino branding */}
+        <header className="border-b border-gray-800">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex justify-end items-center py-4 px-6">
+              <button className="text-white p-2 rounded-full hover:bg-white/10">
+                <MenuIcon />
+              </button>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-center text-gray-900 mb-4">
-            MCQ Assessment Completed
-          </h1>
-          <p className="text-center text-gray-700 mb-6">
-            Thank you for completing the MCQ portion. Your responses have been recorded.
-          </p>
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-md">
-            <div className="flex">
-              <InfoIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
-              <div className="ml-3">
-                <p className="text-sm text-blue-700">
-                  Please wait while we prepare your voice interview. You will be redirected automatically.
-                </p>
+        </header>
+        
+        <div className="py-8 px-4 sm:px-6 lg:px-8">
+          {/* Camera component - positioned at the left corner of page */}
+          <div className="fixed top-0 right-2">
+            <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl" style={{ width: '180px', height: '135px' }}>
+              <CameraProctor
+                detectionEnabled={false} // Disable detection on completion page
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center">
+            <div className="max-w-md w-full card-dark p-8 animate-fadeIn mt-16">
+              <div className="flex items-center justify-center text-orange-500 mb-6">
+                <div className="bg-orange-900/30 p-3 rounded-full">
+                  <CheckIcon className="h-12 w-12" />
+                </div>
+              </div>
+              
+              {/* Animated Training Assessment Text */}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center">
+                    <img src={sharedImage} alt="Assessment Logo" className="h-7" />
+                  </div>
+                  <h1 className="text-3xl font-bold animate-pulse-slow">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-white">
+                      Assessment Completed
+                    </span>
+                  </h1>
+                </div>
+              </div>
+              
+              <p className="text-center text-gray-300 mb-6">
+                Thank you for completing the MCQ portion. Your responses have been recorded.
+              </p>
+              <div className="bg-blue-900/30 border-l-4 border-blue-500 p-4 mb-6 rounded-r-md">
+                <div className="flex">
+                  <InfoIcon className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-300">
+                      Please wait while we prepare your voice interview. You will be redirected automatically.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
               </div>
             </div>
-          </div>
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
           </div>
         </div>
       </div>
@@ -496,137 +600,163 @@ function CandidateInterview() {
   // Render interview instructions or waiting state
   if (phase === 'instructions' || phase === 'waiting') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          {/* Camera component - positioned at the top right corner */}
-          <div className="absolute top-4 right-4 z-50" style={{ width: '180px', height: '135px' }}>
-            <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
-              <CameraProctor
-                detectionEnabled={phase === 'mcq'} // Only enable detection during MCQ phase
-              />
+      <div className="min-h-screen bg-neutrino-gradient text-white">
+        {/* Navbar with Neutrino logo and camera */}
+        <nav className="w-full bg-black/30 shadow-md z-50 py-2">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between px-4 relative">
+              {/* Logo positioned at absolute top-left */}
+              <div className="absolute top-0 left-0 z-50 p-2">
+                <img src={sharedImage} alt="Neutrino Logo" className="h-10" />
+              </div>
+              
+              {/* Centered title */}
+              <div className="mx-auto">
+                <h1 className="text-2xl font-bold whitespace-nowrap animate-pulse-slow">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-white">
+                    Technical Assessment
+                  </span>
+                </h1>
+              </div>
+              
+              {/* Camera component on the right side of navbar */}
+              <div className="absolute top-1 right-2" style={{ width: '180px', height: '135px' }}>
+                <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
+                  <CameraProctor
+                    detectionEnabled={phase === 'mcq'} // Only enable detection during MCQ phase
+                  />
+                </div>
+              </div>
             </div>
           </div>
+        </nav>
+        <div className="pt-14 pb-1 px-4 sm:px-6 lg:px-8">
           
-          <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
-              <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-white flex items-center">
-                  <SchoolIcon className="mr-2" />
-                  Technical Assessment
-                </h1>
+          <div className="flex max-w-6xl mx-auto gap-2">
+            {/* Interview Details on the left - decreased width */}
+            <div className="w-1/3">
+              <div className="card-dark p-1.5 h-full">
+                <h3 className="text-xs font-semibold text-gray-200 mb-0.5 flex items-center">
+                  <AssignmentIcon className="mr-1.5 text-orange-400 text-xs" />
+                  Interview Details
+                </h3>
+                <div className="bg-gray-800/50 rounded-lg p-1.5 border border-gray-700">
+                  <div className="space-y-0.5">
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Position</p>
+                      <p className="text-sm text-gray-200 font-semibold">{interview.job_role}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Scheduled Time</p>
+                      <p className="text-sm text-gray-200">{formatDate(interview.scheduled_datetime)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Interview ID</p>
+                      <p className="text-gray-200 font-mono text-xs">{interview.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Candidate</p>
+                      <p className="text-sm text-gray-200 font-semibold">{interview.candidate_name}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Main form on the right - increased width */}
+            <div className="w-2/3">
+              <div className="card-dark p-1">
+              {/* Header */}
+              <div className="flex justify-between items-center mb-1">
+                <div className="text-base font-bold text-white">
+                  {/* Removed "Instructions" text as requested */}
+                </div>
                 {timerActive && (
-                  <div className="bg-white bg-opacity-20 rounded-lg px-3 py-1 flex items-center text-white">
+                  <div className="bg-black/30 rounded-lg px-3 py-1 flex items-center text-white">
                     <TimerIcon className="mr-1 h-5 w-5" />
                     <span className="font-mono">{formatTime(instructionTimer)}</span>
                   </div>
                 )}
               </div>
-            </div>
-            
-            {/* Content */}
-            <div className="p-6">
-              {/* Interview Details */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <AssignmentIcon className="mr-2 text-primary-600" />
-                  Interview Details
-                </h2>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Candidate</p>
-                      <p className="text-gray-900 font-semibold">{interview.candidate_name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Position</p>
-                      <p className="text-gray-900 font-semibold">{interview.job_role}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Scheduled Time</p>
-                      <p className="text-gray-900">{formatDate(interview.scheduled_datetime)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Interview ID</p>
-                      <p className="text-gray-900 font-mono text-sm">{interview.id}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
               
-              {/* Instructions */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <QuestionIcon className="mr-2 text-primary-600" />
-                  MCQ Assessment Instructions
-                </h2>
-                <div className="space-y-3 text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <p className="flex items-start">
-                    <span className="bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">1</span>
-                    <span>This assessment consists of multiple-choice questions based on your resume and the job description.</span>
-                  </p>
-                  <p className="flex items-start">
-                    <span className="bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">2</span>
-                    <span>The questions are designed to assess your skills and experience relevant to the position.</span>
-                  </p>
-                  <p className="flex items-start">
-                    <span className="bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">3</span>
-                    <span>You will see one question at a time and can only move forward after selecting an answer.</span>
-                  </p>
-                  <p className="flex items-start">
-                    <span className="bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">4</span>
-                    <span>Once you move to the next question, you cannot go back to change your answer.</span>
-                  </p>
-                  <p className="flex items-start">
-                    <span className="bg-primary-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0">5</span>
-                    <span>There is no time limit for individual questions, but try to complete the assessment in one sitting.</span>
-                  </p>
-                </div>
-              </div>
-              
-              {/* Info box */}
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r-md">
-                <div className="flex">
-                  <InfoIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
-                  <div className="ml-3">
-                    <p className="text-sm text-blue-700">
-                      Make sure you're in a quiet environment with a stable internet connection before starting the assessment.
+              {/* Content */}
+              <div className="space-y-1">
+                
+                {/* Instructions */}
+                <div>
+                  <h3 className="text-base font-semibold text-gray-200 mb-1 flex items-center">
+                    <QuestionIcon className="mr-2 text-orange-400 text-sm" />
+                    MCQ Assessment Instructions
+                  </h3>
+                  <div className="space-y-1 text-gray-300 bg-gray-800/50 p-1.5 rounded-lg border border-gray-700">
+                    <p className="flex items-start">
+                      <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">1</span>
+                      <span className="text-sm">This assessment consists of multiple-choice questions based on your resume and the job description.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">2</span>
+                      <span className="text-sm">The questions are designed to assess your skills and experience relevant to the position.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">3</span>
+                      <span className="text-sm">You will see one question at a time and can only move forward after selecting an answer.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">4</span>
+                      <span className="text-sm">Once you move to the next question, you cannot go back to change your answer.</span>
+                    </p>
+                    <p className="flex items-start">
+                      <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">5</span>
+                      <span className="text-sm">There is no time limit for individual questions, but try to complete the assessment in one sitting.</span>
                     </p>
                   </div>
                 </div>
-              </div>
-              
-              {/* Start button */}
-              <div className="flex justify-center">
-                <button
-                  onClick={() => {
-                    // Start camera when the assessment begins
-                    // Camera is already started by the context
-                    handleStartInstructions();
-                  }}
-                  disabled={timerActive || generatingMcqs || phase === 'waiting'}
-                  className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
-                >
-                  {timerActive ? (
-                    <span className="flex items-center">
-                      <TimerIcon className="mr-2" />
-                      Reading Time: {formatTime(instructionTimer)}
-                    </span>
-                  ) : phase === 'waiting' ? (
-                    <span className="flex items-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
-                      Preparing Questions...
-                    </span>
-                  ) : (
-                    <span className="flex items-center">
-                      <PlayIcon className="mr-2" />
-                      <VideocamIcon className="mr-1" />
-                      Begin Assessment
-                    </span>
-                  )}
-                </button>
+                
+                {/* Info box */}
+                <div className="bg-blue-900/30 border-l-4 border-blue-500 p-1.5 rounded-r-md">
+                  <div className="flex items-center">
+                    <InfoIcon className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                    <div className="ml-2">
+                      <p className="text-xs text-blue-300 leading-tight">
+                        Make sure you're in a quiet environment with a stable internet connection before starting the assessment.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Start button */}
+                <div className="flex justify-center pt-1">
+                  <button
+                    onClick={() => {
+                      // Start camera when the assessment begins
+                      // Camera is already started by the context
+                      handleStartInstructions();
+                    }}
+                    disabled={timerActive || generatingMcqs || phase === 'waiting'}
+                    className="px-6 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
+                  >
+                    {timerActive ? (
+                      <span className="flex items-center text-sm">
+                        <TimerIcon className="mr-2 h-4 w-4" />
+                        Reading Time: {formatTime(instructionTimer)}
+                      </span>
+                    ) : phase === 'waiting' ? (
+                      <span className="flex items-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                        Preparing Questions...
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <PlayIcon className="mr-2" />
+                        <VideocamIcon className="mr-1" />
+                        Begin Assessment
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -637,27 +767,40 @@ function CandidateInterview() {
   const currentQuestion = getCurrentQuestion();
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto relative">
-        <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold text-white flex items-center">
+    <div className="min-h-screen bg-neutrino-gradient text-white">
+      {/* Header with Neutrino branding and timer */}
+      <header className="border-b border-gray-800">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex justify-between items-center py-4 px-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <img src={sharedImage} alt="Assessment Logo" className="h-8" />
+              </div>
+              <h2 className="text-xl font-bold text-white flex items-center">
                 <SchoolIcon className="mr-2" />
                 {interview.job_role} Assessment
-              </h1>
-              <div className="bg-white bg-opacity-20 rounded-lg px-3 py-1 text-white">
-                <span className="font-medium">Question {currentQuestionIndex + 1}/{mcqs.length}</span>
+              </h2>
+            </div>
+            <div className="flex items-center">
+              <div className="mr-4 text-right">
+                <div className="text-sm text-gray-300">Time Left</div>
+                <div className="text-lg font-medium text-white">{formatTime(mcqTimer)}</div>
               </div>
+              <button className="text-white p-2 rounded-full hover:bg-white/10">
+                <MenuIcon />
+              </button>
             </div>
           </div>
-          
-          {/* Question content */}
-          <div className="p-6">
-            {/* Camera component - positioned at the top right corner */}
+        </div>
+      </header>
+      
+      <div className="py-3 px-3 sm:px-4 lg:px-6">
+        <div className="flex max-w-5xl mx-auto relative">
+          {/* Main content area - 75% width */}
+          <div className="w-3/4 pr-2">
+            {/* Camera component - positioned at the right corner with smaller size */}
             {isActive && (
-              <div className="absolute top-4 right-4 z-50" style={{ width: '180px', height: '135px' }}>
+              <div className="fixed top-24 right-2 z-50" style={{ width: '180px', height: '135px' }}>
                 <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
                   <CameraProctor
                     detectionEnabled={true} // Enable detection during MCQ phase
@@ -665,50 +808,132 @@ function CandidateInterview() {
                 </div>
               </div>
             )}
-            <div className="mb-8">
-              <div className="bg-gray-50 rounded-lg p-5 border border-gray-200 mb-6">
-                <p className="text-lg font-medium text-gray-900">
-                  {currentQuestion?.question}
-                </p>
+            
+            <div className="card-dark p-2">
+              {/* Compact timer display */}
+              <div className="flex justify-between items-center mb-3 bg-gray-800/50 p-2 rounded-lg">
+                <div className="text-sm font-bold text-white">
+                  Time Left
+                </div>
+                <div className="text-lg font-bold text-white">
+                  {formatTime(mcqTimer)}
+                </div>
               </div>
               
-              <div className="space-y-3">
-                {currentQuestion?.options.map((option, index) => (
+              {/* Question header */}
+              <div className="border-b border-gray-700 pb-1 mb-2">
+                <h3 className="text-base font-bold text-white">
+                  Question {currentQuestionIndex + 1}
+                </h3>
+              </div>
+            
+              {/* Question content */}
+              <div className="space-y-2">
+                <div className="bg-gray-800/50 rounded-lg p-1.5 border border-gray-700 mb-2">
+                  <p className="text-sm font-medium text-gray-200 px-0.5">
+                    {currentQuestion?.question}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  {currentQuestion?.options.map((option, index) => {
+                    const optionLetters = ['A', 'B', 'C', 'D', 'E'];
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleSelectAnswer(option)}
+                        type="button"
+                        className={`flex items-start w-full text-left py-1 px-1.5 rounded-lg border transition-all duration-200 ${
+                          isOptionSelected(option)
+                            ? 'border-orange-500 bg-orange-900/20 shadow-md'
+                            : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                        }`}
+                      >
+                        <div className={`flex-shrink-0 w-5 h-5 rounded-md border-2 mr-2 flex items-center justify-center ${
+                          isOptionSelected(option)
+                            ? 'border-orange-500 bg-orange-500'
+                            : 'border-gray-500'
+                        }`}>
+                          {isOptionSelected(option) && (
+                            <CheckIcon className="h-4 w-4 text-white" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-200 font-medium">
+                            <span className="font-bold mr-2">{optionLetters[index]}.</span>
+                            {option}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Next button */}
+              <div className="flex justify-end pt-2 border-t border-gray-700 mt-2">
+                <button
+                  onClick={handleNextQuestion}
+                  disabled={!answers[currentQuestionIndex]}
+                  className={`px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center ${
+                    !answers[currentQuestionIndex] ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {currentQuestionIndex < mcqs.length - 1 ? (
+                    <span className="flex items-center">
+                      Next Question
+                      <NextIcon className="ml-2" />
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      Complete Assessment
+                      <CheckIcon className="ml-2" />
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Question navigation panel - 25% width */}
+          <div className="w-1/4 pl-2">
+            <div className="card-dark bg-gray-800/80 sticky top-24 p-2">
+              <h3 className="text-sm font-bold text-white mb-2">
+                Progress
+              </h3>
+              
+              <div className="grid grid-cols-4 gap-1 mb-2">
+                {mcqs.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => handleSelectAnswer(option)}
-                    className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
-                      isOptionSelected(option)
-                        ? 'border-primary-500 bg-primary-50 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    onClick={() => setCurrentQuestionIndex(index)}
+                    className={`h-6 w-6 flex items-center justify-center rounded-md font-medium text-xs transition-colors ${
+                      currentQuestionIndex === index
+                        ? 'bg-orange-500 text-white'
+                        : answers[index] !== undefined
+                          ? 'bg-green-600/30 text-white border border-green-500'
+                          : 'bg-gray-700/50 text-gray-300 border border-gray-600 hover:bg-gray-700'
                     }`}
                   >
-                    <p className="text-gray-900 font-medium">{option}</p>
+                    {index + 1}
                   </button>
                 ))}
               </div>
-            </div>
-            
-            <div className="flex justify-end">
-              <button
-                onClick={handleNextQuestion}
-                disabled={!answers[currentQuestionIndex]}
-                className={`px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center ${
-                  !answers[currentQuestionIndex] ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {currentQuestionIndex < mcqs.length - 1 ? (
-                  <span className="flex items-center">
-                    Next Question
-                    <NextIcon className="ml-2" />
-                  </span>
-                ) : (
-                  <span className="flex items-center">
-                    Complete Assessment
-                    <CheckIcon className="ml-2" />
-                  </span>
-                )}
-              </button>
+              
+              <div className="grid grid-cols-3 gap-1 text-xs">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-orange-500 rounded-sm mr-1"></div>
+                  <span className="text-gray-300 text-xs">Now</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-600/30 border border-green-500 rounded-sm mr-1"></div>
+                  <span className="text-gray-300 text-xs">Done</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-gray-700/50 border border-gray-600 rounded-sm mr-1"></div>
+                  <span className="text-gray-300 text-xs">Todo</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

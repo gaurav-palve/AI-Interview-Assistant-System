@@ -60,7 +60,7 @@ Answer: b) PUT
 
         formatted_prompt = prompt.format(jd=jd_text, resume=resume_text)
         # Use OpenAI LLM instead of Gemini
-        llm = get_openai_llm()
+        llm = get_gemini_llm()
         response = await llm.ainvoke([HumanMessage(content=formatted_prompt)])
 
         logger.info("MCQ generation successful with OpenAI.")

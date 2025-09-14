@@ -104,14 +104,18 @@ function Statistics() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Interview Statistics</h1>
+        <h1 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 font-serif animate-fadeIn">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-100 dark:to-gray-300">
+            INTERVIEW STATISTICS
+          </span>
+        </h1>
         <button
           type="button"
           onClick={fetchStatistics}
           disabled={loading}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-6 py-2 border border-transparent rounded-full shadow-md text-sm font-medium text-white bg-gradient-to-r from-sky-400 to-blue-200 hover:from-sky-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 transition-all duration-300"
         >
-          <RefreshIcon className="-ml-1 mr-2 h-5 w-5" />
+          <RefreshIcon className="-ml-1 mr-2 h-5 w-5 animate-spin-slow" />
           Refresh
         </button>
       </div>
@@ -135,57 +139,57 @@ function Statistics() {
         <div className="space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="card bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+            <div className="card bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn" style={{ animationDelay: '0.1s' }}>
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-white bg-opacity-30 rounded-md p-3">
-                    <ChartIcon className="h-6 w-6 text-white" />
+                  <div className="flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full p-3 shadow-md">
+                    <ChartIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-white text-opacity-75">Total Interviews</p>
-                    <p className="text-3xl font-semibold">{stats.total_interviews || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Total Interviews</p>
+                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.total_interviews || 0}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <div className="card bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-white bg-opacity-30 rounded-md p-3">
-                    <ScheduleIcon className="h-6 w-6 text-white" />
+                  <div className="flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full p-3 shadow-md">
+                    <ScheduleIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-white text-opacity-75">Scheduled</p>
-                    <p className="text-3xl font-semibold">{stats.status_breakdown?.scheduled || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Scheduled</p>
+                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.status_breakdown?.scheduled || 0}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+            <div className="card bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-white bg-opacity-30 rounded-md p-3">
-                    <CompletedIcon className="h-6 w-6 text-white" />
+                  <div className="flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full p-3 shadow-md">
+                    <CompletedIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-white text-opacity-75">Completed</p>
-                    <p className="text-3xl font-semibold">{stats.status_breakdown?.completed || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Completed</p>
+                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.status_breakdown?.completed || 0}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+            <div className="card bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn" style={{ animationDelay: '0.4s' }}>
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-white bg-opacity-30 rounded-md p-3">
-                    <PieChartIcon className="h-6 w-6 text-white" />
+                  <div className="flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full p-3 shadow-md">
+                    <PieChartIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-white text-opacity-75">Drafts</p>
-                    <p className="text-3xl font-semibold">{stats.status_breakdown?.draft || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Drafts</p>
+                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.status_breakdown?.draft || 0}</p>
                   </div>
                 </div>
               </div>
@@ -193,9 +197,9 @@ function Statistics() {
           </div>
 
           {/* Status Breakdown */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <PieChartIcon className="h-5 w-5 mr-2 text-primary-600" />
+          <div className="card shadow-lg border-t-4 border-sky-400 animate-fadeIn" style={{ animationDelay: '0.5s' }}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center font-serif">
+              <PieChartIcon className="h-5 w-5 mr-2 text-sky-400" />
               Interview Status Breakdown
             </h2>
 
@@ -212,8 +216,8 @@ function Statistics() {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                  <div 
-                    className="bg-blue-500 h-2.5 rounded-full" 
+                  <div
+                    className="bg-gradient-to-r from-blue-400 to-indigo-200 h-2.5 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${calculatePercentage('scheduled')}%` }}
                   ></div>
                 </div>
@@ -231,8 +235,8 @@ function Statistics() {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                  <div 
-                    className="bg-green-500 h-2.5 rounded-full" 
+                  <div
+                    className="bg-gradient-to-r from-teal-400 to-green-200 h-2.5 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${calculatePercentage('completed')}%` }}
                   ></div>
                 </div>
@@ -250,8 +254,8 @@ function Statistics() {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                  <div 
-                    className="bg-yellow-500 h-2.5 rounded-full" 
+                  <div
+                    className="bg-gradient-to-r from-amber-400 to-yellow-200 h-2.5 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${calculatePercentage('in_progress')}%` }}
                   ></div>
                 </div>
@@ -269,8 +273,8 @@ function Statistics() {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                  <div 
-                    className="bg-red-500 h-2.5 rounded-full" 
+                  <div
+                    className="bg-gradient-to-r from-red-400 to-pink-200 h-2.5 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${calculatePercentage('cancelled')}%` }}
                   ></div>
                 </div>
@@ -288,8 +292,8 @@ function Statistics() {
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                  <div 
-                    className="bg-gray-500 h-2.5 rounded-full" 
+                  <div
+                    className="bg-gradient-to-r from-gray-400 to-gray-200 h-2.5 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${calculatePercentage('draft')}%` }}
                   ></div>
                 </div>
@@ -298,32 +302,32 @@ function Statistics() {
           </div>
 
           {/* Visual Chart */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-              <ChartIcon className="h-5 w-5 mr-2 text-primary-600" />
+          <div className="card shadow-lg border-t-4 border-sky-400 animate-fadeIn" style={{ animationDelay: '0.6s' }}>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center font-serif">
+              <ChartIcon className="h-5 w-5 mr-2 text-sky-400" />
               Visual Representation
             </h2>
 
             <div className="flex justify-center">
               <div className="relative w-64 h-64">
                 {/* Simple pie chart using CSS conic gradient */}
-                <div 
-                  className="w-full h-full rounded-full"
+                <div
+                  className="w-full h-full rounded-full shadow-lg animate-pulse-slow"
                   style={{
                     background: `conic-gradient(
-                      ${getStatusColor('completed')} 0% ${calculatePercentage('completed')}%, 
-                      ${getStatusColor('scheduled')} ${calculatePercentage('completed')}% ${calculatePercentage('completed') + calculatePercentage('scheduled')}%, 
-                      ${getStatusColor('in_progress')} ${calculatePercentage('completed') + calculatePercentage('scheduled')}% ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress')}%, 
-                      ${getStatusColor('cancelled')} ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress')}% ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress') + calculatePercentage('cancelled')}%, 
-                      ${getStatusColor('draft')} ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress') + calculatePercentage('cancelled')}% 100%
+                      #4ade80 0% ${calculatePercentage('completed')}%,
+                      #60a5fa ${calculatePercentage('completed')}% ${calculatePercentage('completed') + calculatePercentage('scheduled')}%,
+                      #fbbf24 ${calculatePercentage('completed') + calculatePercentage('scheduled')}% ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress')}%,
+                      #f87171 ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress')}% ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress') + calculatePercentage('cancelled')}%,
+                      #9ca3af ${calculatePercentage('completed') + calculatePercentage('scheduled') + calculatePercentage('in_progress') + calculatePercentage('cancelled')}% 100%
                     )`
                   }}
                 ></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white dark:bg-gray-800 rounded-full w-40 h-40 flex items-center justify-center">
+                  <div className="bg-white dark:bg-gray-800 rounded-full w-40 h-40 flex items-center justify-center shadow-inner">
                     <div className="text-center">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total</p>
-                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total_interviews || 0}</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 font-serif">Total</p>
+                      <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-200 font-serif">{stats.total_interviews || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -332,25 +336,25 @@ function Statistics() {
 
             <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4">
               {/* Legend items */}
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">Completed</span>
+              <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '0.7s' }}>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-teal-400 to-green-200 mr-2"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Completed</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">Scheduled</span>
+              <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '0.8s' }}>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-400 to-indigo-200 mr-2"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Scheduled</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">In Progress</span>
+              <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '0.9s' }}>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-400 to-yellow-200 mr-2"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">In Progress</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">Cancelled</span>
+              <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '1s' }}>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-400 to-pink-200 mr-2"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Cancelled</span>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full bg-gray-500 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">Draft</span>
+              <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '1.1s' }}>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-200 mr-2"></div>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Draft</span>
               </div>
             </div>
           </div>

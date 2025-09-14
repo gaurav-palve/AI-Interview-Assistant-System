@@ -9,7 +9,7 @@ requests>=2.31.0
 pydantic-settings>=2.1.0
 python-multipart>=0.0.6
 emails>=0.6.0
-PyPDF2>=3.0.0
+PyPDF2
 python-docx>=0.8.11
 langchain_google_genai 
 langchain_openai
@@ -18,3 +18,9 @@ msal
 opencv-python
 mediapipe
 ultralytics
+pymupdf
+elevenlabs
+openai
+numpy
+scikit-learn
+pandas

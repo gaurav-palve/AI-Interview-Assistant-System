@@ -249,6 +249,29 @@ const interviewService = {
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while getting camera status' };
     }
+  },
+
+  /**
+   * Upload resumes and job description for screening
+   * @param {File} zipFile - Zip file containing resumes
+   * @param {File} jdFile - Job description file
+   * @returns {Promise} - Promise with the screening results
+   */
+  screenResumes: async (zipFile, jdFile) => {
+    try {
+      const formData = new FormData();
+      formData.append('zip_file', zipFile);
+      formData.append('jd_file', jdFile);
+
+      const response = await api.post('/resume-screening', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while screening resumes' };
+    }
   }
 };
 
