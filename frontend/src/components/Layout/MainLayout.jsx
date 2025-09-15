@@ -17,7 +17,8 @@ import {
   Search as SearchIcon,
   Psychology as PsychologyIcon,
   Notifications as NotificationsIcon,
-  Assessment as AssessmentIcon
+  Assessment as AssessmentIcon,
+  Description as DescriptionIcon
 } from '@mui/icons-material';
 
 /**
@@ -39,6 +40,7 @@ function MainLayout({ children }) {
     // { path: '/interviews/new', label: 'New Interview', icon: <AddIcon /> },
     { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
     { path: '/resume-screening', label: 'Resume Screening', icon: <AssessmentIcon /> },
+    { path: '/job-description-generator', label: 'Job Description Generator', icon: <DescriptionIcon /> },
   ];
 
   // Handle logout

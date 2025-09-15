@@ -18,6 +18,7 @@ import FileUpload from './pages/FileUpload';
 import MCQGeneration from './pages/MCQGeneration';
 import Statistics from './pages/Statistics';
 import ResumeScreening from './pages/ResumeScreening';
+import JobDescriptionGenerator from './pages/JobDescriptionGenerator';
 import NotFound from './pages/NotFound';
 
 // Candidate Pages
@@ -120,6 +121,14 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <ResumeScreening />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/job-description-generator" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <JobDescriptionGenerator />
               </MainLayout>
             </ProtectedRoute>
           } />

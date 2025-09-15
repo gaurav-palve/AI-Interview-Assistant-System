@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query, Body
+from fastapi import APIRouter, HTTPException, Query, Body, File, UploadFile, Form
 from ..services.email_service import EmailService
 from ..services.auth_service import verify_session
 from pydantic import BaseModel, EmailStr
+from typing import List, Optional
 from typing import Optional
 from ..utils.logger import get_logger
 
@@ -172,11 +173,17 @@ async def test_email_configuration(
 
 @router.post("/send-custom-confirmation")
 async def send_custom_confirmation_email(
-    request: CustomEmailConfirmationRequest,
+    candidate_email: str = Form(...),
+    candidate_name: str = Form(...),
+    job_role: str = Form(...),
+    scheduled_datetime: str = Form(...),
+    interview_id: str = Form(...),
+    custom_body: str = Form(...),
+    attachments: List[UploadFile] = File(None),
     session_token: str = Query(None)
 ):
     """
-    Send custom interview confirmation email to candidate
+    Send custom interview confirmation email to candidate with optional attachments
     
     Requires authentication with a valid session token
     """
@@ -186,7 +193,7 @@ async def send_custom_confirmation_email(
         raise HTTPException(status_code=401, detail="Authentication required")
     
     admin_id = session_data.get("admin_id")
-    logger.info(f"Admin {admin_id} requested to send custom confirmation email to {request.candidate_email}")
+    logger.info(f"Admin {admin_id} requested to send custom confirmation email to {candidate_email}")
     
     try:
         email_service = EmailService()
@@ -198,13 +205,27 @@ async def send_custom_confirmation_email(
                 detail="SMTP credentials not configured. Please check your .env file."
             )
         
+        # Process attachments if provided
+        attachment_data = []
+        if attachments:
+            for attachment in attachments:
+                if attachment.filename:
+                    content = await attachment.read()
+                    attachment_data.append({
+                        'data': content,
+                        'filename': attachment.filename,
+                        'content_type': attachment.content_type or 'application/octet-stream'
+                    })
+                    logger.info(f"Processed attachment: {attachment.filename} ({attachment.content_type})")
+        
         result = await email_service.send_custom_confirmation_email(
-            candidate_email=request.candidate_email,
-            candidate_name=request.candidate_name,
-            job_role=request.job_role,
-            scheduled_datetime=request.scheduled_datetime,
-            interview_id=request.interview_id,
-            custom_body=request.custom_body
+            candidate_email=candidate_email,
+            candidate_name=candidate_name,
+            job_role=job_role,
+            scheduled_datetime=scheduled_datetime,
+            interview_id=interview_id,
+            custom_body=custom_body,
+            attachments=attachment_data if attachment_data else None
         )
         
         if result:

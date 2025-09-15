@@ -29,6 +29,8 @@ function InterviewCreate() {
   
   // Email content state variable
   const [emailBody, setEmailBody] = useState("");
+  // Email attachments state
+  const [emailAttachments, setEmailAttachments] = useState([]);
   const navigate = useNavigate();
   
   // Initialize react-hook-form
@@ -122,6 +124,35 @@ Interview System Team`;
       setError(null);
     }
   };
+  
+  /**
+   * Handle email attachment file selection
+   * @param {Event} e - Change event
+   */
+  const handleEmailAttachmentChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      // Validate file size (max 5MB per file)
+      const oversizedFiles = files.filter(file => file.size > 5 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
+        setError(`Some attachments exceed the 5MB size limit: ${oversizedFiles.map(f => f.name).join(', ')}`);
+        e.target.value = null;
+        return;
+      }
+      
+      // Add the files to the attachments array
+      setEmailAttachments(prev => [...prev, ...files]);
+      setError(null);
+    }
+  };
+  
+  /**
+   * Remove an attachment from the list
+   * @param {number} index - Index of the attachment to remove
+   */
+  const removeAttachment = (index) => {
+    setEmailAttachments(prev => prev.filter((_, i) => i !== index));
+  };
 
   /**
    * Send confirmation email to candidate
@@ -134,14 +165,15 @@ Interview System Team`;
       const customEmailBody = emailBody
         .replace(`${window.location.origin}/candidate/interview/[Interview ID will be generated]`, `${window.location.origin}/candidate/interview/${interviewData.id}`);
 
-      // Send the custom email
+      // Send the custom email with attachments
       await emailService.sendCustomConfirmationEmail(
         interviewData.candidate_email,
         interviewData.candidate_name,
         interviewData.job_role,
         format(new Date(interviewData.scheduled_datetime), 'PPpp'),
         interviewData.id,
-        customEmailBody
+        customEmailBody,
+        emailAttachments
       );
       setSuccess('Interview created and confirmation email sent successfully!');
     } catch (err) {
@@ -495,6 +527,62 @@ Interview System Team`;
                     className="w-full p-2 border border-gray-300 rounded text-sm text-gray-700 focus:border-primary-500 focus:ring-primary-500"
                     rows="12"
                   />
+                </div>
+              </div>
+            </div>
+            
+            {/* Email Attachments Section */}
+            <div className="mt-4">
+              <h4 className="text-md font-medium text-gray-900 mb-2">Email Attachments (Optional)</h4>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div className="space-y-1 text-center">
+                  <div className="flex flex-col items-center">
+                    <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="email-attachment-upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
+                      >
+                        <span>Upload attachments</span>
+                        <input
+                          id="email-attachment-upload"
+                          name="email-attachment-upload"
+                          type="file"
+                          className="sr-only"
+                          multiple
+                          onChange={handleEmailAttachmentChange}
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Any file type up to 5MB each
+                    </p>
+                  </div>
+                  
+                  {/* Display selected attachments */}
+                  {emailAttachments.length > 0 && (
+                    <div className="mt-2">
+                      <h5 className="text-sm font-medium text-gray-700">Selected Attachments:</h5>
+                      <ul className="mt-1 space-y-1">
+                        {emailAttachments.map((file, index) => (
+                          <li key={index} className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                            <div className="flex items-center">
+                              <span className="text-gray-900 font-medium">{file.name}</span>
+                              <span className="ml-2 text-gray-500">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
