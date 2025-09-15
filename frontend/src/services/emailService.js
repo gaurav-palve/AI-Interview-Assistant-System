@@ -38,15 +38,28 @@ const emailService = {
    * @param {string} customBody - Custom email body content
    * @returns {Promise} - Promise with the send result
    */
-  sendCustomConfirmationEmail: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, customBody) => {
+  sendCustomConfirmationEmail: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, customBody, attachments = []) => {
     try {
-      const response = await api.post('/emails/send-custom-confirmation', {
-        candidate_email: candidateEmail,
-        candidate_name: candidateName,
-        job_role: jobRole,
-        scheduled_datetime: scheduledDateTime,
-        interview_id: interviewId,
-        custom_body: customBody
+      // Create form data to handle file uploads
+      const formData = new FormData();
+      formData.append('candidate_email', candidateEmail);
+      formData.append('candidate_name', candidateName);
+      formData.append('job_role', jobRole);
+      formData.append('scheduled_datetime', scheduledDateTime);
+      formData.append('interview_id', interviewId);
+      formData.append('custom_body', customBody);
+      
+      // Add attachments if provided
+      if (attachments && attachments.length > 0) {
+        attachments.forEach(file => {
+          formData.append('attachments', file);
+        });
+      }
+      
+      const response = await api.post('/emails/send-custom-confirmation', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       return response.data;
     } catch (error) {

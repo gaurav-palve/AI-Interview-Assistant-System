@@ -1,12 +1,15 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 from email.mime.base import MIMEBase
 from email import encoders
 import os
 from typing import Optional
 import logging
 from ..config import settings
+import imghdr 
+
 
 # Try to import OAuth2 functions, but provide fallback if not available
 try:
@@ -48,7 +51,7 @@ class EmailService:
             interview_url = f"{self.frontend_url}/candidate/interview/{interview_id}"
             
             # Create message
-            msg = MIMEMultipart()
+            msg = EmailMessage()
             msg['From'] = self.from_email
             msg['To'] = candidate_email
             msg['Subject'] = f"Interview Confirmation - {job_role} Position"
@@ -74,8 +77,38 @@ Best regards,
 Interview System Team
             """
             
-            msg.attach(MIMEText(body, 'plain'))
+            msg.set_content(body)
+
+            attachment_path = r"C:\Users\gaurav.palve\Downloads\shared image.png"
+            with open(attachment_path, 'rb') as f:
+                file_data = f.read()
+                file_name = os.path.basename(f.name)
+                file_type = imghdr.what(f.name)
+                
+                if file_type not in ['jpeg', 'png']:
+                    logger.error(f"Attachment type '{file_type}' not supported. Only JPG/JPEG images allowed.")
+                    return False
+                
+                msg.add_attachment(
+                    file_data,
+                    maintype='image',
+                    subtype=file_type,  
+                    filename=file_name
+                )
             
+            pdf_path = r"C:\Users\gaurav.palve\Downloads\Python-Fresher-JD.pdf"
+            with open(pdf_path, 'rb') as f:
+                file_data = f.read()
+                file_name = os.path.basename(f.name)
+            msg.add_attachment(
+                file_data,
+                maintype='application',
+                subtype=file_type,  
+                filename=file_name
+            )
+
+                        
+
             # Connect to SMTP server and send email
             logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
             logger.info(f"Using SMTP username: {self.smtp_username}")
@@ -144,9 +177,7 @@ Interview System Team
                     logger.info("Password authentication successful")
                 
                 # Send email
-                text = msg.as_string()
-                logger.info(f"Sending email from {self.from_email} to {candidate_email}")
-                server.sendmail(self.from_email, candidate_email, text)
+                server.send_message(msg)
                 logger.info(f"Email sent successfully")
                 
                 # Close connection
@@ -166,14 +197,16 @@ Interview System Team
             logger.error(f"Error sending email to {candidate_email}: {e}")
             return False
             
+
     async def send_custom_confirmation_email(
-        self,
-        candidate_email: str,
-        candidate_name: str,
-        job_role: str,
+        self, 
+        candidate_email: str, 
+        candidate_name: str, 
+        job_role: str, 
         scheduled_datetime: str,
         interview_id: str,
-        custom_body: str
+        custom_body: str,
+        attachments: list = None
     ) -> bool:
         """Send custom interview confirmation email to candidate"""
         try:
@@ -185,13 +218,36 @@ Interview System Team
             interview_url = f"{self.frontend_url}/candidate/interview/{interview_id}"
             
             # Create message
-            msg = MIMEMultipart()
+            msg = EmailMessage()
             msg['From'] = self.from_email
             msg['To'] = candidate_email
             msg['Subject'] = f"Interview Confirmation - {job_role} Position"
             
             # Use the custom email body
-            msg.attach(MIMEText(custom_body, 'plain'))
+            msg.set_content(custom_body)
+            
+            # Add attachments if provided
+            if attachments and len(attachments) > 0:
+                for attachment in attachments:
+                    file_data = attachment.get('data')
+                    file_name = attachment.get('filename')
+                    file_type = attachment.get('content_type')
+                    
+                    if not file_data or not file_name:
+                        logger.warning(f"Skipping attachment with missing data or filename")
+                        continue
+                    
+                    # Determine maintype and subtype based on content_type
+                    maintype, subtype = file_type.split('/', 1) if '/' in file_type else ('application', 'octet-stream')
+                    
+                    # Add the attachment to the email
+                    msg.add_attachment(
+                        file_data,
+                        maintype=maintype,
+                        subtype=subtype,
+                        filename=file_name
+                    )
+                    logger.info(f"Added attachment: {file_name} ({file_type})")
             
             # Connect to SMTP server and send email
             logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
@@ -261,9 +317,7 @@ Interview System Team
                     logger.info("Password authentication successful")
                 
                 # Send email
-                text = msg.as_string()
-                logger.info(f"Sending email from {self.from_email} to {candidate_email}")
-                server.sendmail(self.from_email, candidate_email, text)
+                server.send_message(msg)
                 logger.info(f"Email sent successfully")
                 
                 # Close connection
