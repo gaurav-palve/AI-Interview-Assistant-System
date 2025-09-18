@@ -18,7 +18,8 @@ import {
   Psychology as PsychologyIcon,
   Notifications as NotificationsIcon,
   Assessment as AssessmentIcon,
-  Description as DescriptionIcon
+  Description as DescriptionIcon,
+  Grading as GradingIcon
 } from '@mui/icons-material';
 
 /**
@@ -41,6 +42,7 @@ function MainLayout({ children }) {
     { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
     { path: '/resume-screening', label: 'Resume Screening', icon: <AssessmentIcon /> },
     { path: '/job-description-generator', label: 'Job Description Generator', icon: <DescriptionIcon /> },
+    { path: '/candidate-assessment-reports', label: 'Candidate Assessment Reports', icon: <GradingIcon /> },
   ];
 
   // Handle logout
@@ -102,7 +104,8 @@ function MainLayout({ children }) {
                       <span className="w-1 h-1 bg-white rounded-full animate-ping absolute" style={{ left: '80%', top: '50%', animationDelay: '0.7s' }}></span>
                       <span className="w-1 h-1 bg-white rounded-full animate-ping absolute" style={{ left: '30%', top: '70%', animationDelay: '1.2s' }}></span>
                     </span>
-                    Interview Assistant
+                    HireGenix AI
+ 
                   </span>
                 </span>
               </Link>
@@ -182,7 +185,7 @@ function MainLayout({ children }) {
               <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center mr-3 shadow-lg animate-pulse-slow">
                 <PsychologyIcon className="h-6 w-6 text-primary-600" />
               </div>
-              <span className="text-white text-xl font-bold font-display">Interview Assistant</span>
+              <span className="text-white text-xl font-bold font-display">HireGenix AI</span>
             </div>
             
             <nav className="mt-5 px-2 space-y-2">

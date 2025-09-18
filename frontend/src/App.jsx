@@ -19,6 +19,7 @@ import MCQGeneration from './pages/MCQGeneration';
 import Statistics from './pages/Statistics';
 import ResumeScreening from './pages/ResumeScreening';
 import JobDescriptionGenerator from './pages/JobDescriptionGenerator';
+import CandidateAssessmentReports from './pages/CandidateAssessmentReports';
 import NotFound from './pages/NotFound';
 
 // Candidate Pages
@@ -121,6 +122,14 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <ResumeScreening />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/candidate-assessment-reports" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CandidateAssessmentReports />
               </MainLayout>
             </ProtectedRoute>
           } />

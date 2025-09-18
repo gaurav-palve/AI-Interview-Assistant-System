@@ -1,8 +1,14 @@
 import api from './api';
+import axios from 'axios';
+
+// Track current MCQ generation requests
+let currentMcqRequest = null;
+let currentCandidateMcqRequest = null;
 
 /**
  * Interview service for handling interview-related API calls
  */
+
 const interviewService = {
   /**
    * Create a new interview
@@ -131,9 +137,38 @@ const interviewService = {
    */
   generateMCQs: async (candidateEmail) => {
     try {
-      const response = await api.post('/interviews/generate-mcqs', { candidate_email: candidateEmail });
+      // Cancel any in-flight request
+      if (currentMcqRequest) {
+        currentMcqRequest.cancel("Operation canceled due to new request");
+      }
+      
+      // Create a new cancelable request
+      const cancelToken = axios.CancelToken.source();
+      currentMcqRequest = cancelToken;
+      
+      // Add request ID for tracking
+      const requestId = `mcq_${candidateEmail}_${Date.now()}`;
+      
+      const response = await api.post('/interviews/generate-mcqs',
+        {
+          candidate_email: candidateEmail,
+          request_id: requestId
+        },
+        {
+          cancelToken: cancelToken.token,
+          timeout: 60000 // 60 second timeout
+        }
+      );
+      
+      // Clear the current request reference
+      currentMcqRequest = null;
       return response.data;
     } catch (error) {
+      // Handle cancellation
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+        throw { detail: 'Request canceled due to new request' };
+      }
       throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
     }
   },
@@ -159,9 +194,35 @@ const interviewService = {
    */
   generateCandidateMCQs: async (interviewId) => {
     try {
-      const response = await api.post(`/candidate/generate-mcqs/${interviewId}`);
+      // Cancel any in-flight request
+      if (currentCandidateMcqRequest) {
+        currentCandidateMcqRequest.cancel("Operation canceled due to new request");
+      }
+      
+      // Create a new cancelable request
+      const cancelToken = axios.CancelToken.source();
+      currentCandidateMcqRequest = cancelToken;
+      
+      // Add request ID for tracking
+      const requestId = `candidate_mcq_${interviewId}_${Date.now()}`;
+      
+      const response = await api.post(`/candidate/generate-mcqs/${interviewId}`,
+        { request_id: requestId },
+        {
+          cancelToken: cancelToken.token,
+          timeout: 60000 // 60 second timeout
+        }
+      );
+      
+      // Clear the current request reference
+      currentCandidateMcqRequest = null;
       return response.data;
     } catch (error) {
+      // Handle cancellation
+      if (axios.isCancel(error)) {
+        console.log('Candidate MCQ request canceled:', error.message);
+        throw { detail: 'Request canceled due to new request' };
+      }
       throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
     }
   },

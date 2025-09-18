@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import sharedImage from '../shared image.png';
 import { useParams, useNavigate } from 'react-router-dom';
+import debounce from 'lodash/debounce';
 import interviewService from '../services/interviewService';
 import CameraProctor from '../components/CameraProctor';
 import { useCamera } from '../contexts/CameraContext';
@@ -53,7 +54,7 @@ function CandidateInterview() {
   const [answers, setAnswers] = useState({});
   const [completed, setCompleted] = useState(false);
   const [generatingMcqs, setGeneratingMcqs] = useState(false);
-  const [instructionTimer, setInstructionTimer] = useState(60); // 1 minute in seconds
+  const [instructionTimer, setInstructionTimer] = useState(20); // 1 minute in seconds
   const [timerActive, setTimerActive] = useState(false);
   const [mcqsGenerated, setMcqsGenerated] = useState(false);
   const [mcqTimer, setMcqTimer] = useState(3600); // 1 hour in seconds for the MCQ test
@@ -132,41 +133,66 @@ function CandidateInterview() {
     };
   }, [timerActive, instructionTimer, mcqsGenerated]);
 
+  // Create a debounced version of the MCQ generation function
+  const debouncedGenerateMCQs = useCallback(
+    debounce(async (id) => {
+      try {
+        logger.info('Debounced MCQ generation called', { interviewId: id });
+        const response = await interviewService.generateCandidateMCQs(id);
+        
+        if (response && response.length > 0) {
+          logger.info('MCQs fetched successfully', { responseLength: response.length });
+          
+          // Parse MCQs from response
+          const parsedMcqs = parseMcqs(response);
+          logger.info('MCQs parsed successfully', {
+            count: parsedMcqs.length,
+            firstQuestion: parsedMcqs[0]?.question
+          });
+          
+          setMcqs(parsedMcqs);
+          setMcqsGenerated(true);
+          setPhase('mcq');
+          setCurrentQuestionIndex(0);
+          setMcqTimerActive(true);
+        }
+      } catch (err) {
+        logger.error('Error generating MCQs', err);
+        // Don't set error state here to avoid disrupting the UI
+      }
+    }, 500), // 500ms debounce time
+    [] // Empty dependency array ensures the debounced function is created only once
+  );
+
   // Effect to poll for MCQ status when in waiting phase
   useEffect(() => {
     let pollInterval = null;
+    let pollCount = 0;
+    const maxPolls = 20; // Maximum number of polling attempts
     
     if (phase === 'waiting' && !mcqsGenerated) {
       logger.info('Starting polling for MCQ status');
       
-      // Poll every 3 seconds
-      pollInterval = setInterval(async () => {
-        try {
-          logger.info('Polling for MCQs');
-          // Try to generate/fetch MCQs again
-          const response = await interviewService.generateCandidateMCQs(interviewId);
-          
-          if (response && response.length > 0) {
-            logger.info('MCQs fetched successfully during polling', { responseLength: response.length });
-            
-            // Parse MCQs from response
-            const parsedMcqs = parseMcqs(response);
-            logger.info('MCQs parsed successfully during polling', {
-              count: parsedMcqs.length,
-              firstQuestion: parsedMcqs[0]?.question
-            });
-            
-            setMcqs(parsedMcqs);
-            setMcqsGenerated(true);
-            setPhase('mcq');
-            setCurrentQuestionIndex(0);
-            setMcqTimerActive(true);
-          }
-        } catch (err) {
-          logger.error('Error polling for MCQs', err);
-          // Don't set error state here to avoid disrupting the UI
+      // Initial call immediately
+      debouncedGenerateMCQs(interviewId);
+      
+      // Poll every 5 seconds (increased from 3 seconds)
+      pollInterval = setInterval(() => {
+        pollCount++;
+        
+        // Log polling attempt
+        logger.info(`Polling for MCQs (attempt ${pollCount}/${maxPolls})`);
+        
+        // Stop polling after max attempts
+        if (pollCount >= maxPolls) {
+          logger.warn(`Reached maximum polling attempts (${maxPolls})`);
+          clearInterval(pollInterval);
+          return;
         }
-      }, 3000);
+        
+        // Use the debounced function for polling
+        debouncedGenerateMCQs(interviewId);
+      }, 5000); // Increased to 5 seconds
     }
     
     return () => {
@@ -174,7 +200,7 @@ function CandidateInterview() {
         clearInterval(pollInterval);
       }
     };
-  }, [phase, mcqsGenerated, interviewId]);
+  }, [phase, mcqsGenerated, interviewId, debouncedGenerateMCQs]);
 
   // Effect to check interview status and redirect to voice interview if needed
   useEffect(() => {
@@ -233,38 +259,18 @@ function CandidateInterview() {
   /**
    * Generate MCQs in the background while the candidate reads instructions
    */
-  const generateMcqsInBackground = async () => {
+  const generateMcqsInBackground = () => {
     setGeneratingMcqs(true);
     setError(null);
 
-    try {
-      // Generate MCQs based on resume and job description
-      logger.info('Generating MCQs for interview in background', { interviewId });
-      const response = await interviewService.generateCandidateMCQs(interviewId);
-      logger.info('MCQs generated successfully', { responseLength: response.length });
-      
-      // Parse MCQs from response
-      logger.debug('Parsing MCQs from response');
-      const parsedMcqs = parseMcqs(response);
-      logger.info('MCQs parsed successfully', {
-        count: parsedMcqs.length,
-        firstQuestion: parsedMcqs[0]?.question
-      });
-      
-      setMcqs(parsedMcqs);
-      setMcqsGenerated(true);
-      // If timer has already finished, start the interview
-      if (instructionTimer === 0 || phase === 'waiting') {
-        logger.info('Timer already finished, starting the interview with generated MCQs');
-        setPhase('mcq');
-        setCurrentQuestionIndex(0);
-      }
-    } catch (err) {
-      logger.error('Error generating MCQs', err);
-      setError(err.detail || 'Failed to generate interview questions. Please try again later.');
-    } finally {
+    // Use the debounced function instead of calling the API directly
+    debouncedGenerateMCQs(interviewId);
+    
+    // Set a timeout to clear the generating state after a reasonable time
+    // This prevents the UI from showing the loading state indefinitely
+    setTimeout(() => {
       setGeneratingMcqs(false);
-    }
+    }, 3000);
   };
 
   /**
