@@ -6,6 +6,13 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add timeout to prevent hanging requests
+  timeout: 30000, // 30 second timeout
+  // Disable automatic retries
+  retry: false,
+  retryDelay: 0,
+  // Maximum content size to prevent memory issues
+  maxContentLength: 10 * 1024 * 1024, // 10MB
 });
 
 // Add a request interceptor to include the session token in requests and log requests

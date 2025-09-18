@@ -17,7 +17,7 @@ function VoiceInterviewInstructions() {
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [instructionTimer, setInstructionTimer] = useState(60); // 60 seconds countdown
+  const [instructionTimer, setInstructionTimer] = useState(20); // 60 seconds countdown
   const timerRef = useRef(null);
   const { startCamera } = useCamera();
 

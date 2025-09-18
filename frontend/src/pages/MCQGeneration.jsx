@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import interviewService from '../services/interviewService';
+import debounce from 'lodash/debounce';
 
 // Material UI Icons
 import {
@@ -36,25 +37,52 @@ function MCQGeneration() {
   /**
    * Generate MCQs for the candidate
    */
-  const handleGenerateMCQs = async () => {
+  // Create a ref to track if component is mounted
+  const isMounted = useRef(true);
+  
+  // Effect to set isMounted to false when component unmounts
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Create a debounced version of the MCQ generation function
+  const debouncedGenerateMCQs = useCallback(
+    debounce(async (email) => {
+      try {
+        const response = await interviewService.generateMCQs(email);
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setMcqs(response);
+          setIsGenerating(false);
+        }
+      } catch (err) {
+        console.error('Error generating MCQs:', err);
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setError(err.detail || 'Failed to generate MCQs. Please ensure resume and job description are uploaded for this candidate.');
+          setIsGenerating(false);
+        }
+      }
+    }, 500), // 500ms debounce time
+    [] // Empty dependency array ensures the debounced function is created only once
+  );
+
+  // Handler for the generate button
+  const handleGenerateMCQs = () => {
     if (!candidateEmail) {
       setError('Candidate email is required');
       return;
     }
 
+    // Set loading state immediately for UI feedback
     setIsGenerating(true);
     setError(null);
     setMcqs('');
 
-    try {
-      const response = await interviewService.generateMCQs(candidateEmail);
-      setMcqs(response);
-    } catch (err) {
-      console.error('Error generating MCQs:', err);
-      setError(err.detail || 'Failed to generate MCQs. Please ensure resume and job description are uploaded for this candidate.');
-    } finally {
-      setIsGenerating(false);
-    }
+    // Use the debounced function
+    debouncedGenerateMCQs(candidateEmail);
   };
 
   /**
