@@ -166,6 +166,7 @@ def get_llm_score(jd_text, resume_text):
     You are an ATS scoring engine.
     Compare the job description and resume and return a JSON like:
     {{
+      "email": "candidate@example.com",
       "score": 0-100,
       "strengths": ["skill1", "skill2"],
       "weaknesses": ["gap1", "gap2"]
@@ -191,7 +192,7 @@ def get_llm_score(jd_text, resume_text):
             content = match.group(0)
         return json.loads(content)
     except:
-        return {"score": None, "strengths": [], "weaknesses": []}
+        return {"email": None, "score": None, "strengths": [], "weaknesses": []}
 
 # ---------------------------------
 # Main Service Function
@@ -240,6 +241,7 @@ async def process_resume_screening(zip_path, jd_path):
     for (file, _), llm_result in zip(shortlisted_files, llm_results):
         results.append({
             "resume": os.path.basename(file),
+            "candidate_email": llm_result.get("email"),
             "ATS_Score": llm_result.get("score"),
             "Strengths": llm_result.get("strengths", []),
             "Weaknesses": llm_result.get("weaknesses", []),
