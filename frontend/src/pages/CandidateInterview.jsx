@@ -57,7 +57,7 @@ function CandidateInterview() {
   const [instructionTimer, setInstructionTimer] = useState(20); // 1 minute in seconds
   const [timerActive, setTimerActive] = useState(false);
   const [mcqsGenerated, setMcqsGenerated] = useState(false);
-  const [mcqTimer, setMcqTimer] = useState(3600); // 1 hour in seconds for the MCQ test
+  const [mcqTimer, setMcqTimer] = useState(300); // 5 minutes in seconds for the MCQ test
   const [mcqTimerActive, setMcqTimerActive] = useState(false);
   const timerRef = useRef(null);
   const mcqTimerRef = useRef(null);
@@ -231,6 +231,81 @@ function CandidateInterview() {
       // Don't stop camera here - it will be managed by the context
     };
   }, []);
+
+  // MCQ Timer effect
+  useEffect(() => {
+    if (mcqTimerActive && mcqTimer > 0) {
+      mcqTimerRef.current = setTimeout(() => {
+        setMcqTimer(mcqTimer - 1);
+      }, 1000);
+    } else if (mcqTimerActive && mcqTimer === 0) {
+      // Timer expired, auto-submit the assessment
+      logger.info('MCQ timer expired, auto-submitting assessment');
+      setMcqTimerActive(false);
+      
+      // Auto-submit with current answers
+      handleAutoSubmit();
+    }
+
+    return () => {
+      if (mcqTimerRef.current) {
+        clearTimeout(mcqTimerRef.current);
+      }
+    };
+  }, [mcqTimerActive, mcqTimer]);
+
+  /**
+   * Auto-submit the assessment when timer expires
+   */
+  const handleAutoSubmit = async () => {
+    logger.info('Auto-submitting assessment', {
+      totalQuestions: mcqs.length,
+      answersCollected: Object.keys(answers).length
+    });
+    
+    try {
+      // Prepare responses for submission
+      const responses = mcqs.map((mcq, index) => {
+        const selectedAnswer = answers[index] || '';
+        return {
+          question: mcq.question,
+          question_id: index + 1, // Add question_id (1-based index)
+          selected_answer: selectedAnswer,
+          correct_answer: mcq.correctAnswer || '',
+          is_correct: selectedAnswer === mcq.correctAnswer
+        };
+      });
+      
+      // Calculate score
+      const correctAnswers = responses.filter(r => r.is_correct).length;
+      const totalScore = correctAnswers;
+      const maxScore = mcqs.length;
+      
+      // Submit answers to backend
+      logger.info('Auto-submitting candidate answers to backend', {
+        interviewId,
+        totalScore,
+        maxScore
+      });
+      
+      await interviewService.submitCandidateAnswers(
+        interviewId,
+        interview.candidate_email,
+        responses,
+        totalScore,
+        maxScore
+      );
+      
+      logger.info('Answers auto-submitted successfully');
+    } catch (err) {
+      logger.error('Error auto-submitting answers', err);
+      // Continue to completion screen even if submission fails
+    }
+    
+    // Phase is completed, but camera stays active for voice interview
+    setPhase('completed');
+    setCompleted(true);
+  };
 
   /**
    * Start the instruction timer and begin MCQ generation in the background
@@ -697,11 +772,11 @@ function CandidateInterview() {
                   <div className="space-y-1 text-gray-300 bg-gray-800/50 p-1.5 rounded-lg border border-gray-700">
                     <p className="flex items-start">
                       <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">1</span>
-                      <span className="text-sm">This assessment consists of multiple-choice questions based on your resume and the job description.</span>
+                      <span className="text-sm">This assessment consists of 10 multiple-choice questions: 5 mathematical aptitude questions and 5 technical questions based on your resume and the job description.</span>
                     </p>
                     <p className="flex items-start">
                       <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">2</span>
-                      <span className="text-sm">The questions are designed to assess your skills and experience relevant to the position.</span>
+                      <span className="text-sm">The mathematical questions cover topics like boats & streams, finding next number in a sequence, time & distance, and probability.</span>
                     </p>
                     <p className="flex items-start">
                       <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">3</span>
@@ -713,7 +788,7 @@ function CandidateInterview() {
                     </p>
                     <p className="flex items-start">
                       <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">5</span>
-                      <span className="text-sm">There is no time limit for individual questions, but try to complete the assessment in one sitting.</span>
+                      <span className="text-sm">You have 5 minutes to complete all 10 questions. The assessment will be automatically submitted when the timer expires.</span>
                     </p>
                   </div>
                 </div>

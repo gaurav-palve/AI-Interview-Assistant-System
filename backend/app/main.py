@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import json
-from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes, camera_integration_route, resume_screening_route, generate_jd_route
+from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes, camera_integration_route, resume_screening_route, generate_jd_route, job_posting_route, interview_scheduling_route
 from .database import connect_to_mongo, close_mongo_connection
 import asyncio
 
@@ -17,6 +17,8 @@ from .routes import (
     websocket_routes,
     resume_screening_route,
     generate_jd_route,
+    job_posting_route,
+    interview_scheduling_route,
 )
 from .database import connect_to_mongo, close_mongo_connection, verify_database_connection
 from .utils.logger import get_logger
@@ -131,6 +133,8 @@ app.include_router(voice_interview_routes.router)
 app.include_router(websocket_routes.router)
 app.include_router(resume_screening_route.router)
 app.include_router(generate_jd_route.router)
+app.include_router(job_posting_route.router)
+app.include_router(interview_scheduling_route.router)
 
 
 # Health endpoints

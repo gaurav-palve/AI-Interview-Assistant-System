@@ -51,8 +51,9 @@ def cache_mcqs(cache_key: str, content: str) -> None:
 
 async def generate_mcqs(jd_text: str, resume_text: str) -> str:
     """
-    Generate MCQs based on job description and resume using Gemini LLM.
-    Returns: JSON string of MCQs
+    Generate 10 MCQs: 5 mathematical aptitude questions and 5 technical questions based on job description and resume.
+    The mathematical questions cover topics like boats & streams, finding next number, time & distance, and probability.
+    Returns: String of formatted MCQs
     
     Features:
     - Caching to prevent duplicate generation
@@ -70,19 +71,32 @@ async def generate_mcqs(jd_text: str, resume_text: str) -> str:
     try:
         # Escape braces inside JSON example
         template = """
-You are an expert technical interviewer.
-Your task is to create exactly 5 medium-level, skill-based multiple-choice questions 
-derived from the given job description and the candidate's resume.
+You are an expert interviewer.
+Your task is to create exactly 10 medium-level multiple-choice questions:
+- 5 mathematical aptitude questions (questions 1-5)
+- 5 technical questions based on the job description and resume (questions 6-10)
 
-Rules:
+Rules for Mathematical Aptitude Questions (1-5):
+1. Create one question on each of these topics:
+   - Boats and streams
+   - Finding the next number in a sequence
+   - Time and distance
+   - Probability
+   - Any other mathematical topic
+2. Difficulty level should be medium (7/10) - challenging but solvable
+3. Each question should be unique and test different skills
+4. Questions should be practical and applicable
+
+Rules for Technical Questions (6-10):
 1. Questions must be technical and based ONLY on:
    - Skills explicitly mentioned in the job description
    - Skills explicitly mentioned in the candidate's resume
 2. Do NOT mention "resume", "job description", or the candidate's name in the question text.
 3. Focus on practical, applied knowledge, not definitions.
-4. Each question should be short, precise, and answerable in less than 20 seconds.
-5. Difficulty: Medium (slightly challenging but not overly complex).
-6. Format strictly as:
+
+General Rules:
+1. Each question should be short, precise, and answerable in less than 20 seconds.
+2. Format strictly as:
 <question_number>. <question text>
 a) <option 1>
 b) <option 2>
@@ -96,8 +110,16 @@ Job Description:
 Resume:
 {resume}
 
-Example:
-1. Which HTTP method is idempotent and used for updating existing resources in a REST API?
+Example Mathematical Question:
+1. A boat travels 24 km upstream in 6 hours and the same distance downstream in 4 hours. What is the speed of the boat in still water?
+a) 3 km/h
+b) 4 km/h
+c) 5 km/h
+d) 6 km/h
+Answer: d) 6 km/h
+
+Example Technical Question:
+6. Which HTTP method is idempotent and used for updating existing resources in a REST API?
 a) POST
 b) PUT
 c) PATCH

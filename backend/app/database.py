@@ -19,6 +19,7 @@ MCQS_COLLECTION = "mcqs"
 VOICE_INTERVIEW_SESSIONS_COLLECTION = "voice_interview_sessions"
 EMAIL_TEMPLATES_COLLECTION = "email_templates"
 JOB_DESCRIPTIONS_COLLECTION = "job_descriptions"
+JOB_POSTINGS_COLLECTION = "job_postings"
 
 client = None
 db = None
@@ -55,7 +56,8 @@ async def connect_to_mongo():
             MCQS_COLLECTION,
             VOICE_INTERVIEW_SESSIONS_COLLECTION,
             EMAIL_TEMPLATES_COLLECTION,
-            JOB_DESCRIPTIONS_COLLECTION
+            JOB_DESCRIPTIONS_COLLECTION,
+            JOB_POSTINGS_COLLECTION
         ]
         for collection in required_collections:
             if collection not in collections:
