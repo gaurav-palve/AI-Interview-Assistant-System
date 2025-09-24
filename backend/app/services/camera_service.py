@@ -312,21 +312,9 @@ def process_frame_for_cheating(frame):
     # Run YOLO detection for people
     yolo_results = yolo_model.predict(frame_rgb, conf=0.3, verbose=False)
     
-    # Check for multiple people using YOLO
-    person_count = 0
-    for r in yolo_results:
-        for box in r.boxes:
-            cls_id = int(box.cls[0])
-            label = yolo_model.names[cls_id]
-            if label.lower() == "person":
-                person_count += 1
-                if person_count > 1:  # If we found more than one person, no need to count further
-                    break
-        if person_count > 1:
-            break
-    
-    # Multiple people detected via YOLO
-    multiple_people_detected = person_count > 1
+    # We're not using YOLO for multiple people detection anymore
+    # Only using MediaPipe for face detection as per user request
+    multiple_people_detected = False
     
     # Face checks
     if not face_results.multi_face_landmarks:
@@ -339,8 +327,8 @@ def process_frame_for_cheating(frame):
             face_missing_counter += 1
             last_face_warning = now
             logger.warning("No face detected!")
-    elif len(face_results.multi_face_landmarks) > 1 or multiple_people_detected:
-        # Multiple faces detected either by MediaPipe or by YOLO person detection
+    elif len(face_results.multi_face_landmarks) > 1:
+        # Multiple faces detected by MediaPipe (more reliable for face detection)
         consecutive_multiple_faces += 1
         consecutive_face_missing = 0  # Reset other counters
         consecutive_iris_deviations = 0
@@ -349,10 +337,7 @@ def process_frame_for_cheating(frame):
         if consecutive_multiple_faces >= REQUIRED_MULTIPLE_FACES_FRAMES and now - last_face_warning > COOLDOWN:
             multiple_faces_counter += 1
             last_face_warning = now
-            detection_method = "MediaPipe" if len(face_results.multi_face_landmarks) > 1 else "YOLO"
-            logger.warning(f"Multiple faces detected! (Method: {detection_method})")
-            last_face_warning = now
-            logger.warning("Multiple faces detected!")
+            logger.warning("Multiple faces detected in camera view")
     else:
         # Reset face counters when a single face is detected
         consecutive_face_missing = 0
