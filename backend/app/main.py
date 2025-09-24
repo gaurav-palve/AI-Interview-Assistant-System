@@ -142,3 +142,15 @@ app.include_router(generate_jd_route.router)
 # @app.get("/health")
 # async def health_check():
 #     return {"status": "healthy"}
+
+
+# Run the server
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",  # Update this path if your file is named differently
+        host="localhost",
+        port=8000,
+        reload=True,  # Equivalent to debug=True in Flask
+        log_level="info"
+    )
