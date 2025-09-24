@@ -78,34 +78,49 @@ Interview System Team
             """
             
             msg.set_content(body)
-
-            attachment_path = r"C:\Users\gaurav.palve\Downloads\shared image.png"
-            with open(attachment_path, 'rb') as f:
-                file_data = f.read()
-                file_name = os.path.basename(f.name)
-                file_type = imghdr.what(f.name)
-                
-                if file_type not in ['jpeg', 'png']:
-                    logger.error(f"Attachment type '{file_type}' not supported. Only JPG/JPEG images allowed.")
-                    return False
-                
-                msg.add_attachment(
-                    file_data,
-                    maintype='image',
-                    subtype=file_type,  
-                    filename=file_name
-                )
             
-            pdf_path = r"C:\Users\gaurav.palve\Downloads\Python-Fresher-JD.pdf"
-            with open(pdf_path, 'rb') as f:
-                file_data = f.read()
-                file_name = os.path.basename(f.name)
-            msg.add_attachment(
-                file_data,
-                maintype='application',
-                subtype=file_type,  
-                filename=file_name
-            )
+            # Try to attach image if it exists
+            try:
+                attachment_path = r"C:\Users\gaurav.palve\Downloads\shared image.png"
+                if os.path.exists(attachment_path):
+                    with open(attachment_path, 'rb') as f:
+                        file_data = f.read()
+                        file_name = os.path.basename(f.name)
+                        file_type = imghdr.what(f.name)
+                        
+                        if file_type not in ['jpeg', 'png']:
+                            logger.warning(f"Attachment type '{file_type}' not supported. Only JPG/JPEG images allowed.")
+                        else:
+                            msg.add_attachment(
+                                file_data,
+                                maintype='image',
+                                subtype=file_type,
+                                filename=file_name
+                            )
+                            logger.info(f"Added image attachment: {file_name}")
+                else:
+                    logger.warning(f"Image attachment not found at {attachment_path}, skipping")
+            except Exception as e:
+                logger.warning(f"Error attaching image: {e}, continuing without image attachment")
+            
+            # Try to attach PDF if it exists
+            try:
+                pdf_path = r"C:\Users\gaurav.palve\Downloads\Python-Fresher-JD.pdf"
+                if os.path.exists(pdf_path):
+                    with open(pdf_path, 'rb') as f:
+                        file_data = f.read()
+                        file_name = os.path.basename(f.name)
+                    msg.add_attachment(
+                        file_data,
+                        maintype='application',
+                        subtype='pdf',
+                        filename=file_name
+                    )
+                    logger.info(f"Added PDF attachment: {file_name}")
+                else:
+                    logger.warning(f"PDF attachment not found at {pdf_path}, skipping")
+            except Exception as e:
+                logger.warning(f"Error attaching PDF: {e}, continuing without PDF attachment")
 
                         
 

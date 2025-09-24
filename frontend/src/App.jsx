@@ -19,6 +19,9 @@ import MCQGeneration from './pages/MCQGeneration';
 import Statistics from './pages/Statistics';
 import ResumeScreening from './pages/ResumeScreening';
 import JobDescriptionGenerator from './pages/JobDescriptionGenerator';
+import JobPostingsList from './pages/JobPostings/JobPostingsList';
+import CreateJobPosting from './pages/JobPostings/CreateJobPosting';
+import JobPostingDetail from './pages/JobPostings/JobPostingDetail';
 import CandidateAssessmentReports from './pages/CandidateAssessmentReports';
 import NotFound from './pages/NotFound';
 
@@ -138,6 +141,30 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <JobDescriptionGenerator />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/job-postings" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <JobPostingsList />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/job-postings/new" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CreateJobPosting />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/job-postings/:id" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <JobPostingDetail />
               </MainLayout>
             </ProtectedRoute>
           } />

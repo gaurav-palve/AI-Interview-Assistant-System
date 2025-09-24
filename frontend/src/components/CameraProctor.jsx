@@ -102,7 +102,7 @@ function CameraProctor({ detectionEnabled = false }) {
     if (multipleFacesCount > 0 &&
         multipleFacesCount !== prevMultipleFacesCount &&
         !warningMessage) {
-      showWarning("Warning: Multiple faces detected");
+      showWarning("Warning: Multiple faces detected in camera view");
     }
     
     // Update previous stats

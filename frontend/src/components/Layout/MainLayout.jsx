@@ -19,7 +19,8 @@ import {
   Notifications as NotificationsIcon,
   Assessment as AssessmentIcon,
   Description as DescriptionIcon,
-  Grading as GradingIcon
+  Grading as GradingIcon,
+  Work as WorkIcon
 } from '@mui/icons-material';
 
 /**
@@ -42,6 +43,7 @@ function MainLayout({ children }) {
     { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
     { path: '/resume-screening', label: 'Resume Screening', icon: <AssessmentIcon /> },
     { path: '/job-description-generator', label: 'Job Description Generator', icon: <DescriptionIcon /> },
+    { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon /> },
     { path: '/candidate-assessment-reports', label: 'Candidate Assessment Reports', icon: <GradingIcon /> },
   ];
 

@@ -1,6 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
 
 @tailwind base;
+
+/* Job Posting Styles */
+.tab-button {
+  @apply whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm;
+}
+
+.tab-active {
+  @apply border-primary-500 text-primary-600;
+}
+
+.tab-inactive {
+  @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300;
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
 @tailwind components;
 @tailwind utilities;
 
