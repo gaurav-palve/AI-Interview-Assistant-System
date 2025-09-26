@@ -5,7 +5,7 @@ import interviewService from '../services/interviewService';
 import { useCamera } from '../contexts/CameraContext';
 
 import VoiceInterviewControls from '../components/VoiceInterview/VoiceInterviewControls';
-import AudioRecorder from '../components/VoiceInterview/AudioRecorder';
+// import AudioRecorder from '../components/VoiceInterview/AudioRecorder';
 import TranscriptDisplay from '../components/VoiceInterview/TranscriptDisplay';
 import VoiceInterviewResults from '../components/VoiceInterview/VoiceInterviewResults';
 import CameraProctor from '../components/CameraProctor';
@@ -454,10 +454,10 @@ ${transcript}`;
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
-              <button className="group flex items-center text-white/70 hover:text-white transition-all duration-300 hover:scale-105">
+              {/* <button className="group flex items-center text-white/70 hover:text-white transition-all duration-300 hover:scale-105">
                 <ArrowLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
                 <span className="font-medium">Back</span>
-              </button>
+              </button> */}
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
                   Voice Interview
@@ -605,133 +605,8 @@ ${transcript}`;
           </div>
         )}
 
-        {/* Preparation Instructions */}
-        {status === 'pending' && (
-          <div className={`mt-12 bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 ${fadeInUp}`}>
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500/20 rounded-full mb-4">
-                <Zap className="w-8 h-8 text-blue-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                Prepare for Your Voice Interview
-              </h3>
-              <p className="text-white/60">Follow these steps to ensure the best interview experience</p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <h4 className="font-semibold text-blue-400 mb-4 flex items-center">
-                    <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
-                      <Mic className="w-4 h-4 text-blue-400" />
-                    </div>
-                    Audio Setup
-                  </h4>
-                  <div className="space-y-3">
-                    {[
-                      'Test your microphone before starting',
-                      'Use headphones to prevent echo',
-                      'Speak clearly at a moderate pace',
-                      'Position microphone 6-12 inches away'
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center space-x-3 group">
-                        <div className="w-2 h-2 bg-green-400 rounded-full group-hover:scale-125 transition-transform duration-200"></div>
-                        <span className="text-white/80 text-sm group-hover:text-white transition-colors duration-200">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <h4 className="font-semibold text-purple-400 mb-4 flex items-center">
-                    <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center mr-3">
-                      <Wifi className="w-4 h-4 text-purple-400" />
-                    </div>
-                    Environment
-                  </h4>
-                  <div className="space-y-3">
-                    {[
-                      'Find a quiet space with minimal noise',
-                      'Ensure stable internet connection',
-                      'Close unnecessary applications',
-                      'Have good lighting for video calls'
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center space-x-3 group">
-                        <div className="w-2 h-2 bg-green-400 rounded-full group-hover:scale-125 transition-transform duration-200"></div>
-                        <span className="text-white/80 text-sm group-hover:text-white transition-colors duration-200">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <h4 className="font-semibold text-pink-400 mb-4 flex items-center">
-                    <div className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center mr-3">
-                      <Brain className="w-4 h-4 text-pink-400" />
-                    </div>
-                    Interview Tips
-                  </h4>
-                  <div className="space-y-3">
-                    {[
-                      'Take your time to think before answering',
-                      'Be specific with examples and details',
-                      'Ask for clarification if needed',
-                      'Stay calm and speak naturally'
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center space-x-3 group">
-                        <div className="w-2 h-2 bg-green-400 rounded-full group-hover:scale-125 transition-transform duration-200"></div>
-                        <span className="text-white/80 text-sm group-hover:text-white transition-colors duration-200">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl p-6 border border-cyan-500/30">
-                  <h4 className="font-semibold text-cyan-400 mb-3 flex items-center">
-                    <Heart className="w-5 h-5 mr-2" />
-                    You've Got This!
-                  </h4>
-                  <p className="text-white/80 text-sm leading-relaxed">
-                    Remember, this is a conversation, not an interrogation. The AI interviewer is here to understand your skills and experience. Be yourself and showcase what makes you unique!
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Technical Requirements */}
-            <div className="mt-8 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl p-6 border border-indigo-500/20">
-              <h4 className="font-semibold text-indigo-400 mb-4 text-center">Technical Requirements</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div className="space-y-2">
-                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Mic className="w-6 h-6 text-green-400" />
-                  </div>
-                  <p className="text-sm text-white/80">Microphone Access</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Wifi className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <p className="text-sm text-white/80">Stable Internet</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Volume2 className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <p className="text-sm text-white/80">Audio Output</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mx-auto">
-                    <Clock className="w-6 h-6 text-pink-400" />
-                  </div>
-                  <p className="text-sm text-white/80">30-45 Minutes</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+      
+      
       </main>
 
 

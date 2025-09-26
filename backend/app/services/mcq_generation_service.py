@@ -137,7 +137,8 @@ Answer: b) PUT
         # Add timeout protection
         try:
             # Use Gemini LLM
-            llm = get_gemini_llm()
+            llm = get_openai_llm()
+            
             # Add timeout to prevent hanging requests
             response = await asyncio.wait_for(
                 llm.ainvoke([HumanMessage(content=formatted_prompt)]),
