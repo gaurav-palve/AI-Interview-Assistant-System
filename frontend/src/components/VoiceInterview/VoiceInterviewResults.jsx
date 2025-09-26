@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Award,
   MessageSquare,
@@ -16,8 +17,10 @@ import {
 const VoiceInterviewResults = ({
   results,
   onDownloadTranscript,
+  interviewId,
   className = ''
 }) => {
+  const navigate = useNavigate();
   if (!results) {
     return (
       <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl ${className}`}>
@@ -294,6 +297,17 @@ const VoiceInterviewResults = ({
         </button>
         <button className="px-8 py-4 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-105 border border-white/20">
           Back to Dashboard
+        </button>
+        <button
+          onClick={() => {
+            // Use the interviewId from props, or fallback to a default value or extract from results if available
+            const id = interviewId || (results && results.interview_id) || 'default';
+            navigate(`/coding-instructions/${id}`);
+          }}
+          className="flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/25"
+        >
+          <Code className="w-5 h-5 mr-2" />
+          Next: Coding Round
         </button>
       </div>
 

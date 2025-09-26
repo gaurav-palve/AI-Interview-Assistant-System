@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings
 import os
 
 class Settings(BaseSettings):
+
+    PISTON_API_URL: str = ""
     MONGO_URI: str = 'mongodb://localhost:27017/'
     DB_NAME: str = 'interview_assistant'
     OPENAI_API_KEY: str = ""

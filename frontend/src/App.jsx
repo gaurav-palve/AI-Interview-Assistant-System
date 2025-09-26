@@ -31,6 +31,10 @@ import CandidateInterview from './pages/CandidateInterview';
 // Voice interview
 import VoiceInterview from './pages/VoiceInterview';
 import VoiceInterviewInstructions from './pages/VoiceInterviewInstructions';
+
+// Coding interview
+import CodingInstructions from './pages/CodingInstructions';
+import LeetCodeLayout from './components/LeetCodeLayout';
 /**
  * Main App component
  * Sets up routing and authentication
@@ -175,6 +179,10 @@ function App() {
           {/* Voice interview routes - Make them public for candidates */}
           <Route path="/voice-interview-instructions/:interviewId" element={<VoiceInterviewInstructions />} />
           <Route path="/voice-interview/:interviewId" element={<VoiceInterview />} />
+          
+          {/* Coding interview routes - Make them public for candidates */}
+          <Route path="/coding-instructions/:interviewId" element={<CodingInstructions />} />
+          <Route path="/leetcode" element={<LeetCodeLayout />} />
           
           {/* Redirect any unknown routes to 404 */}
           <Route path="*" element={<Navigate to="/404" replace />} />
