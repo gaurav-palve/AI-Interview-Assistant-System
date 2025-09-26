@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MessageCircle, User, Bot, Wifi, WifiOff } from 'lucide-react';
 
 const TranscriptDisplay = ({
@@ -9,12 +9,44 @@ const TranscriptDisplay = ({
   className = ''
 }) => {
   const scrollRef = useRef(null);
+  const [userScrolled, setUserScrolled] = useState(false);
+  const [hasNewMessages, setHasNewMessages] = useState(false);
 
+  // Check if user is near bottom
+  const isNearBottom = useCallback(() => {
+    if (!scrollRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    return scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
+  }, []);
+
+  // Handle user scroll
+  const handleScroll = useCallback(() => {
+    if (scrollRef.current) {
+      const nearBottom = isNearBottom();
+      setUserScrolled(!nearBottom);
+      if (nearBottom) {
+        setHasNewMessages(false);
+      }
+    }
+  }, [isNearBottom]);
+
+  // Smart auto-scroll - only scroll if user is at bottom
   useEffect(() => {
+    if (scrollRef.current && !userScrolled) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    } else if (userScrolled && transcript) {
+      setHasNewMessages(true);
+    }
+  }, [transcript, userScrolled]);
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      setUserScrolled(false);
+      setHasNewMessages(false);
     }
-  }, [transcript]);
+  };
 
   const parseTranscript = (text) => {
     if (!text) return [];
@@ -107,6 +139,7 @@ const TranscriptDisplay = ({
       <div className="flex-1 relative">
         <div
           ref={scrollRef}
+          onScroll={handleScroll}
           className="bg-black/20 rounded-2xl p-6 h-full overflow-y-auto border border-white/10 custom-scrollbar"
         >
           {messages.length === 0 ? (
@@ -149,12 +182,18 @@ const TranscriptDisplay = ({
           )}
         </div>
 
-        {/* Scroll Indicator */}
-        {messages.length > 0 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 border border-white/20">
-              <span className="text-xs text-white/60">Scroll for more messages</span>
-            </div>
+        {/* New Messages Indicator */}
+        {hasNewMessages && userScrolled && (
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+            <button
+              onClick={scrollToBottom}
+              className="bg-purple-600/90 backdrop-blur-sm rounded-full px-4 py-2 border border-purple-500/30 flex items-center space-x-2 hover:bg-purple-600 transition-all shadow-lg animate-bounce"
+            >
+              <span className="text-sm font-medium">New messages</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
           </div>
         )}
       </div>

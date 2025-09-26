@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -19,7 +19,20 @@ import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
   Star as StarIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  Edit as EditIcon,
+  Publish as PublishIcon,
+  ArrowBack as BackIcon,
+  Schedule as ScheduleIcon,
+  Email as EmailIcon,
+  Assessment as AssessmentIcon,
+  CalendarToday as CalendarIcon,
+  Timer as TimerIcon,
+  Group as GroupIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+  FileUpload as FileUploadIcon,
+  Visibility as ViewIcon
 } from '@mui/icons-material';
 
 /**
@@ -28,11 +41,13 @@ import {
  */
 function JobPostingDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user, sessionToken } = useAuth();
   const [jobPosting, setJobPosting] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('details');
+  const [tabAnimation, setTabAnimation] = useState(false);
   
   // Resume screening state
   const [jdFile, setJdFile] = useState(null);
@@ -253,74 +268,162 @@ function JobPostingDetail() {
     return colors[index];
   };
 
+  // Handle tab change with animation
+  const handleTabChange = (tab) => {
+    setTabAnimation(true);
+    setTimeout(() => {
+      setActiveTab(tab);
+      setTabAnimation(false);
+    }, 150);
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="flex flex-col items-center justify-center py-20 space-y-4 animate-fadeIn">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-600 absolute top-0 left-0"></div>
+        </div>
+        <p className="text-gray-500 animate-pulse">Loading job posting details...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-danger-50 border-l-4 border-danger-500 p-4 rounded-r-md animate-slideIn">
-        <div className="flex">
-          <div className="ml-3">
-            <p className="text-sm text-danger-700">{error}</p>
+      <div className="max-w-4xl mx-auto mt-8">
+        <div className="bg-red-50 border-2 border-red-200 p-6 rounded-xl animate-slideInUp">
+          <div className="flex items-center">
+            <CloseIcon className="h-6 w-6 text-red-500 mr-3" />
+            <div>
+              <h3 className="text-lg font-medium text-red-800">Error Loading Job Posting</h3>
+              <p className="text-sm text-red-600 mt-1">{error}</p>
+            </div>
           </div>
+          <button 
+            onClick={() => navigate('/job-postings')}
+            className="mt-4 btn btn-outline btn-sm"
+          >
+            <BackIcon className="h-4 w-4 mr-1" />
+            Back to Listings
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center">
-          <div className={`flex-shrink-0 h-16 w-16 rounded-full ${getCompanyColor(jobPosting.company)} text-white flex items-center justify-center font-bold text-2xl`}>
-            {getCompanyInitial(jobPosting.company)}
-          </div>
-          <div className="ml-4">
-            <h1 className="text-3xl font-bold text-gray-900 font-serif">{jobPosting.job_posting_name || jobPosting.job_title || "Job Posting"}</h1>
-          </div>
+    <div className="space-y-8">
+      {/* Enhanced Header with Gradient Background */}
+      <div className="bg-gradient-to-r from-primary-50 via-white to-purple-50 rounded-2xl p-8 shadow-sm animate-slideInDown">
+        <div className="flex items-center mb-4">
+          <button 
+            onClick={() => navigate('/job-postings')}
+            className="mr-4 p-2 rounded-lg hover:bg-white/50 transition-all duration-200 group"
+          >
+            <BackIcon className="h-5 w-5 text-gray-600 group-hover:text-primary-600 transition-colors" />
+          </button>
+          <span className="text-sm text-gray-500">Back to Job Postings</span>
         </div>
-        <div className="flex items-center space-x-2">
-          <button className="btn btn-outline">
-            Edit
-          </button>
-          <button className="btn btn-primary">
-            Publish
-          </button>
+        
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex items-center animate-slideInLeft">
+            <div className={`
+              flex-shrink-0 h-20 w-20 rounded-2xl ${getCompanyColor(jobPosting.company)} 
+              text-white flex items-center justify-center font-bold text-3xl
+              shadow-lg transform transition-all duration-300 hover:scale-110
+              bg-gradient-to-br from-opacity-80 to-opacity-100
+            `}>
+              {getCompanyInitial(jobPosting.company)}
+            </div>
+            <div className="ml-6">
+              <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight">
+                {jobPosting.job_posting_name || jobPosting.job_title || "Job Posting"}
+              </h1>
+              <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
+                <span className="flex items-center">
+                  <BusinessIcon className="h-4 w-4 mr-1" />
+                  {jobPosting.company}
+                </span>
+                <span className="flex items-center">
+                  <LocationIcon className="h-4 w-4 mr-1" />
+                  {jobPosting.location}
+                </span>
+                <span className="flex items-center">
+                  <CalendarIcon className="h-4 w-4 mr-1" />
+                  Posted {new Date().toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+         
+        </div>
+        
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          {[
+            { icon: GroupIcon, label: 'Applicants', value: '0' },
+            { icon: ViewIcon, label: 'Views', value: '0' },
+            { icon: ScheduleIcon, label: 'Interviews', value: scheduledInterviews.length },
+            { icon: StarIcon, label: 'Status', value: jobPosting.status || 'Active' },
+          ].map((stat, index) => (
+            <div 
+              key={index}
+              className="bg-white/70 backdrop-blur-sm rounded-xl p-3 animate-slideInUp"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="flex items-center space-x-3">
+                <stat.icon className="h-5 w-5 text-primary-500" />
+                <div>
+                  <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+                  <p className="text-xs text-gray-500">{stat.label}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('details')}
-            className={`tab-button ${activeTab === 'details' ? 'tab-active' : 'tab-inactive'}`}
-          >
-            Details
-          </button>
-          <button
-            onClick={() => setActiveTab('screening')}
-            className={`tab-button ${activeTab === 'screening' ? 'tab-active' : 'tab-inactive'}`}
-          >
-            Resume Screening
-          </button>
-          <button
-            onClick={() => setActiveTab('interviews')}
-            className={`tab-button ${activeTab === 'interviews' ? 'tab-active' : 'tab-inactive'}`}
-          >
-            Interviews
-          </button>
+      {/* Enhanced Tabs */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 animate-slideInUp">
+        <nav className="flex space-x-2">
+          {[
+            { id: 'details', label: 'Details', icon: DescriptionIcon },
+            { id: 'screening', label: 'Resume Screening', icon: AssessmentIcon },
+            { id: 'interviews', label: 'Interviews', icon: GroupIcon },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`
+                flex-1 flex items-center justify-center px-4 py-3 rounded-lg font-medium
+                transition-all duration-300 transform
+                ${activeTab === tab.id 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }
+              `}
+            >
+              <tab.icon className="h-5 w-5 mr-2" />
+              <span>{tab.label}</span>
+              {tab.id === 'screening' && screeningResults.length > 0 && (
+                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-white/20">
+                  {screeningResults.length}
+                </span>
+              )}
+              {tab.id === 'interviews' && scheduledInterviews.length > 0 && (
+                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-white/20">
+                  {scheduledInterviews.length}
+                </span>
+              )}
+            </button>
+          ))}
         </nav>
       </div>
 
-      {/* Tab Content */}
-      <div className="tab-content">
+      {/* Tab Content with Animation */}
+      <div className={`tab-content transition-all duration-300 ${tabAnimation ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
         {activeTab === 'details' && (
           <div className="space-y-8">
             {/* Job Details */}
