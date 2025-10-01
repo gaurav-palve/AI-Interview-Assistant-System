@@ -20,6 +20,7 @@ VOICE_INTERVIEW_SESSIONS_COLLECTION = "voice_interview_sessions"
 EMAIL_TEMPLATES_COLLECTION = "email_templates"
 JOB_DESCRIPTIONS_COLLECTION = "job_descriptions"
 JOB_POSTINGS_COLLECTION = "job_postings"
+CODING_QUESTIONS_COLLECTION = "coding_questions"
 
 client = None
 db = None
@@ -481,3 +482,82 @@ async def get_mcq_answers(interview_id: str) -> List[Dict]:
     except Exception as e:
         logger.error(f"Error fetching candidate answers for interview_id={interview_id}: {e}")
         return []     
+
+
+
+async def save_coding_questions(questions, interview_id: str) -> str:
+    """
+    Save multiple coding questions as a single MongoDB document.
+
+    Args:
+        questions: List of Question objects
+        interview_id: The ID of the interview session
+
+    Returns:
+        Inserted document _id as a string
+    """
+    db = get_database()
+    document = {
+        "interview_id": interview_id,
+        "created_at": datetime.utcnow(),
+        "questions": [q.dict() for q in questions]  # store all questions in one record
+    }
+    result = await db[CODING_QUESTIONS_COLLECTION].insert_one(document)
+    logger.info(f"Saved coding questions for interview_id={interview_id}")
+    return str(result.inserted_id)
+
+async def fetch_coding_questions(interview_id: str):
+    """
+    Fetch coding questions for a specific interview from the database.
+    
+    Args:
+        interview_id: The ID of the interview
+        
+    Returns:
+        List of question objects or None if not found
+    """
+    try:
+        db = get_database()
+        document = await db[CODING_QUESTIONS_COLLECTION].find_one({"interview_id": interview_id})
+        if not document:
+            logger.warning(f"No coding questions found for interview_id={interview_id}")
+            return None
+        return document.get("questions", [])
+    except Exception as e:
+        logger.error(f"Error fetching coding questions for interview_id={interview_id}: {e}")
+        raise
+
+
+async def save_coding_round_answers(db, interview_id:str, question_id, candidate_answer, candidate_test_cases):
+    """
+    Save candidate's answer and test cases into coding_questions collection.
+
+    Args:
+        db: MongoDB database instance
+        interview_id (str): Interview ID
+        question_id (int): Question ID inside questions array
+        candidate_answer (str): Candidate's submitted answer
+        candidate_test_cases (list): List of test case results (dicts with input, output, result, etc.)
+    """
+    try:
+        result = await db[CODING_QUESTIONS_COLLECTION].update_one(
+            {
+                "interview_id": interview_id,
+                "questions.id": question_id
+            },
+            {
+                "$set": {
+                    "questions.$.candidate_answer": candidate_answer,
+                    "questions.$.candidate_test_cases": candidate_test_cases
+                }
+            }
+        )
+
+        if result.modified_count > 0:
+            logger.info(f"Candidate answer saved successfully.")
+        else:
+            logger.info(f"No document updated. Please check interview_id and question_id.")
+    
+    except Exception as e:
+        logger.info(f"Error while saving the coding round answers: {e}")
+        raise RuntimeError(f"Error in save_coding_round_answers {e}")

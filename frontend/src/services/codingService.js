@@ -52,31 +52,63 @@ export const generateQuestion = async (difficulty = "easy", topic = null) => {
   }
 };
 
-// Multiple questions generation api
-export const generateMultipleQuestions = async (count = 3, difficulty = "easy") => {
+// Generate coding questions for an interview session
+export const generateCodingQuestions = async (interviewId, count = 3, difficulty = "medium") => {
   try {
-    const response = await api.post("/api/questions/generate-multiple", {
+    console.log("codingService: Generating questions with interview ID:", interviewId);
+    
+    // Use the exact interview_id from the URL without any modifications
+    // This is the MongoDB ObjectId format like "68db8801735747049bd7952d"
+    const requestBody = {
+      interview_id: interviewId,
       count,
       difficulty,
-    });
+    };
+    
+    console.log("codingService: Request body:", requestBody);
+    
+    const response = await api.post("/api/questions/generate-coding-questions", requestBody);
+    console.log("codingService: Response:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error generating multiple questions:", error);
+    console.error("Error generating coding questions:", error);
+    throw error; // No fallback, just throw the error
+  }
+};
+
+// Fetch coding questions for an interview session
+export const fetchCodingQuestions = async (interviewId) => {
+  try {
+    // Use the exact interview_id from the URL without any modifications
+    console.log("Fetching coding questions with interview ID:", interviewId);
     
-    // Try to get fallback questions if api fails
-    try {
-      const fallbackQuestions = [];
-      const topics = ["string manipulation", "array operations", "mathematical algorithms"];
-      
-      for (let i = 0; i < count && i < topics.length; i++) {
-        const response = await api.get(`/api/questions/fallback?difficulty=${difficulty}&topic=${topics[i]}`);
-        fallbackQuestions.push(response.data);
-      }
-      
-      return fallbackQuestions;
-    } catch (fallbackError) {
-      console.error("Error getting fallback questions:", fallbackError);
-      throw error;
-    }
+    const response = await api.get(`/api/questions/fetch-coding-questions/${interviewId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching coding questions:", error);
+    throw error; // No fallback, just throw the error
+  }
+};
+
+// Submit candidate's coding answer to be saved in the database
+export const saveCodingAnswer = async (interviewId, questionId, candidateAnswer, testResults) => {
+  try {
+    console.log("Saving coding answer with interview ID:", interviewId);
+    
+    const requestBody = {
+      interview_id: interviewId,
+      question_id: questionId,
+      candidate_answer: candidateAnswer,
+      test_results: testResults
+    };
+    
+    console.log("saveCodingAnswer: Request body:", requestBody);
+    
+    const response = await api.post("/api/questions/save-coding-answer", requestBody);
+    console.log("saveCodingAnswer: Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error saving coding answer:", error);
+    throw error;
   }
 };

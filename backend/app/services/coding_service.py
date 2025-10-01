@@ -133,6 +133,124 @@ class CodingService:
                 error=str(e)
             )
     
+    def format_python_input(self, input_value: str) -> str:
+        """
+        Format input value for Python to ensure it's valid Python syntax.
+        
+        Args:
+            input_value: The input value as a string
+            
+        Returns:
+            Properly formatted Python input
+        """
+        # If input is already a properly formatted Python expression, return it as is
+        try:
+            # Try to evaluate the input as a Python expression
+            # This is safe because we're only checking syntax, not executing code
+            compile(input_value, '<string>', 'eval')
+            return input_value
+        except (SyntaxError, NameError):
+            # If it's not valid Python, we need to format it
+            pass
+        
+        # Check if input is a string without quotes
+        if (not input_value.startswith('"') and
+            not input_value.startswith("'") and
+            not input_value.startswith('[') and
+            not input_value.startswith('{') and
+            not input_value.isdigit() and
+            input_value.lower() not in ('true', 'false', 'none')):
+            # It's likely a string without quotes, add quotes
+            return f'"{input_value}"'
+        
+        # Handle JavaScript arrays -> Python lists
+        if input_value.startswith('[') and input_value.endswith(']'):
+            # Split by commas, but respect nested structures
+            items = []
+            current_item = ""
+            bracket_count = 0
+            
+            for char in input_value[1:-1]:
+                if char == ',' and bracket_count == 0:
+                    items.append(current_item.strip())
+                    current_item = ""
+                else:
+                    if char in '[{(':
+                        bracket_count += 1
+                    elif char in ']}):':
+                        bracket_count -= 1
+                    current_item += char
+            
+            if current_item:
+                items.append(current_item.strip())
+            
+            # Format each item recursively
+            formatted_items = [self.format_python_input(item) for item in items]
+            return f"[{', '.join(formatted_items)}]"
+        
+        # Handle JavaScript objects -> Python dicts
+        if input_value.startswith('{') and input_value.endswith('}'):
+            # Convert JavaScript object to Python dict
+            # This is a simplified approach - for complex objects, more parsing would be needed
+            input_value = input_value.replace(':', ': ').replace(',', ', ')
+            
+            # Add quotes to keys if they don't have them
+            parts = []
+            current_part = ""
+            in_string = False
+            string_char = None
+            
+            for char in input_value[1:-1]:
+                if char in '"\'':
+                    if not in_string:
+                        in_string = True
+                        string_char = char
+                    elif char == string_char:
+                        in_string = False
+                        string_char = None
+                
+                if char == ',' and not in_string:
+                    parts.append(current_part.strip())
+                    current_part = ""
+                else:
+                    current_part += char
+            
+            if current_part:
+                parts.append(current_part.strip())
+            
+            # Process each key-value pair
+            formatted_parts = []
+            for part in parts:
+                if ':' in part:
+                    key, value = part.split(':', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    
+                    # Add quotes to keys if they don't have them
+                    if not (key.startswith('"') or key.startswith("'")):
+                        key = f'"{key}"'
+                    
+                    # Format the value recursively
+                    value = self.format_python_input(value)
+                    
+                    formatted_parts.append(f"{key}: {value}")
+            
+            return f"{{{', '.join(formatted_parts)}}}"
+        
+        # Handle JavaScript true/false/null -> Python True/False/None
+        if input_value.lower() == 'true':
+            return 'True'
+        elif input_value.lower() == 'false':
+            return 'False'
+        elif input_value.lower() == 'null':
+            return 'None'
+        
+        # If we can't determine the type, return as is with quotes to be safe
+        if not input_value.isdigit() and not input_value.replace('.', '', 1).isdigit():
+            return f'"{input_value}"'
+        
+        return input_value
+    
     def create_test_runner_code(self, language: str, user_code: str, test_case: TestCase, function_signature: str) -> str:
         """
         Create test runner code for different languages
@@ -179,15 +297,25 @@ class CodingService:
             print(f"Python function name: {py_func_name}")
             print(f"Input value: {input_value}")
             
+            # Format the input value to ensure it's valid Python syntax
+            formatted_input = self.format_python_input(input_value)
+            
             return f"""
 {user_code}
 
 # Call the function with test input
-result = {py_func_name}({input_value.replace('"', "'")})
-
-# Print the result
-import json
-print(json.dumps(result))
+try:
+    # Properly formatted input for Python
+    result = {py_func_name}({formatted_input})
+    
+    # Print the result
+    import json
+    print(json.dumps(result))
+except Exception as e:
+    # Print error for debugging
+    import traceback
+    print("ERROR: " + str(e))
+    traceback.print_exc()
             """
         elif language == "java":
             # For Java, we need to extract the method name from the user's code
@@ -299,9 +427,38 @@ echo json_encode($result);
             # Execute code with the specified language
             print(f"Executing code in language: {language}")
             response = await self.execute_code(language, test_runner_code)
+            # Check for errors in stderr or custom Python error messages
+            if response["run"]["stderr"] or (language == "python" and "ERROR:" in response["run"]["output"]):
+                error_msg = response["run"]["stderr"]
+                
+                # For Python, extract the error message from the output if it contains our custom error marker
+                if language == "python" and "ERROR:" in response["run"]["output"]:
+                    error_parts = response["run"]["output"].split("ERROR:", 1)
+                    if len(error_parts) > 1:
+                        error_msg = error_parts[1].strip().split("\n")[0]  # Get just the first line of the error
+                
+                return TestResult(
+                    input=test_case.input,
+                    expectedOutput=test_case.expectedOutput,
+                    actualOutput=None,
+                    passed=False,
+                    explanation=test_case.explanation,
+                    error=error_msg
+                )
             
             # Parse the output
             output = response["run"]["output"].strip()
+            
+            # For Python, if there's a traceback in the output but no ERROR marker, it's still an error
+            if language == "python" and "Traceback" in output:
+                return TestResult(
+                    input=test_case.input,
+                    expectedOutput=test_case.expectedOutput,
+                    actualOutput=None,
+                    passed=False,
+                    explanation=test_case.explanation,
+                    error="Python execution error: " + output.split("\n")[-1]  # Last line of traceback
+                )
             
             # Try to parse the output as JSON if possible
             try:
@@ -310,6 +467,7 @@ echo json_encode($result);
                 output = json.dumps(output_json)
             except json.JSONDecodeError:
                 # If parsing fails, use the raw output
+                pass
                 pass
             
             # Parse the expected output
