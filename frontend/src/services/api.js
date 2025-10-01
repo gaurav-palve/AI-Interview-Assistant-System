@@ -7,7 +7,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   // Add timeout to prevent hanging requests
-  timeout: 30000, // 30 second timeout
+  timeout: 120000, // 120 second timeout (increased from 30s to handle LLM generation)
   // Disable automatic retries
   retry: false,
   retryDelay: 0,

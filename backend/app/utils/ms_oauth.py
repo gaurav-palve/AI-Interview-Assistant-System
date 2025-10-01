@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 try:
     import msal
     MSAL_AVAILABLE = True
-    logger.info("MSAL module successfully imported")
+    # Silently import MSAL without logging
 except ImportError:
     MSAL_AVAILABLE = False
     logger.warning("MSAL module not found. OAuth2 authentication will not be available.")
