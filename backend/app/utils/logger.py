@@ -78,9 +78,7 @@ class Logger:
         
         self._initialized = True
         
-        # Log initialization
-        self.info(f"Logger initialized: level={logging.getLevelName(log_level)}, "
-                 f"console={log_to_console}, file={log_to_file}")
+        # Initialization complete (no need to log this)
     
     def _setup_console_handler(self):
         """Set up console handler with appropriate formatter"""

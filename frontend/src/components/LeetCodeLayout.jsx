@@ -13,15 +13,25 @@ import {
   useToast,
   useColorModeValue,
   useColorMode,
-  IconButton
+  IconButton,
+  Alert,
+  AlertIcon
 } from "@chakra-ui/react";
 import { ChevronLeft, ChevronRight, LightMode, DarkMode } from "@mui/icons-material";
+import { useParams, useNavigate } from "react-router-dom";
 import ProblemDescription from "./ProblemDescription";
 import CodeEditorPanel from "./CodeEditorPanel";
-import { generateMultipleQuestions, evaluateCode } from "../services/codingService";
+import {
+  fetchCodingQuestions,
+  evaluateCode,
+  generateCodingQuestions,
+  saveCodingAnswer
+} from "../services/codingService";
 import { CODE_SNIPPETS } from "../constants";
 
 const LeetCodeLayout = () => {
+  const { interviewId } = useParams();
+  const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +43,7 @@ const LeetCodeLayout = () => {
   const [testResults, setTestResults] = useState([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [showTestResults, setShowTestResults] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
   const toast = useToast();
   
@@ -61,18 +72,90 @@ const LeetCodeLayout = () => {
     }
   }, [showTestResults, testResults]);
   
-  // Load questions from the generator service
+  // Load questions from the database
   const loadQuestions = async () => {
     setIsLoading(true);
     setTestResults([]);
     setShowTestResults(false);
     
+    // Log the interview ID
+    console.log("LeetCodeLayout component mounted with interviewId:", interviewId);
+    
+    // Don't modify the interview_id at all - use exactly what's in the URL
+    // This is the MongoDB ObjectId format like "68db8801735747049bd7952d"
+    if (!interviewId) {
+      console.log("No interview ID provided");
+      toast({
+        title: "Error",
+        description: "No interview ID provided. Please check the URL.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setIsLoading(false);
+      return;
+    }
+    // No need for a toast here since we're using the exact interview ID from the URL
+    
     try {
-      // Generate new questions using the backend API
-      const newQuestions = await generateMultipleQuestions(3, 'medium');
+      console.log("Fetching questions for interview ID:", interviewId);
+      
+      // Fetch questions from the database using the interview ID
+      const fetchedQuestions = await fetchCodingQuestions(interviewId);
+      
+      if (!fetchedQuestions || fetchedQuestions.length === 0) {
+        console.log("No questions found for interview ID:", interviewId);
+        
+        // Generate questions on the fly if none exist
+        toast({
+          title: "Generating questions",
+          description: "No existing questions found. Generating new questions for this session.",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+        });
+        
+        // Generate new questions
+        try {
+          const result = await generateCodingQuestions(interviewId, 3, 'medium');
+          console.log("Generated new questions:", result);
+          
+          // Fetch the newly generated questions
+          const newQuestions = await fetchCodingQuestions(interviewId);
+          
+          if (!newQuestions || newQuestions.length === 0) {
+            throw new Error("Failed to generate and fetch questions");
+          }
+          
+          setQuestions(newQuestions);
+          setCurrentQuestionIndex(0);
+          
+          // Set initial code based on the first question's template
+          if (newQuestions.length > 0) {
+            const template = newQuestions[0].solutionTemplates?.[language] ||
+                            newQuestions[0].solutionTemplate ||
+                            CODE_SNIPPETS[language];
+            setCode(template);
+          }
+          
+          setIsLoading(false);
+          return;
+        } catch (genError) {
+          console.error("Error generating questions:", genError);
+          toast({
+            title: "Error",
+            description: "Failed to generate questions. Please try again.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
       
       // Add solution templates for different languages if they don't exist
-      const enhancedQuestions = newQuestions.map(question => {
+      const enhancedQuestions = fetchedQuestions.map(question => {
         // If solutionTemplates doesn't exist, create it
         if (!question.solutionTemplates) {
           const functionName = question.functionSignature.split(' ')[1].split('(')[0];
@@ -93,6 +176,14 @@ const LeetCodeLayout = () => {
       setQuestions(enhancedQuestions);
       setCurrentQuestionIndex(0);
       
+      toast({
+        title: "Questions loaded",
+        description: `Successfully loaded ${enhancedQuestions.length} coding questions`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      
       // Set initial code based on the first question's template
       if (enhancedQuestions.length > 0) {
         const template = enhancedQuestions[0].solutionTemplates?.[language] || 
@@ -100,134 +191,15 @@ const LeetCodeLayout = () => {
                          CODE_SNIPPETS[language];
         setCode(template);
       }
-      
-      toast({
-        title: "Questions loaded",
-        description: "Successfully generated practice questions",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
     } catch (error) {
       console.error("Error loading questions:", error);
       toast({
         title: "Error loading questions",
-        description: "Failed to generate questions. Using fallback questions.",
+        description: `Failed to load questions: ${error.message}`,
         status: "error",
         duration: 5000,
         isClosable: true,
       });
-      
-      // Use fallback questions if API call fails
-      const fallbackQuestions = [
-        {
-          id: 1,
-          title: "Reverse a String",
-          difficulty: "easy",
-          description: "Write a function that reverses a string.\n\nExample:\nInput: \"hello\"\nOutput: \"olleh\"\n\nYour function should take a string as input and return the reversed string.",
-          functionSignature: "function reverseString(str)",
-          solutionTemplate: "function reverseString(str) {\n  // Your code here\n  return str;\n}",
-          solutionTemplates: {
-            javascript: "function reverseString(str) {\n  // Your code here\n  return str;\n}",
-            python: "def reverse_string(str):\n    # Your code here\n    return str",
-            java: "public class Solution {\n    public static String reverseString(String str) {\n        // Your code here\n        return str;\n    }\n}",
-            csharp: "public class Solution {\n    public static string ReverseString(string str) {\n        // Your code here\n        return str;\n    }\n}",
-            php: "<?php\nfunction reverseString($str) {\n    // Your code here\n    return $str;\n}\n?>"
-          },
-          testCases: [
-            {
-              input: '"hello"',
-              expectedOutput: '"olleh"',
-              explanation: "Reversing the string 'hello' gives 'olleh'"
-            },
-            {
-              input: '"JavaScript"',
-              expectedOutput: '"tpircSavaJ"',
-              explanation: "Reversing the string 'JavaScript' gives 'tpircSavaJ'"
-            },
-            {
-              input: '"12345"',
-              expectedOutput: '"54321"',
-              explanation: "Reversing the string '12345' gives '54321'"
-            }
-          ]
-        },
-        {
-          id: 2,
-          title: "Find the Maximum Number",
-          difficulty: "easy",
-          description: "Write a function that finds the maximum number in an array of integers.\n\nExample:\nInput: [3, 7, 2, 9, 1]\nOutput: 9\n\nYour function should take an array of integers as input and return the largest number in the array.",
-          functionSignature: "function findMax(arr)",
-          solutionTemplate: "function findMax(arr) {\n  // Your code here\n  return 0;\n}",
-          solutionTemplates: {
-            javascript: "function findMax(arr) {\n  // Your code here\n  return 0;\n}",
-            python: "def find_max(arr):\n    # Your code here\n    return 0",
-            java: "public class Solution {\n    public static int findMax(int[] arr) {\n        // Your code here\n        return 0;\n    }\n}",
-            csharp: "public class Solution {\n    public static int FindMax(int[] arr) {\n        // Your code here\n        return 0;\n    }\n}",
-            php: "<?php\nfunction findMax($arr) {\n    // Your code here\n    return 0;\n}\n?>"
-          },
-          testCases: [
-            {
-              input: "[3, 7, 2, 9, 1]",
-              expectedOutput: "9",
-              explanation: "The largest number in the array [3, 7, 2, 9, 1] is 9"
-            },
-            {
-              input: "[10, 20, 30, 40, 50]",
-              expectedOutput: "50",
-              explanation: "The largest number in the array [10, 20, 30, 40, 50] is 50"
-            },
-            {
-              input: "[-5, -2, -10, -1, -8]",
-              expectedOutput: "-1",
-              explanation: "The largest number in the array [-5, -2, -10, -1, -8] is -1"
-            }
-          ]
-        },
-        {
-          id: 3,
-          title: "Count Vowels",
-          difficulty: "easy",
-          description: "Write a function that counts the number of vowels (a, e, i, o, u) in a given string. The function should be case-insensitive.\n\nExample:\nInput: \"Hello World\"\nOutput: 3\n\nYour function should take a string as input and return the count of vowels.",
-          functionSignature: "function countVowels(str)",
-          solutionTemplate: "function countVowels(str) {\n  // Your code here\n  return 0;\n}",
-          solutionTemplates: {
-            javascript: "function countVowels(str) {\n  // Your code here\n  return 0;\n}",
-            python: "def count_vowels(str):\n    # Your code here\n    return 0",
-            java: "public class Solution {\n    public static int countVowels(String str) {\n        // Your code here\n        return 0;\n    }\n}",
-            csharp: "public class Solution {\n    public static int CountVowels(string str) {\n        // Your code here\n        return 0;\n    }\n}",
-            php: "<?php\nfunction countVowels($str) {\n    // Your code here\n    return 0;\n}\n?>"
-          },
-          testCases: [
-            {
-              input: '"Hello World"',
-              expectedOutput: "3",
-              explanation: "The vowels in 'Hello World' are 'e', 'o', 'o' (3 vowels)"
-            },
-            {
-              input: '"Programming"',
-              expectedOutput: "3",
-              explanation: "The vowels in 'Programming' are 'o', 'a', 'i' (3 vowels)"
-            },
-            {
-              input: '"AEIOU"',
-              expectedOutput: "5",
-              explanation: "All characters in 'AEIOU' are vowels (5 vowels)"
-            }
-          ]
-        }
-      ];
-      
-      setQuestions(fallbackQuestions);
-      setCurrentQuestionIndex(0);
-      
-      // Set initial code based on the first question's template
-      if (fallbackQuestions.length > 0) {
-        const template = fallbackQuestions[0].solutionTemplates?.[language] || 
-                         fallbackQuestions[0].solutionTemplate || 
-                         CODE_SNIPPETS[language];
-        setCode(template);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -403,20 +375,69 @@ const LeetCodeLayout = () => {
   };
   
   // Submit solution
-  const handleSubmit = () => {
-    // Run tests first
-    handleRunTests();
-    
-    // In a real application, this would submit the solution to a backend
-    setTimeout(() => {
+  const handleSubmit = async () => {
+    try {
+      setIsProcessing(true);
+      
+      // Run tests first if not already run
+      if (!testResults || testResults.length === 0) {
+        await handleRunTests();
+      }
+      
+      if (!editorRef.current || !currentQuestion) {
+        toast({
+          title: "Cannot submit solution",
+          description: "No question or code editor found",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+      
+      // Get the current code from the editor
+      const userCode = editorRef.current.getValue();
+      
+      // Submit the answer to the backend
+      await saveCodingAnswer(
+        interviewId,
+        currentQuestion.id,
+        userCode,
+        testResults
+      );
+      
       toast({
         title: "Solution submitted",
-        description: "Your solution has been submitted for evaluation",
-        status: "info",
+        description: "Your solution has been saved successfully",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
-    }, 1000);
+      
+      // If there are more questions, prompt to move to the next one
+      if (currentQuestionIndex < questions.length - 1) {
+        setTimeout(() => {
+          toast({
+            title: "Continue to next question?",
+            description: "You can now proceed to the next question",
+            status: "info",
+            duration: 5000,
+            isClosable: true,
+          });
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error submitting solution:", error);
+      toast({
+        title: "Error submitting solution",
+        description: error.message || "An error occurred while submitting your solution",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -532,6 +553,7 @@ const LeetCodeLayout = () => {
                   colorScheme="blue"
                   onClick={handleRunTests}
                   isLoading={isRunningTests}
+                  isDisabled={isProcessing}
                   loadingText="Running"
                   size="md"
                   fontWeight="bold"
@@ -546,6 +568,9 @@ const LeetCodeLayout = () => {
                 <Button
                   colorScheme="green"
                   onClick={handleSubmit}
+                  isLoading={isProcessing}
+                  isDisabled={isRunningTests}
+                  loadingText="Submitting"
                   size="md"
                   fontWeight="bold"
                   px={6}

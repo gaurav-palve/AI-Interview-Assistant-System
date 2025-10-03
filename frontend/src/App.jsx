@@ -182,7 +182,7 @@ function App() {
           
           {/* Coding interview routes - Make them public for candidates */}
           <Route path="/coding-instructions/:interviewId" element={<CodingInstructions />} />
-          <Route path="/leetcode" element={<LeetCodeLayout />} />
+          <Route path="/leetcode/:interviewId" element={<LeetCodeLayout />} />
           
           {/* Redirect any unknown routes to 404 */}
           <Route path="*" element={<Navigate to="/404" replace />} />

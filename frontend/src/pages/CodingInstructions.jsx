@@ -1,27 +1,107 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Code, Clock, ArrowRight, AlertCircle, Brain, Loader2 } from 'lucide-react';
+import { generateCodingQuestions } from '../services/codingService';
+import { useToast } from '@chakra-ui/react';
 
 /**
  * CodingInstructions page component
  * Provides instructions and a countdown timer before the coding round
+ * Generates coding questions when the page loads
  */
 function CodingInstructions() {
   const navigate = useNavigate();
   const { interviewId } = useParams();
-  const [instructionTimer, setInstructionTimer] = useState(20); // 20 seconds countdown
+  const [instructionTimer, setInstructionTimer] = useState(30); // 30 seconds countdown
   const timerRef = useRef(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [questionsGenerated, setQuestionsGenerated] = useState(false);
+  const toast = useToast();
+  const requestMadeRef = useRef(false); // Ref to track if request has been made
+
+  // Log the interview ID
+  useEffect(() => {
+    console.log("CodingInstructions component mounted with interviewId:", interviewId);
+    
+    // Don't modify the interview_id at all - use exactly what's in the URL
+    // This is the MongoDB ObjectId format like "68db8801735747049bd7952d"
+    if (!interviewId) {
+      console.log("No interview ID provided");
+      toast({
+        title: "Error",
+        description: "No interview ID provided. Please check the URL.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+  }, [interviewId, navigate, toast]);
+
+  useEffect(() => {
+    const generateQuestions = async () => {
+      // Skip if interview ID is invalid (will be handled by the other useEffect)
+      if (interviewId === "default" || !interviewId) {
+        return;
+      }
+      
+      // Prevent duplicate requests (React StrictMode causes double mount in development)
+      if (requestMadeRef.current) {
+        console.log("Skipping duplicate request");
+        return;
+      }
+
+      try {
+        // Mark that we've made the request
+        requestMadeRef.current = true;
+        
+        // Debug the interview ID
+        console.log("Generating questions with interview ID:", interviewId);
+        
+        // Generate questions for this interview
+        const result = await generateCodingQuestions(interviewId, 3, 'medium');
+        setQuestionsGenerated(true);
+        toast({
+          title: "Questions generated",
+          description: "Coding questions have been generated successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error("Error generating questions:", error);
+        toast({
+          title: "Error",
+          description: `Failed to generate questions: ${error.message}`,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        // Reset the request flag on error so we can try again
+        requestMadeRef.current = false;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    generateQuestions();
+  }, [interviewId, toast]);
 
   // Timer effect for instruction reading
   useEffect(() => {
+    // Skip timer if interview ID is invalid
+    if (interviewId === "default" || !interviewId) {
+      return;
+    }
+    
     if (instructionTimer > 0) {
       timerRef.current = setTimeout(() => {
         setInstructionTimer(instructionTimer - 1);
       }, 1000);
     } else if (instructionTimer === 0) {
-      // Timer finished, redirect to coding round
-      navigate('/leetcode');
+      // Timer finished, redirect to coding round with the exact same interview ID from the URL
+      console.log("Timer finished, redirecting to LeetCode with interview ID:", interviewId);
+      navigate(`/leetcode/${interviewId}`);
     }
 
     return () => {
@@ -29,7 +109,7 @@ function CodingInstructions() {
         clearTimeout(timerRef.current);
       }
     };
-  }, [instructionTimer, navigate]);
+  }, [instructionTimer, navigate, interviewId]);
 
   // Format time for display (MM:SS)
   const formatTime = (seconds) => {
