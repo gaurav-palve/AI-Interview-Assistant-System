@@ -544,6 +544,7 @@ ${transcript}`;
             <VoiceInterviewResults
               results={results}
               onDownloadTranscript={downloadTranscript}
+              interviewId={interviewId}
             />
           </div>
         ) : (

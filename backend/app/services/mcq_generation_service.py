@@ -51,7 +51,7 @@ def cache_mcqs(cache_key: str, content: str) -> None:
 
 async def generate_mcqs(jd_text: str, resume_text: str) -> str:
     """
-    Generate 10 MCQs: 5 mathematical aptitude questions and 5 technical questions based on job description and resume.
+    Generate 10 MCQs: 5 mathematical aptitude and reasoning questions and 5 technical questions based on job description and resume.
     The mathematical questions cover topics like boats & streams, finding next number, time & distance, and probability.
     Returns: String of formatted MCQs
     
@@ -82,6 +82,7 @@ Rules for Mathematical Aptitude Questions (1-5):
    - Finding the next number in a sequence
    - Time and distance
    - Probability
+   - work and time
    - Any other mathematical topic
 2. Difficulty level should be medium (7/10) - challenging but solvable
 3. Each question should be unique and test different skills
