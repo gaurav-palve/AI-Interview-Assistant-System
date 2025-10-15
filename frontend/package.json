@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
-    "@chakra-ui/react": "^2.8.2",
+    "@chakra-ui/react": "^2.10.9",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@monaco-editor/react": "^4.7.0",
@@ -20,6 +20,7 @@
     "autoprefixer": "^10.4.21",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.22",
     "lodash": "^4.17.21",
     "lucide-react": "^0.541.0",
     "postcss": "^8.5.6",
