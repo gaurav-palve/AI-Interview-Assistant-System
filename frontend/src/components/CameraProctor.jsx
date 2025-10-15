@@ -7,6 +7,15 @@ import {
   VideocamOff as VideocamOffIcon,
   Warning as WarningIcon,
   Info as InfoIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+  FiberManualRecord as RecordIcon,
+  PersonOff as PersonOffIcon,
+  PhoneAndroid as PhoneIcon,
+  PeopleAlt as PeopleIcon,
+  Visibility as VisibilityIcon,
+  Settings as SettingsIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 
 /**
@@ -117,12 +126,33 @@ function CameraProctor({ detectionEnabled = false }) {
   // Render loading state
   if (isInitializing) {
     return (
-      <div className="camera-container bg-black/70 rounded-lg p-4 shadow-md" style={{ width: windowSize.width, height: windowSize.height }}>
-        <div className="flex flex-col items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500 mb-3"></div>
-          <span className="text-gray-300">
-            {cameraStatus === 'inactive' ? 'Starting camera...' : 'Stopping camera...'}
-          </span>
+      <div className="camera-wrapper">
+        <div 
+          className="camera-container relative bg-gradient-to-br from-gray-900 to-black rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-700 animate-pulse"
+          style={{ width: windowSize.width, height: windowSize.height }}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center">
+            <div className="bg-gray-800/80 rounded-2xl p-8 backdrop-blur-md">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-primary-500 absolute top-0 left-0"></div>
+                </div>
+                <div className="text-center">
+                  <p className="text-white font-medium text-sm">
+                    {cameraStatus === 'inactive' ? 'Initializing Camera' : 'Shutting Down Camera'}
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">Please wait...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative corner elements */}
+          <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-primary-500/50"></div>
+          <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-primary-500/50"></div>
+          <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-primary-500/50"></div>
+          <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-primary-500/50"></div>
         </div>
       </div>
     );
@@ -131,17 +161,43 @@ function CameraProctor({ detectionEnabled = false }) {
   // Render error state
   if (cameraStatus === 'error' || cameraError) {
     return (
-      <div className="camera-container bg-black/70 rounded-lg p-4 shadow-md flex items-center justify-center" style={{ width: windowSize.width, height: windowSize.height }}>
-        <div className="flex flex-col items-center justify-center text-center">
-          <WarningIcon className="h-10 w-10 text-red-500 mb-2" />
-          <h3 className="text-sm font-medium text-red-200 mb-1">Camera Error</h3>
-          <p className="text-sm text-red-300 mb-3">{cameraError || 'Failed to access camera'}</p>
-          <button
-            onClick={startCamera}
-            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-all"
-          >
-            Try Again
-          </button>
+      <div className="camera-wrapper">
+        <div 
+          className="camera-container relative bg-gradient-to-br from-red-950/30 to-black rounded-2xl shadow-2xl overflow-hidden border-2 border-red-900/50"
+          style={{ width: windowSize.width, height: windowSize.height }}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-red-950/80 rounded-2xl p-8 backdrop-blur-md border border-red-800/50 max-w-sm animate-slideInUp">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-red-100 mb-2">Camera Access Error</h3>
+                  <p className="text-sm text-red-200/80 mb-1">
+                    {cameraError || 'Unable to access your camera'}
+                  </p>
+                  <p className="text-xs text-red-300/60 mt-2">
+                    Please ensure camera permissions are granted and no other application is using the camera.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={startCamera}
+                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-all duration-300"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Error decoration */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
         </div>
       </div>
     );
@@ -150,19 +206,40 @@ function CameraProctor({ detectionEnabled = false }) {
   // Render inactive state
   if (cameraStatus === 'inactive' && !isActive) {
     return (
-      <div className="camera-container bg-black/70 rounded-lg p-4 shadow-md flex items-center justify-center" style={{ width: windowSize.width, height: windowSize.height }}>
-        <div className="flex flex-col items-center justify-center">
-          <VideocamOffIcon className="h-10 w-10 text-gray-400 mb-2" />
-          <p className="text-gray-300 text-sm text-center mb-3">
-            Camera is currently inactive
-          </p>
-          <button
-            onClick={startCamera}
-            className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 transition-all"
-          >
-            <VideocamIcon className="h-4 w-4 mr-1 inline-block" />
-            Start Camera
-          </button>
+      <div className="camera-wrapper">
+        <div 
+          className="camera-container relative bg-gradient-to-br from-gray-900 to-black rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-700"
+          style={{ width: windowSize.width, height: windowSize.height }}
+        >
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-gray-800/80 rounded-2xl p-8 backdrop-blur-md border border-gray-700/50 animate-slideInUp">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-100 mb-2">Camera Inactive</h3>
+                  <p className="text-sm text-gray-400 mb-1">
+                    Your camera is currently turned off
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Click below to activate camera feed
+                  </p>
+                </div>
+                <button
+                  onClick={startCamera}
+                  className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Activate Camera
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative grid pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="h-full w-full" style={{
+              backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(255,255,255,0.05) 35px, rgba(255,255,255,0.05) 70px),
+                               repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(255,255,255,0.05) 35px, rgba(255,255,255,0.05) 70px)`
+            }}></div>
+          </div>
         </div>
       </div>
     );
@@ -170,38 +247,45 @@ function CameraProctor({ detectionEnabled = false }) {
 
   // Render active camera (or inactive but global camera is active)
   return (
-    <div className="camera-container relative">
-      <div className="camera-frame rounded-lg overflow-hidden shadow-md" style={{ width: windowSize.width, height: windowSize.height }}>
-        {/* Use iframe for smoother streaming without blinking */}
-        <iframe
-          ref={cameraRef}
-          src={getCameraUrl()}
-          title="Camera Feed"
-          className="w-full h-full border-0"
-          style={{
-            backgroundColor: '#000',
-            objectFit: 'cover',
-            overflow: 'hidden'
-          }}
-          frameBorder="0"
-          scrolling="no"
-          allowFullScreen
-        ></iframe>
-      </div>
-      
-      {/* Camera status indicator */}
-      <div className="absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1">
-        <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></div>
-      </div>
-      
-      {/* Warning message display */}
-      {warningMessage && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium">
-            {warningMessage}
-          </div>
+    <div className="camera-wrapper">
+      <div 
+        className="camera-container relative bg-gradient-to-br from-gray-900 to-black rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-700 group"
+        style={{ width: windowSize.width, height: windowSize.height }}
+      >
+        {/* Main camera frame with enhanced styling */}
+        <div className="camera-frame relative w-full h-full rounded-xl overflow-hidden">
+          <iframe
+            ref={cameraRef}
+            src={getCameraUrl()}
+            title="Camera Feed"
+            className="w-full h-full border-0"
+            style={{
+              backgroundColor: '#000',
+              objectFit: 'cover',
+              overflow: 'hidden'
+            }}
+            frameBorder="0"
+            scrolling="no"
+            allowFullScreen
+          ></iframe>
+          
+          {/* Gradient overlay for depth */}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
         </div>
-      )}
+        
+        
+        {/* Warning overlay with improved styling */}
+        {warningMessage && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-gradient-to-r from-red-900 to-red-800 text-white px-6 py-4 rounded-xl shadow-2xl border border-red-700 animate-slideInUp max-w-md">
+              <div className="text-center">
+                <p className="text-sm font-semibold">Proctoring Alert</p>
+                <p className="text-xs text-red-100 mt-1">{warningMessage}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
