@@ -486,3 +486,65 @@ Interview System Team
         except Exception as e:
             logger.error(f"Error sending reminder email to {candidate_email}: {e}")
             return False
+
+
+
+    async def send_email_to_TA_team(self, 
+        candidate_email: str, 
+        candidate_name: str, 
+        job_role: str, 
+        interview_id: str) -> bool:
+        """Send interview notification email to TA team"""
+        try:
+            ta_team_email = settings.TA_TEAM_EMAIL
+            # Create message
+            msg = EmailMessage()
+            msg['From'] = self.from_email
+            msg['To'] = ta_team_email
+            msg['Subject'] = f"Candidate Interview Initiated - {candidate_name} for {job_role} Position"
+            body = f"""
+Dear Talent Acquisition Team,
+
+This is to inform you that the interview for {candidate_name}, who has applied for the position of {job_role}, has commenced as per the scheduled time.
+
+Interview Details:
+- Candidate Name: {candidate_name}
+- Candidate Email: {candidate_email}
+- Position: {job_role}
+- Interview ID: {interview_id}
+
+Kindly take note of the commencement. Further updates will be communicated after the interview concludes.
+
+Best regards,
+AI Interview Assistant System
+Neutrino Tech Systems
+"""
+
+            msg.set_content(body)
+            # Connect to SMTP server and send email
+            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
+            server.set_debuglevel(2)  
+            logger.info("SMTP connection established")
+            try:
+                server.ehlo()
+                logger.info("Starting TLS...")
+                server.starttls()
+                server.ehlo()
+
+                logger.info(f"Logging in as {self.smtp_username}")
+                server.login(self.smtp_username, self.smtp_password)
+                logger.info("SMTP login successful")
+                server.send_message(msg)
+                logger.info(f"Email successfully sent to TA team: {ta_team_email}")
+            except smtplib.SMTPException as e:
+                logger.error(f"SMTP error while sending email to TA team: {e}")
+                raise
+            finally:
+                server.quit()
+                logger.info("SMTP connection closed")
+
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send email to TA team for candidate {candidate_name}: {e}")
+            raise RuntimeError(f"Failed to send email to TA team: {e}")

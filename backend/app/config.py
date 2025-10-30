@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DB_NAME: str = 'interview_assistant'
     OPENAI_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""  
+    TA_TEAM_EMAIL: str = "mikeross060505@gmail.com"
     
     # ElevenLabs Configuration
     ELEVENLABS_API_KEY: str = ""   # Will be loaded from .env

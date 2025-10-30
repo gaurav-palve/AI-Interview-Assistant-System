@@ -63,7 +63,7 @@ try:
 except ImportError:
     pass  # TensorFlow not installed, ignore
 
-from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes, camera_integration_route, resume_screening_route, generate_jd_route, job_posting_route, interview_scheduling_route
+from .routes import auth_routes, interview_routes, upload_resume, generate_mcq_route, email_routes, candidate_routes, camera_integration_route, resume_screening_route, generate_jd_route, job_posting_route, interview_scheduling_route, skills_suggestion_routes
 from .database import connect_to_mongo, close_mongo_connection
 import asyncio
 
@@ -150,6 +150,7 @@ app.include_router(generate_mcq_route.router)
 app.include_router(email_routes.router)
 app.include_router(candidate_routes.router)
 app.include_router(camera_integration_route.router)
+app.include_router(skills_suggestion_routes.router)
 
 
 
