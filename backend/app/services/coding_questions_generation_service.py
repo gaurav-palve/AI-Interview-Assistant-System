@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 QUESTION_TOPICS = [
     "string manipulation", "array operations", "mathematical algorithms",
     "sorting algorithms", "searching algorithms", "dynamic programming",
-    "recursion", "stacks", "queues", "bit manipulation",
+    "recursion", "stacks", "queues", "bit manipulation","list","dictionary","set","DSA"
 ]
 DIFFICULTY_LEVELS = ["easy", "medium", "hard"]
 

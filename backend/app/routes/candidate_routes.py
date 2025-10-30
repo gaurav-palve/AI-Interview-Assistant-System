@@ -8,7 +8,7 @@ from ..database import save_generated_mcqs
 from typing import Dict, Any, List, Set
 from pydantic import BaseModel
 import time
-
+from app.services.email_service import EmailService
 logger = get_logger(__name__)
 router = APIRouter(prefix="/candidate", tags=["Candidate"])
 
@@ -237,6 +237,15 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
             # Update interview status to in-progress
             logger.info(f"Updating interview status to in_progress for interview ID: {interview_id}")
             status_updated = await interview_service.update_interview_status(interview_id, "in_progress")
+
+            #send email to TA team notifying candidate has started the interview
+            email_service = EmailService()
+            await email_service.send_email_to_TA_team(candidate_email=interview["candidate_email"],
+                                                      candidate_name=interview["candidate_name"],
+                                                      job_role=interview["job_role"],
+                                                      interview_id= str(interview_id))
+
+
             if status_updated:
                 logger.info(f"Successfully updated interview status for interview ID: {interview_id}")
             else:
