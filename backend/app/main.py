@@ -81,7 +81,8 @@ from .routes import (
     job_posting_route,
     interview_scheduling_route,
     code,
-    questions
+    questions,
+    skills_suggestion_routes
 )
 from .database import connect_to_mongo, close_mongo_connection, verify_database_connection
 from .utils.logger import get_logger
@@ -203,6 +204,7 @@ app.include_router(resume_screening_route.router)
 app.include_router(generate_jd_route.router)
 app.include_router(job_posting_route.router)
 app.include_router(interview_scheduling_route.router)
+app.include_router(skills_suggestion_routes.router)
 app.include_router(code.router, prefix="/api/code", tags=["code"])
 app.include_router(questions.router, prefix="/api/questions", tags=["questions"])
 
