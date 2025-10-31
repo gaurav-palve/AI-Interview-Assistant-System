@@ -20,11 +20,17 @@ class CandidateInfo(BaseModel):
     email: str
     resume: str
 
+class AttachmentInfo(BaseModel):
+    filename: str
+    content: str  # Base64 encoded content
+    content_type: str
+
 class BulkInterviewScheduleRequest(BaseModel):
     job_posting_id: str
     interview_datetime: str
     candidates: List[CandidateInfo]
     job_description: str
+    attachments: Optional[List[AttachmentInfo]] = []
 
 async def get_current_user(session_token: str = Query(..., description="Session token")):
     """Dependency to get current authenticated user"""
@@ -341,7 +347,8 @@ async def schedule_interviews_bulk(
                         candidate_name=candidate.name,
                         job_role=f"Position from Job Posting {request.job_posting_id}",
                         scheduled_datetime=request.interview_datetime,
-                        interview_id=interview_id
+                        interview_id=interview_id,
+                        attachments=request.attachments if hasattr(request, 'attachments') else []  # Add attachments
                     )
                     if result:
                         logger.info(f"Confirmation email sent to {candidate.email}")
