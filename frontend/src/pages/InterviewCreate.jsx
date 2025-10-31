@@ -532,59 +532,64 @@ Interview System Team`;
             </div>
             
             {/* Email Attachments Section */}
-            <div className="mt-4">
-              <h4 className="text-md font-medium text-gray-900 mb-2">Email Attachments (Optional)</h4>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                <div className="space-y-1 text-center">
-                  <div className="flex flex-col items-center">
-                    <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="email-attachment-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-                      >
-                        <span>Upload attachments</span>
-                        <input
-                          id="email-attachment-upload"
-                          name="email-attachment-upload"
-                          type="file"
-                          className="sr-only"
-                          multiple
-                          onChange={handleEmailAttachmentChange}
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Any file type up to 5MB each
-                    </p>
+            {/* Email Attachments Section */}
+            <div className="mt-6">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Email Attachments (Optional)</h4>
+              
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary-400 transition-colors">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <UploadIcon className="h-12 w-12 text-gray-400" />
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <label
+                      htmlFor="email-attachment-upload"
+                      className="relative cursor-pointer font-medium text-primary-600 hover:text-primary-700 focus-within:outline-none"
+                    >
+                      <span>Upload attachments</span>
+                      <input
+                        id="email-attachment-upload"
+                        name="email-attachment-upload"
+                        type="file"
+                        className="sr-only"
+                        multiple
+                        onChange={handleEmailAttachmentChange}
+                      />
+                    </label>
+                    <span className="ml-1">or drag and drop</span>
                   </div>
                   
-                  {/* Display selected attachments */}
-                  {emailAttachments.length > 0 && (
-                    <div className="mt-2">
-                      <h5 className="text-sm font-medium text-gray-700">Selected Attachments:</h5>
-                      <ul className="mt-1 space-y-1">
-                        {emailAttachments.map((file, index) => (
-                          <li key={index} className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                            <div className="flex items-center">
-                              <span className="text-gray-900 font-medium">{file.name}</span>
-                              <span className="ml-2 text-gray-500">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeAttachment(index)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              Remove
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <p className="text-xs text-gray-500">
+                    Any file type up to 5MB each
+                  </p>
                 </div>
               </div>
+              
+              {/* Display selected attachments */}
+              {emailAttachments.length > 0 && (
+                <div className="mt-4">
+                  <h5 className="text-sm font-medium text-gray-700 mb-2">Selected Attachments:</h5>
+                  <ul className="space-y-2">
+                    {emailAttachments.map((file, index) => (
+                      <li key={index} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-md p-3">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <UploadIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                            <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="ml-4 flex-shrink-0 text-sm font-medium text-red-600 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
