@@ -33,12 +33,13 @@ class EmailService:
         self.frontend_url = settings.FRONTEND_URL
         
     async def send_interview_confirmation(
-        self, 
-        candidate_email: str, 
-        candidate_name: str, 
-        job_role: str, 
+        self,
+        candidate_email: str,
+        candidate_name: str,
+        job_role: str,
         scheduled_datetime: str,
-        interview_id: str
+        interview_id: str,
+        attachments: list = []
     ) -> bool:
         """Send interview confirmation email to candidate"""
         try:
@@ -78,6 +79,32 @@ Interview System Team
             """
             
             msg.set_content(body)
+            
+            # Add attachments if provided
+            if attachments and len(attachments) > 0:
+                import base64
+                for attachment in attachments:
+                    filename = attachment.filename
+                    content = attachment.content
+                    content_type = attachment.content_type
+                    
+                    try:
+                        # Decode base64 content
+                        content_bytes = base64.b64decode(content)
+                        
+                        # Determine maintype and subtype based on content_type
+                        maintype, subtype = content_type.split('/', 1) if '/' in content_type else ('application', 'octet-stream')
+                        
+                        # Add the attachment to the email
+                        msg.add_attachment(
+                            content_bytes,
+                            maintype=maintype,
+                            subtype=subtype,
+                            filename=filename
+                        )
+                        logger.info(f"Added attachment: {filename} ({content_type})")
+                    except Exception as e:
+                        logger.warning(f"Error adding attachment {filename}: {e}")
             
             # Try to attach image if it exists
             try:
