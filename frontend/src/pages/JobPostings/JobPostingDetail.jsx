@@ -61,6 +61,7 @@ function JobPostingDetail() {
   const [schedulingError, setSchedulingError] = useState(null);
   const [schedulingSuccess, setSchedulingSuccess] = useState(false);
   const [scheduledInterviews, setScheduledInterviews] = useState([]);
+  const [emailAttachments, setEmailAttachments] = useState([]);
 
   // Fetch job posting on component mount
   useEffect(() => {
@@ -175,6 +176,29 @@ function JobPostingDetail() {
     }
   };
 
+  // Handle email attachment file selection
+  const handleEmailAttachmentChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      // Validate file size (max 5MB per file)
+      const oversizedFiles = files.filter(file => file.size > 5 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
+        setSchedulingError(`Some attachments exceed the 5MB size limit: ${oversizedFiles.map(f => f.name).join(', ')}`);
+        e.target.value = null;
+        return;
+      }
+      
+      // Add the files to the attachments array
+      setEmailAttachments(prev => [...prev, ...files]);
+      setSchedulingError(null);
+    }
+  };
+
+  // Remove an attachment from the list
+  const removeAttachment = (index) => {
+    setEmailAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   // Handle scheduling interviews for selected candidates
   const handleScheduleInterviews = async () => {
     if (selectedCandidates.length === 0) {
@@ -206,8 +230,32 @@ function JobPostingDetail() {
           email: candidate.candidate_email || 'unknown@example.com',
           resume: candidate.resume
         })),
-        job_description: jdFile ? jdFile.name : 'job_description.pdf'
+        job_description: jdFile ? jdFile.name : 'job_description.pdf',
+        attachments: [] // Add this line
       };
+      
+      // Process attachments if any
+      if (emailAttachments.length > 0) {
+        // Convert attachments to base64
+        const attachmentPromises = emailAttachments.map(async (file) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const base64content = reader.result.split(',')[1];
+              resolve({
+                filename: file.name,
+                content: base64content,
+                content_type: file.type
+              });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        });
+        
+        // Wait for all attachments to be processed
+        interviewData.attachments = await Promise.all(attachmentPromises);
+      }
       
       // Call API to schedule interviews
       const url = new URL('http://localhost:8000/interviews/bulk-schedule');
@@ -599,6 +647,68 @@ function JobPostingDetail() {
                   </div>
                 )}
                 
+                {/* Email Attachments */}
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Email Attachments (Optional)
+  </label>
+  <div className="mt-1 flex justify-center px-6 pt-3 pb-3 border-2 border-gray-300 border-dashed rounded-md">
+    <div className="space-y-1 text-center">
+      <div className="flex flex-col items-center">
+        <EmailIcon className="mx-auto h-8 w-8 text-gray-400" />
+        <div className="flex text-sm text-gray-600">
+          <label
+            htmlFor="attachment-upload"
+            className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500"
+          >
+            <span>Upload attachments</span>
+            <input
+              id="attachment-upload"
+              name="attachment-upload"
+              type="file"
+              className="sr-only"
+              multiple
+              onChange={handleEmailAttachmentChange}
+            />
+          </label>
+          <p className="pl-1">or drag and drop</p>
+        </div>
+        <p className="text-xs text-gray-500">
+          Any file type up to 5MB each
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  {/* Attachment List */}
+  {emailAttachments.length > 0 && (
+    <div className="mt-2">
+      <p className="text-sm font-medium text-gray-700 mb-1">Selected Attachments:</p>
+      <ul className="border rounded-md divide-y">
+        {emailAttachments.map((file, index) => (
+          <li key={index} className="pl-3 pr-4 py-2 flex items-center justify-between text-sm">
+            <div className="w-0 flex-1 flex items-center">
+              <span className="flex-1 w-0 truncate">{file.name}</span>
+              <span className="ml-2 flex-shrink-0 text-gray-400">
+                ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              </span>
+            </div>
+            <div className="ml-4 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => removeAttachment(index)}
+                className="font-medium text-red-600 hover:text-red-500"
+              >
+                Remove
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</div>
+
                 {/* Schedule Interviews Section */}
                 {selectedCandidates.length > 0 && (
                   <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -615,6 +725,68 @@ function JobPostingDetail() {
                         className="input input-bordered w-full"
                         min={new Date().toISOString().slice(0, 16)}
                       />
+                    </div>
+                    
+                    {/* Email Attachments */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email Attachments (Optional)
+                      </label>
+                      <div className="mt-1 flex justify-center px-6 pt-3 pb-3 border-2 border-gray-300 border-dashed rounded-md">
+                        <div className="space-y-1 text-center">
+                          <div className="flex flex-col items-center">
+                            <EmailIcon className="mx-auto h-8 w-8 text-gray-400" />
+                            <div className="flex text-sm text-gray-600">
+                              <label
+                                htmlFor="attachment-upload"
+                                className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500"
+                              >
+                                <span>Upload attachments</span>
+                                <input
+                                  id="attachment-upload"
+                                  name="attachment-upload"
+                                  type="file"
+                                  className="sr-only"
+                                  multiple
+                                  onChange={handleEmailAttachmentChange}
+                                />
+                              </label>
+                              <p className="pl-1">or drag and drop</p>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Any file type up to 5MB each
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Attachment List */}
+                      {emailAttachments.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium text-gray-700 mb-1">Selected Attachments:</p>
+                          <ul className="border rounded-md divide-y">
+                            {emailAttachments.map((file, index) => (
+                              <li key={index} className="pl-3 pr-4 py-2 flex items-center justify-between text-sm">
+                                <div className="w-0 flex-1 flex items-center">
+                                  <span className="flex-1 w-0 truncate">{file.name}</span>
+                                  <span className="ml-2 flex-shrink-0 text-gray-400">
+                                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                  </span>
+                                </div>
+                                <div className="ml-4 flex-shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeAttachment(index)}
+                                    className="font-medium text-red-600 hover:text-red-500"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex justify-end">
