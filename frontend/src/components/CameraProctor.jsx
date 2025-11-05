@@ -120,7 +120,7 @@ function CameraProctor({ detectionEnabled = false }) {
 
   // Get camera feed URL
   const getCameraUrl = () => {
-    return 'http://localhost:8000/camera/camera-integration';
+    return 'http://localhost:8000/api/camera/camera-integration';
   };
 
   // Render loading state

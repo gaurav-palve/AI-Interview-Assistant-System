@@ -25,7 +25,7 @@ class MCQGenerationRequest(BaseModel):
     candidate_email: str
     request_id: Optional[str] = Field(None, description="Unique request ID for tracking and deduplication")
 
-@router.post("/generate-mcqs")
+@router.post("/generate-mcqs/")
 async def generate_mcqs_route(
     request: MCQGenerationRequest = Body(...),
     session_token: str = Query(None)

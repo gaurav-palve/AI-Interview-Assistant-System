@@ -24,7 +24,7 @@ export const evaluateCode = async (code, testCases, language, functionSignature)
   try {
     console.log("Evaluating code in language:", language);
     console.log("Function signature:", functionSignature);
-    const response = await api.post("/api/code/evaluate", {
+    const response = await api.post("/code/evaluate", {
       code,
       code,
       testCases,
@@ -67,7 +67,7 @@ export const generateCodingQuestions = async (interviewId, count = 3, difficulty
     
     console.log("codingService: Request body:", requestBody);
     
-    const response = await api.post("/api/questions/generate-coding-questions", requestBody);
+    const response = await api.post("/questions/generate-coding-questions", requestBody);
     console.log("codingService: Response:", response.data);
     return response.data;
   } catch (error) {
@@ -82,7 +82,7 @@ export const fetchCodingQuestions = async (interviewId) => {
     // Use the exact interview_id from the URL without any modifications
     console.log("Fetching coding questions with interview ID:", interviewId);
     
-    const response = await api.get(`/api/questions/fetch-coding-questions/${interviewId}`);
+    const response = await api.get(`/questions/fetch-coding-questions/${interviewId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching coding questions:", error);
@@ -104,7 +104,7 @@ export const saveCodingAnswer = async (interviewId, questionId, candidateAnswer,
     
     console.log("saveCodingAnswer: Request body:", requestBody);
     
-    const response = await api.post("/api/questions/save-coding-answer", requestBody);
+    const response = await api.post("/questions/save-coding-answer", requestBody);
     console.log("saveCodingAnswer: Response:", response.data);
     return response.data;
   } catch (error) {

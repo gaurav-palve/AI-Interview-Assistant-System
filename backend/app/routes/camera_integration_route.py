@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/camera", tags=["Camera"])
+router = APIRouter(tags=["Camera"])
 
 class CameraConfig(BaseModel):
     width: Optional[int] = 640

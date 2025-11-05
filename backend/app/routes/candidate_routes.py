@@ -8,9 +8,13 @@ from ..database import save_generated_mcqs
 from typing import Dict, Any, List, Set
 from pydantic import BaseModel
 import time
+from app.database import get_and_save_interview_report_data
+from app.database import fetch_interview_report_data
+from app.database import save_report_pdf_to_db
+from app.utils.report_pdf_generation import  build_candidate_report_pdf
 from app.services.email_service import EmailService
 logger = get_logger(__name__)
-router = APIRouter(prefix="/candidate", tags=["Candidate"])
+router = APIRouter(tags=["Candidate"])
 
 # Track in-progress MCQ generations to prevent duplicate calls
 # Dictionary mapping interview_id to timestamp when generation started
@@ -399,3 +403,42 @@ async def submit_candidate_answers(interview_id: str, submission: MCQSubmission)
         logger.error(f"Error submitting candidate answers: {e}")
         logger.exception("Full exception details:")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+## complete the full interview.
+@router.post("/complete_interview/{interview_id}")
+async def complete_interview(interview_id: str):
+    """
+    Complete an interview and update its status to completed.
+    
+    Args:
+        interview_id: The ID of the interview to complete
+        
+    Returns:
+        A message indicating success or failure
+    """
+    try:
+        logger.info(f"Updating interview status to completed for interview ID: {interview_id}")
+        
+        # Initialize interview service
+        interview_service = InterviewService()
+        
+        # Update interview status to completed
+        status_updated = await interview_service.update_interview_status(interview_id, "completed")
+        
+        ## gather data for report generation
+        await get_and_save_interview_report_data(interview_id)
+        data = await fetch_interview_report_data(interview_id)
+        pdf_data = build_candidate_report_pdf(data)
+        await save_report_pdf_to_db(interview_id, pdf_data)
+
+        if status_updated:
+            logger.info(f"Successfully updated interview status to completed for interview ID: {interview_id}")
+            return {"message": "Interview completed successfully"}
+        else:
+            logger.warning(f"Failed to update interview status to completed for interview ID: {interview_id}")
+            raise HTTPException(status_code=500, detail="Failed to update interview status")
+    
+    except Exception as e:
+        logger.error(f"Error completing interview: {e}")
+        logger.exception("Full exception details:")
+        raise HTTPException(status_code=500, detail=f"Error completing interview: {str(e)}")

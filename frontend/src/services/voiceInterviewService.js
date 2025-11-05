@@ -3,7 +3,7 @@ import api from './api';
 class VoiceInterviewService {
   async startVoiceInterview(interviewId, candidateId) {
     try {
-      const response = await api.post('/api/voice-interviews/start', {
+      const response = await api.post('/voice-interviews/start', {
         interview_id: interviewId,
         candidate_id: candidateId
       });
@@ -16,7 +16,7 @@ class VoiceInterviewService {
 
   async completeVoiceInterview(sessionId, duration) {
     try {
-      const response = await api.post(`/api/voice-interviews/session/${sessionId}/complete`, {
+      const response = await api.post(`/voice-interviews/session/${sessionId}/complete`, {
         duration_seconds: duration
       });
       return response.data;

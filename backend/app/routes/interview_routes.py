@@ -8,7 +8,7 @@ from typing import Optional
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/interviews", tags=["Interviews"])
+router = APIRouter(tags=["Interviews"])
 
 async def get_current_user(session_token: str = Query(..., description="Session token")):
     """Dependency to get current authenticated user"""
@@ -17,7 +17,7 @@ async def get_current_user(session_token: str = Query(..., description="Session 
         raise HTTPException(status_code=401, detail="Invalid or expired session")
     return user
 
-@router.post("/", response_model=dict)
+@router.post("/create-interview", response_model=dict)
 async def create_interview(
     interview_data: InterviewCreate,
     current_user: dict = Depends(get_current_user)
@@ -67,7 +67,7 @@ async def create_interview(
         logger.exception("Full exception details:")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/{interview_id}", response_model=InterviewResponse)
+@router.get("/get-interview/{interview_id}", response_model=InterviewResponse)
 async def get_interview(
     interview_id: str,
     current_user: dict = Depends(get_current_user)
@@ -91,7 +91,7 @@ async def get_interview(
         logger.error(f"Error getting interview {interview_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/", response_model=InterviewListResponse)
+@router.get("/list-interviews", response_model=InterviewListResponse)
 async def list_interviews(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Page size"),
@@ -116,7 +116,7 @@ async def list_interviews(
         logger.error(f"Error listing interviews: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.put("/{interview_id}", response_model=dict)
+@router.put("/update-interview/{interview_id}", response_model=dict)
 async def update_interview(
     interview_id: str,
     update_data: InterviewUpdate,
@@ -147,7 +147,7 @@ async def update_interview(
         logger.error(f"Error updating interview {interview_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.delete("/{interview_id}", response_model=dict)
+@router.delete("/delete-interview/{interview_id}", response_model=dict)
 async def delete_interview(
     interview_id: str,
     current_user: dict = Depends(get_current_user)

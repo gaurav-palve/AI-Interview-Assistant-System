@@ -15,7 +15,15 @@ import {
   useColorMode,
   IconButton,
   Alert,
-  AlertIcon
+  AlertIcon,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Progress,
+  Center
 } from "@chakra-ui/react";
 import { ChevronLeft, ChevronRight, LightMode, DarkMode } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
@@ -40,11 +48,19 @@ const LeetCodeLayout = () => {
   const testResultsRef = useRef(null);
   const [language, setLanguage] = useState("javascript");
   const [code, setCode] = useState(CODE_SNIPPETS.javascript || "");
+  // Track code for each question separately
+  const [questionCodes, setQuestionCodes] = useState({});
   const [testResults, setTestResults] = useState([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [showTestResults, setShowTestResults] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
+  
+  // Timer state - 40 minutes for all questions
+  const [timeRemaining, setTimeRemaining] = useState(500); // 40 minutes in seconds
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const toast = useToast();
   
   // Get the current question
@@ -71,6 +87,27 @@ const LeetCodeLayout = () => {
       }, 100);
     }
   }, [showTestResults, testResults]);
+  
+  // Timer effect
+  useEffect(() => {
+    let timer;
+    if (isTimerRunning && timeRemaining > 0) {
+      timer = setInterval(() => {
+        setTimeRemaining(prevTime => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            handleTimeUp();
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isTimerRunning, timeRemaining]);
   
   // Load questions from the database
   const loadQuestions = async () => {
@@ -206,17 +243,45 @@ const LeetCodeLayout = () => {
   };
   
   // Navigate to the next question
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentQuestionIndex < questions.length - 1) {
+      // Save current code to questionCodes state
+      if (editorRef.current && currentQuestion) {
+        const currentCode = editorRef.current.getValue();
+        setQuestionCodes(prev => ({
+          ...prev,
+          [currentQuestion.id]: currentCode
+        }));
+      }
+      
+      // Auto-save current answer before moving to next question
+      const saveSuccess = await autoSaveCurrentAnswer();
+      
+      if (!saveSuccess) {
+        // Notify user but still allow navigation
+        toast({
+          title: "Warning",
+          description: "Your answer may not have been saved. You can try submitting again later.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       
-      // Update code to the next question's template
+      // Update code to the next question's template or saved code
       const nextQuestion = questions[currentQuestionIndex + 1];
       if (nextQuestion) {
-        const template = nextQuestion.solutionTemplates?.[language] || 
-                         nextQuestion.solutionTemplate || 
-                         CODE_SNIPPETS[language];
-        setCode(template);
+        // Check if we have saved code for this question
+        if (questionCodes[nextQuestion.id]) {
+          setCode(questionCodes[nextQuestion.id]);
+        } else {
+          const template = nextQuestion.solutionTemplates?.[language] ||
+                           nextQuestion.solutionTemplate ||
+                           CODE_SNIPPETS[language];
+          setCode(template);
+        }
       }
       
       // Clear test results
@@ -231,17 +296,45 @@ const LeetCodeLayout = () => {
   };
 
   // Navigate to the previous question
-  const prevQuestion = () => {
+  const prevQuestion = async () => {
     if (currentQuestionIndex > 0) {
+      // Save current code to questionCodes state
+      if (editorRef.current && currentQuestion) {
+        const currentCode = editorRef.current.getValue();
+        setQuestionCodes(prev => ({
+          ...prev,
+          [currentQuestion.id]: currentCode
+        }));
+      }
+      
+      // Auto-save current answer before moving to previous question
+      const saveSuccess = await autoSaveCurrentAnswer();
+      
+      if (!saveSuccess) {
+        // Notify user but still allow navigation
+        toast({
+          title: "Warning",
+          description: "Your answer may not have been saved. You can try submitting again later.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       
-      // Update code to the previous question's template
+      // Update code to the previous question's template or saved code
       const prevQuestion = questions[currentQuestionIndex - 1];
       if (prevQuestion) {
-        const template = prevQuestion.solutionTemplates?.[language] || 
-                         prevQuestion.solutionTemplate || 
-                         CODE_SNIPPETS[language];
-        setCode(template);
+        // Check if we have saved code for this question
+        if (questionCodes[prevQuestion.id]) {
+          setCode(questionCodes[prevQuestion.id]);
+        } else {
+          const template = prevQuestion.solutionTemplates?.[language] ||
+                           prevQuestion.solutionTemplate ||
+                           CODE_SNIPPETS[language];
+          setCode(template);
+        }
       }
       
       // Clear test results
@@ -258,6 +351,14 @@ const LeetCodeLayout = () => {
   // Handle code change
   const handleCodeChange = (newCode) => {
     setCode(newCode);
+    
+    // Also update the code in questionCodes for the current question
+    if (currentQuestion) {
+      setQuestionCodes(prev => ({
+        ...prev,
+        [currentQuestion.id]: newCode
+      }));
+    }
   };
   
   // Handle language change
@@ -373,6 +474,178 @@ const LeetCodeLayout = () => {
       setIsRunningTests(false);
     }
   };
+  // Format time from seconds to MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Handle timer expiration
+  const handleTimeUp = async () => {
+    // Auto-save all answers
+    const saveSuccess = await autoSaveAllAnswers();
+    
+    // Show completion modal
+    setShowCompletionModal(true);
+    
+    toast({
+      title: "Time's up!",
+      description: saveSuccess
+        ? "Your time has ended. All your answers have been saved."
+        : "Your time has ended. There were issues saving some answers.",
+      status: saveSuccess ? "warning" : "error",
+      duration: 5000,
+      isClosable: true,
+    });
+    
+    // If save failed, try one more time after a short delay
+    if (!saveSuccess) {
+      setTimeout(async () => {
+        const retrySuccess = await autoSaveAllAnswers();
+        if (retrySuccess) {
+          toast({
+            title: "Success",
+            description: "Your answers have been saved successfully on retry.",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      }, 3000);
+    }
+  };
+  
+  // Auto-save all answers
+  const autoSaveAllAnswers = async () => {
+    try {
+      // First save the current question's answer to our state
+      if (editorRef.current && currentQuestion) {
+        const currentCode = editorRef.current.getValue();
+        console.log("Auto-saving current question code:", {
+          questionId: currentQuestion.id,
+          codeLength: currentCode.length
+        });
+        setQuestionCodes(prev => ({
+          ...prev,
+          [currentQuestion.id]: currentCode
+        }));
+      }
+      
+      // Now save all questions' answers to the backend
+      const savePromises = [];
+      let saveErrors = [];
+      
+      // For each question, save its answer
+      for (const question of questions) {
+        // Get the code for this question (either from state or use template as fallback)
+        const questionCode = questionCodes[question.id] ||
+                           (question.solutionTemplates?.[language] ||
+                            question.solutionTemplate ||
+                            CODE_SNIPPETS[language]);
+        
+        try {
+          console.log("Auto-saving question:", {
+            questionId: question.id,
+            questionIdType: typeof question.id,
+            codeLength: questionCode.length
+          });
+          
+          // Create a promise to save this question's answer
+          const savePromise = saveCodingAnswer(
+            interviewId,
+            question.id,
+            questionCode,
+            [] // No test results for auto-save
+          );
+          
+          savePromises.push(savePromise);
+        } catch (err) {
+          console.error("Error in auto-save promise creation:", err);
+          saveErrors.push(`Failed to save question ${question.id}: ${err.message}`);
+        }
+      }
+      
+      // Wait for all saves to complete
+      try {
+        const results = await Promise.all(savePromises);
+        console.log("Auto-save results:", results);
+        
+        if (saveErrors.length > 0) {
+          console.error("Errors during auto-save:", saveErrors);
+          toast({
+            title: "Warning",
+            description: "Some answers may not have been saved properly.",
+            status: "warning",
+            duration: 5000,
+            isClosable: true,
+          });
+          return false;
+        }
+        
+        console.log("Auto-saved all answers as time expired");
+        return true;
+      } catch (promiseError) {
+        console.error("Error in Promise.all for auto-save:", promiseError);
+        toast({
+          title: "Error",
+          description: "Failed to save answers: " + promiseError.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error auto-saving solutions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your answers. Please try submitting manually.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return false;
+    }
+  };
+  
+  // Auto-save the current answer without running tests
+  const autoSaveCurrentAnswer = async () => {
+    try {
+      if (!editorRef.current || !currentQuestion) {
+        return false;
+      }
+      
+      // Get the current code from the editor
+      const userCode = editorRef.current.getValue();
+      
+      try {
+        // Submit the answer to the backend even if incomplete
+        await saveCodingAnswer(
+          interviewId,
+          currentQuestion.id,
+          userCode,
+          testResults.length > 0 ? testResults : [] // Use empty array if no tests were run
+        );
+        
+        console.log("Auto-saved answer for question", currentQuestion.id);
+        return true;
+      } catch (err) {
+        console.error(`Failed to save answer for question ${currentQuestion.id}:`, err);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error auto-saving solution:", error);
+      toast({
+        title: "Warning",
+        description: "Failed to save your current answer. Your progress may not be saved.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return false;
+    }
+  };
   
   // Submit solution
   const handleSubmit = async () => {
@@ -398,13 +671,29 @@ const LeetCodeLayout = () => {
       // Get the current code from the editor
       const userCode = editorRef.current.getValue();
       
-      // Submit the answer to the backend
-      await saveCodingAnswer(
-        interviewId,
-        currentQuestion.id,
-        userCode,
-        testResults
-      );
+      // Add detailed logging
+      console.group("Submitting Coding Answer");
+      console.log("Interview ID:", interviewId);
+      console.log("Question ID:", currentQuestion.id);
+      console.log("Question ID Type:", typeof currentQuestion.id);
+      console.log("Code Length:", userCode.length);
+      console.log("Test Results:", testResults);
+      console.groupEnd();
+      
+      try {
+        // Submit the answer to the backend
+        const response = await saveCodingAnswer(
+          interviewId,
+          currentQuestion.id,
+          userCode,
+          testResults
+        );
+        
+        console.log("Save Response:", response);
+      } catch (saveError) {
+        console.error("Error details:", saveError);
+        throw saveError;
+      }
       
       toast({
         title: "Solution submitted",
@@ -425,9 +714,19 @@ const LeetCodeLayout = () => {
             isClosable: true,
           });
         }, 2000);
+      } else {
+        // If this is the last question, show completion modal
+        setShowCompletionModal(true);
       }
     } catch (error) {
       console.error("Error submitting solution:", error);
+      
+      // Enhanced error logging
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
+      
       toast({
         title: "Error submitting solution",
         description: error.message || "An error occurred while submitting your solution",
@@ -435,13 +734,192 @@ const LeetCodeLayout = () => {
         duration: 5000,
         isClosable: true,
       });
+      
+      // Show a more detailed error toast with debugging information
+      toast({
+        title: "Debug Information",
+        description: `Please report this error: ${JSON.stringify({
+          interviewId: interviewId,
+          questionId: currentQuestion?.id,
+          error: error.message,
+          status: error.response?.status
+        })}`,
+        status: "warning",
+        duration: 10000,
+        isClosable: true,
+      });
     } finally {
       setIsProcessing(false);
     }
   };
+  
+  // Handle interview completion
+  const handleInterviewComplete = async () => {
+    try {
+      console.log("Updating interview status to completed for interview ID:", interviewId);
+      
+      // Make API call to update interview status to completed
+      const response = await fetch(`http://localhost:8000/api/candidate/complete_interview/${interviewId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        console.log("Successfully updated interview status to completed");
+        toast({
+          title: "Success",
+          description: "Interview completed successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        console.error("Failed to update interview status to completed");
+      }
+    } catch (error) {
+      console.error("Error updating interview status:", error);
+    } finally {
+      // Navigate to thank you page regardless of status update success/failure
+      navigate('/interview-complete');
+    }
+  };
+  
+  // Handle end interview button click
+  const handleEndInterview = async () => {
+    // Show confirmation dialog
+    setShowEndConfirmation(true);
+  };
+  
+  // Handle end interview confirmation
+  const handleEndInterviewConfirm = async () => {
+    setIsProcessing(true);
+    
+    // Save all answers
+    const saveSuccess = await autoSaveAllAnswers();
+    
+    if (saveSuccess) {
+      toast({
+        title: "Success",
+        description: "All your answers have been saved successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Warning",
+        description: "Some answers may not have been saved properly.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    
+    // Close confirmation dialog and show completion modal
+    setShowEndConfirmation(false);
+    setShowCompletionModal(true);
+    setIsProcessing(false);
+  };
 
   return (
     <Box bg={bgColor} minH="100vh" p={4}>
+      {/* Timer display and End Interview button */}
+      <Flex justifyContent="center" mb={2} alignItems="center">
+        <Box
+          p={2}
+          borderRadius="md"
+          bg={timeRemaining < 300 ? "red.100" : "blue.100"}
+          color={timeRemaining < 300 ? "red.700" : "blue.700"}
+          fontWeight="bold"
+          fontSize="lg"
+          boxShadow="sm"
+          border="1px solid"
+          borderColor={timeRemaining < 300 ? "red.300" : "blue.300"}
+          mr={4}
+        >
+          Time Remaining for All Questions: {formatTime(timeRemaining)}
+        </Box>
+        
+        <Button
+          colorScheme="red"
+          onClick={handleEndInterview}
+          isDisabled={isProcessing}
+          size="md"
+          fontWeight="bold"
+          boxShadow="md"
+          _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+          borderWidth="1px"
+          borderColor="red.600"
+        >
+          End Interview
+        </Button>
+      </Flex>
+      
+      {/* Question navigation tabs */}
+      <Flex mb={2} justifyContent="center">
+        {questions.map((question, index) => (
+          <Button
+            key={index}
+            onClick={async () => {
+              if (currentQuestionIndex !== index) {
+                // Save current question's code before switching
+                if (editorRef.current && currentQuestion) {
+                  const currentCode = editorRef.current.getValue();
+                  setQuestionCodes(prev => ({
+                    ...prev,
+                    [currentQuestion.id]: currentCode
+                  }));
+                  
+                  // Auto-save current answer before switching questions
+                  const saveSuccess = await autoSaveCurrentAnswer();
+                  
+                  if (!saveSuccess) {
+                    // Notify user but still allow navigation
+                    toast({
+                      title: "Warning",
+                      description: "Your answer may not have been saved. You can try submitting again later.",
+                      status: "warning",
+                      duration: 3000,
+                      isClosable: true,
+                    });
+                  }
+                }
+                
+                // Switch to the selected question
+                setCurrentQuestionIndex(index);
+                
+                // Load the code for the selected question
+                const selectedQuestion = questions[index];
+                if (selectedQuestion) {
+                  if (questionCodes[selectedQuestion.id]) {
+                    setCode(questionCodes[selectedQuestion.id]);
+                  } else {
+                    const template = selectedQuestion.solutionTemplates?.[language] ||
+                                    selectedQuestion.solutionTemplate ||
+                                    CODE_SNIPPETS[language];
+                    setCode(template);
+                  }
+                }
+                
+                // Clear test results
+                setTestResults([]);
+                setShowTestResults(false);
+              }
+            }}
+            colorScheme={currentQuestionIndex === index ? "green" : "gray"}
+            variant={currentQuestionIndex === index ? "solid" : "outline"}
+            size="sm"
+            mx={1}
+            borderRadius="md"
+            fontWeight={currentQuestionIndex === index ? "bold" : "normal"}
+          >
+            Question {index + 1}
+          </Button>
+        ))}
+      </Flex>
+      
       {/* Header with problem title and navigation */}
       <Flex justifyContent="space-between" alignItems="center" mb={4}>
         <HStack>
@@ -626,6 +1104,87 @@ const LeetCodeLayout = () => {
           </Flex>
         </Box>
       </Flex>
+      
+      {/* End Interview Confirmation Modal */}
+      <Modal isOpen={showEndConfirmation} onClose={() => setShowEndConfirmation(false)} isCentered>
+        <ModalOverlay backdropFilter="blur(5px)" />
+        <ModalContent borderRadius="xl" boxShadow="2xl" p={2}>
+          <ModalHeader textAlign="center" fontSize="xl" color="red.600">End Interview Early?</ModalHeader>
+          <ModalBody>
+            <Text textAlign="center" fontSize="md" mb={4}>
+              Are you sure you want to end the interview now? This action cannot be undone.
+            </Text>
+            <Text textAlign="center" color="gray.600" mb={4}>
+              All your current answers will be saved before ending the interview.
+            </Text>
+          </ModalBody>
+          <ModalFooter justifyContent="center">
+            <Button
+              colorScheme="gray"
+              mr={3}
+              onClick={() => setShowEndConfirmation(false)}
+              isDisabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            <Button
+              colorScheme="red"
+              onClick={handleEndInterviewConfirm}
+              isLoading={isProcessing}
+              loadingText="Saving..."
+              boxShadow="md"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+            >
+              End Interview
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      
+      {/* Interview Completion Modal */}
+      <Modal isOpen={showCompletionModal} onClose={() => {}} closeOnOverlayClick={false} isCentered>
+        <ModalOverlay backdropFilter="blur(10px)" />
+        <ModalContent borderRadius="xl" boxShadow="2xl" p={2}>
+          <ModalHeader textAlign="center" fontSize="2xl" color="green.600">Interview Complete!</ModalHeader>
+          <ModalBody>
+            <Center mb={6}>
+              <Box
+                p={4}
+                borderRadius="full"
+                bg="green.100"
+                color="green.700"
+                boxShadow="md"
+              >
+                <Icon as={() => (
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="#38A169" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 4L12 14.01L9 11.01" stroke="#38A169" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )} boxSize={16} />
+              </Box>
+            </Center>
+            <Text textAlign="center" fontSize="lg" mb={4}>
+              Thank you for completing the interview!
+            </Text>
+            <Text textAlign="center" color="gray.600" mb={6}>
+              We appreciate your time and effort. All your answers have been saved successfully. We will review your performance and be in touch with you soon.
+            </Text>
+            <Progress value={100} colorScheme="green" size="sm" borderRadius="full" mb={4} />
+          </ModalBody>
+          <ModalFooter justifyContent="center">
+            <Button
+              colorScheme="green"
+              size="lg"
+              onClick={handleInterviewComplete}
+              boxShadow="md"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
+              px={8}
+            >
+              Finish
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

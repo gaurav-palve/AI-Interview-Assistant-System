@@ -10,7 +10,7 @@ from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/job-descriptions", tags=["Job Descriptions"])
+router = APIRouter(tags=["Job Descriptions"])
 
 class JDRequest(BaseModel):
     company_description: Optional[str] = ""

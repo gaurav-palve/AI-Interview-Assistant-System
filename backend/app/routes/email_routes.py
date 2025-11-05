@@ -7,7 +7,7 @@ from typing import Optional
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/emails", tags=["Emails"])
+router = APIRouter(tags=["Emails"])
 
 class EmailConfirmationRequest(BaseModel):
     candidate_email: EmailStr

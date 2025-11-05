@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from app.services.voice_interview_service import VoiceInterviewService
 from app.database import get_voice_session, get_sessions_by_interview
 
-router = APIRouter(prefix="/api/voice-interviews", tags=["voice-interviews"])
+router = APIRouter(tags=["voice-interviews"])
 
 @router.post("/start")
 async def start_voice_interview(payload: dict):

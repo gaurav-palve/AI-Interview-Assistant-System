@@ -29,6 +29,7 @@ import NotFound from './pages/NotFound';
 
 // Candidate Pages
 import CandidateInterview from './pages/CandidateInterview';
+import InterviewComplete from './pages/InterviewComplete';
 
 // Voice interview
 import VoiceInterview from './pages/VoiceInterview';
@@ -187,6 +188,9 @@ function App() {
           {/* Coding interview routes - Make them public for candidates */}
           <Route path="/coding-instructions/:interviewId" element={<CodingInstructions />} />
           <Route path="/leetcode/:interviewId" element={<LeetCodeLayout />} />
+          
+          {/* Interview completion page */}
+          <Route path="/interview-complete" element={<InterviewComplete />} />
           
           {/* Redirect any unknown routes to 404 */}
           <Route path="*" element={<Navigate to="/404" replace />} />
