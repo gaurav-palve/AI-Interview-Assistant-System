@@ -7,10 +7,12 @@ from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from .utils.logger import get_logger
 from app.utils.parse_mcqs import parse_mcqs
 import uuid
+from bson import Binary
 from typing import List, Dict
 from bson import ObjectId
 from app.utils.password_handler import hash_password
 from app.utils.validate_password_strength import validate_password_strength
+from app.utils.coding_question_analyser import get_llm_coding_score
 from fastapi import HTTPException
 logger = get_logger(__name__)
 
@@ -25,6 +27,7 @@ JOB_DESCRIPTIONS_COLLECTION = "job_descriptions"
 JOB_POSTINGS_COLLECTION = "job_postings"
 CODING_QUESTIONS_COLLECTION = "coding_questions"
 OTP_COLLECTION = "otp_collection"
+CANDIDATES_REPORTS_COLLECTION = "candidates_reports"
 
 client = None
 db = None
@@ -254,7 +257,7 @@ def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str)
         structured_mcqs = []
         for idx, mcq in enumerate(parsed_mcqs, start=1):
             structured_mcqs.append({
-                "question_id": idx,  # ✅ unique identifier
+                "question_id": idx,  # unique identifier
                 "question": mcq["question"],
                 "answer": mcq["answer"],
                 "candidate_answer": None,
@@ -282,7 +285,7 @@ async def save_candidate_answer(interview_id: str, question_id: int, candidate_a
         result = await db[MCQS_COLLECTION].update_one(
             {
                 "interview_id": interview_id,
-                "mcqs_text.question_id": question_id # ✅ match by ID
+                "mcqs_text.question_id": question_id # match by ID
             },
             {
                 "$set": {
@@ -594,3 +597,151 @@ async def update_admin_password(email: str, new_password: str):
         raise RuntimeError("Failed to update password")
     
 
+
+
+# -----------------------------------------------------------
+# Core Function: get_interview_report_data
+# -----------------------------------------------------------
+async def get_and_save_interview_report_data(interview_id: str) -> bool:
+    try:
+        db = get_database()
+        interview_obj_id = ObjectId(interview_id)
+
+        # Step 1: Fetch candidate info
+        interview_record = await db[SCHEDULED_INTERVIEWS_COLLECTION].find_one({"_id": interview_obj_id})
+        if not interview_record:
+            logger.warning(f"No scheduled interview found for ID: {interview_id}")
+            return False
+
+        candidate_name = interview_record.get("candidate_name", "")
+        candidate_email = interview_record.get("candidate_email", "")
+        job_role = interview_record.get("job_role", "")
+
+        # Step 2: Fetch MCQ data
+        mcq_data = []
+        mcq_record = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
+        if mcq_record and "mcqs_text" in mcq_record:
+            for mcq in mcq_record["mcqs_text"]:
+                mcq_data.append({
+                    "question": mcq.get("question", ""),
+                    "correct_answer": mcq.get("answer", ""),
+                    "candidate_answer": mcq.get("candidate_answer", ""),
+                    "is_correct": mcq.get("is_correct", False)
+                })
+
+        # Step 3: Fetch Voice Interview data
+        voice_record = await db[VOICE_INTERVIEW_SESSIONS_COLLECTION].find_one({"interview_id": interview_id})
+        voice_data = {}
+        if voice_record:
+            voice_data = {
+                "communication_score": voice_record.get("communication_score", 0),
+                "technical_score": voice_record.get("technical_score", 0),
+                "confidence_score": voice_record.get("confidence_score", 0),
+                "overall_score": voice_record.get("overall_score", 0),
+                "transcript_texts": [t.get("text", "") for t in voice_record.get("transcript", [])],
+                "feedback": voice_record.get("feedback", "")
+            }
+
+        # Step 4: Fetch Coding data
+        coding_data = []
+        coding_record = await db[CODING_QUESTIONS_COLLECTION].find_one({"interview_id": interview_id})
+        if coding_record and "questions" in coding_record:
+            for q in coding_record["questions"]:
+                if "candidate_answer" in q:
+                    test_cases = [{"passed": tc.get("passed", False)} for tc in q.get("candidate_test_cases", [])]
+                    candidate_answer = q.get("candidate_answer")
+                else:
+                    test_cases = []
+                    candidate_answer = None
+
+                total_tests = len(test_cases)
+                passed_tests = sum(1 for tc in test_cases if tc.get("passed", False))
+                coding_marks = 0
+
+                if passed_tests == total_tests and total_tests > 0:
+                    coding_marks = 10
+                elif passed_tests >= 8:
+                    coding_marks = 4
+                elif passed_tests <= 3 and candidate_answer:
+                    coding_marks = await get_llm_coding_score(q.get("title", ""), candidate_answer)
+                else:
+                    coding_marks = 0
+
+                coding_data.append({
+                    "title": q.get("title", ""),
+                    "candidate_answer": candidate_answer,
+                    "candidate_test_cases": test_cases,
+                    "coding_marks": coding_marks
+                })
+
+        # Step 5: Combine report data
+        report_data = {
+            "interview_id": interview_id,
+            "candidate_name": candidate_name,
+            "candidate_email": candidate_email,
+            "job_role": job_role,
+            "MCQ_data": mcq_data,
+            "Voice_data": voice_data,
+            "Coding_data": coding_data
+        }
+
+        # Step 6: Save to candidates_reports (upsert)
+        await db[CANDIDATES_REPORTS_COLLECTION].update_one(
+            {"interview_id": interview_id},
+            {"$set": report_data},
+            upsert=True
+        )
+        logger.info(f"Report saved successfully for interview ID: {interview_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to save report for interview ID {interview_id}: {e}")
+        raise RuntimeError(f"Error in get_and_save_interview_report_data: {e}")
+    
+
+## fetch interview report data for pdf generation
+async def fetch_interview_report_data(interview_id: str):
+    try:
+        db = get_database()
+        report = await db[CANDIDATES_REPORTS_COLLECTION].find_one({"interview_id": interview_id})
+        if not report:
+            logger.info(f"No report found for interview ID: {interview_id}")
+            return None
+        logger.info(f"Report data fetched successfully for interview ID: {interview_id}")
+        return report
+    except Exception as e:
+        logger.error(f"Failed to fetch report for interview ID {interview_id}: {e}")
+        raise RuntimeError(f"Error in fetch_interview_report_data: {e}")
+
+
+
+async def save_report_pdf_to_db(interview_id: str, pdf_data: bytes) -> bool:
+    """
+    Save the generated candidate report PDF directly into candidates_reports collection.
+    
+    - Updates the existing report document (created earlier by get_and_save_interview_report_data)
+    - Adds/updates the 'pdf_file' field containing the binary PDF data.
+    """
+    try:
+        db = get_database()
+        report = await db[CANDIDATES_REPORTS_COLLECTION].find_one({"interview_id": interview_id})
+
+        if not report:
+            logger.warning(f"No existing report found for interview_id={interview_id}.")
+            return False
+        else:
+            await db[CANDIDATES_REPORTS_COLLECTION].update_one(
+                {"interview_id": interview_id},
+                {
+                    "$set": {
+                        "report_pdf": Binary(pdf_data)
+                    }
+                }
+            )
+
+        logger.info(f" Report PDF saved successfully for interview_id={interview_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error while saving report PDF to DB: {e}")
+        raise RuntimeError(f"Error in save_report_pdf_to_db: {e}")

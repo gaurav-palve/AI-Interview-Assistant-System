@@ -9,7 +9,7 @@ from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/job-postings", tags=["Job Postings"])
+router = APIRouter( tags=["Job Postings"])
 
 class JobPostingBase(BaseModel):
     # Basic Information

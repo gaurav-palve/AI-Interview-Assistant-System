@@ -120,7 +120,7 @@ const jobPostingService = {
       const jdFile = new Blob([jobPosting.job_description], { type: 'application/pdf' });
       formData.append('jd_file', jdFile, 'job_description.pdf');
       
-      const response = await api.post('/resume-screening', formData, {
+      const response = await api.post('/screening/resume-screening', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

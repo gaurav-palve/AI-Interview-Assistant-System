@@ -22,8 +22,8 @@ def parse_mcqs(response: str):
         options = re.findall(r'([a-d]\)\s.*)', q_and_options)
 
         mcq_list.append({
-            "question": question_text,   # ✅ only the main question
-            "options": options,          # ✅ clean options list
+            "question": question_text,   # only the main question
+            "options": options,          # clean options list
             "answer": answer_part
         })
     return mcq_list

@@ -9,9 +9,9 @@ from typing import Optional
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/interviews", tags=["Interviews"])
+router = APIRouter(tags=["Interviews"])
 
-@router.post("/upload/files")
+@router.post("/upload-resume")
 async def upload_resume(
     jd: UploadFile = File(...),
     resume: UploadFile = File(...),

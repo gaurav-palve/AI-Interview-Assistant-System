@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from ..schemas.auth_schema import AdminSignupRequest, AdminSignupResponse, AdminSigninRequest, AdminSigninResponse, LogoutRequest
 from ..services.auth_service import create_admin_account, authenticate_admin, logout_admin
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 @router.post("/signup", response_model=AdminSignupResponse)
 async def admin_signup(payload: AdminSignupRequest):

@@ -17,7 +17,7 @@ const interviewService = {
    */
   createInterview: async (interviewData) => {
     try {
-      const response = await api.post('/interviews', interviewData);
+      const response = await api.post('/interviews/create-interview', interviewData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while creating the interview' };
@@ -32,7 +32,7 @@ const interviewService = {
    */
   getInterviews: async (page = 1, pageSize = 10) => {
     try {
-      const response = await api.get('/interviews', {
+      const response = await api.get('/interviews/list-interviews', {
         params: { page, page_size: pageSize }
       });
       return response.data;
@@ -48,7 +48,7 @@ const interviewService = {
    */
   getInterviewById: async (interviewId) => {
     try {
-      const response = await api.get(`/interviews/${interviewId}`);
+      const response = await api.get(`/interviews/get-interview/${interviewId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while fetching the interview' };
@@ -63,7 +63,7 @@ const interviewService = {
    */
   updateInterview: async (interviewId, updateData) => {
     try {
-      const response = await api.put(`/interviews/${interviewId}`, updateData);
+      const response = await api.put(`/interviews/update-interview/${interviewId}`, updateData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while updating the interview' };
@@ -77,7 +77,7 @@ const interviewService = {
    */
   deleteInterview: async (interviewId) => {
     try {
-      const response = await api.delete(`/interviews/${interviewId}`);
+      const response = await api.delete(`/interviews/delete-interview/${interviewId}`);
       return response.data;
     } catch (error) {
       // Enhanced error handling to capture specific backend error messages
@@ -119,7 +119,7 @@ const interviewService = {
       formData.append('jd', jdFile);
       formData.append('resume', resumeFile);
 
-      const response = await api.post('/interviews/upload/files', formData, {
+      const response = await api.post('/interviews/resume/upload-resume', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -324,7 +324,7 @@ const interviewService = {
       formData.append('zip_file', zipFile);
       formData.append('jd_file', jdFile);
 
-      const response = await api.post('/resume-screening', formData, {
+      const response = await api.post('/screening/resume-screening', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -332,6 +332,61 @@ const interviewService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while screening resumes' };
+    }
+  },
+
+  /**
+   * Get candidate assessment reports with pagination and filtering
+   * @param {number} page - Page number
+   * @param {number} pageSize - Number of items per page
+   * @param {Object} filters - Optional filters (candidate_name, candidate_email, job_role, interview_id)
+   * @returns {Promise} - Promise with the reports data
+   */
+  getCandidateReports: async (page = 1, pageSize = 10, filters = {}) => {
+    try {
+      const params = {
+        page,
+        page_size: pageSize,
+        ...filters
+      };
+
+      const response = await api.get('/reports/candidate_reports', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching candidate reports' };
+    }
+  },
+
+  /**
+   * Download a candidate report PDF
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the PDF blob
+   */
+  downloadReportPdf: async (interviewId) => {
+    try {
+      const response = await api.get(`/reports/download-report-pdf?interview_id=${interviewId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Candidate_Assessment_Report_${interviewId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      return true;
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      throw error.response?.data || { detail: 'An error occurred while downloading the report PDF' };
     }
   }
 };

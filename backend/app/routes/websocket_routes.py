@@ -4,7 +4,7 @@ from app.utils.websocket_manager import manager
 
 router = APIRouter()
 
-@router.websocket("/ws/voice/{session_id}")
+@router.websocket("/voice/{session_id}")
 async def ws_voice_endpoint(websocket: WebSocket, session_id: str):
     """
     Frontend connects here: /ws/voice/{session_id}
