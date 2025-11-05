@@ -39,6 +39,37 @@ const authService = {
   },
 
   /**
+   * Send forgot-password request to backend to generate/send OTP
+   * @param {string} email
+   */
+  forgotPassword: async (email) => {
+    try {
+      const response = await api.post('/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'Error sending OTP' };
+    }
+  },
+
+  /**
+   * Reset user password using email + otp + new password
+   * @param {{email: string, otp: number|string, new_password: string, confirm_password: string}} payload
+   */
+  resetPassword: async ({ email, otp, new_password, confirm_password }) => {
+    try {
+      const response = await api.post('/reset-password', {
+        email,
+        otp,
+        new_password,
+        confirm_password
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'Error resetting password' };
+    }
+  },
+
+  /**
    * Log out the current user
    * @returns {Promise} - Promise with the logout result
    */

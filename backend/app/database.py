@@ -1,3 +1,4 @@
+import re
 from motor.motor_asyncio import AsyncIOMotorClient
 from .config import settings
 from gridfs import GridFS
@@ -8,7 +9,9 @@ from app.utils.parse_mcqs import parse_mcqs
 import uuid
 from typing import List, Dict
 from bson import ObjectId
-
+from app.utils.password_handler import hash_password
+from app.utils.validate_password_strength import validate_password_strength
+from fastapi import HTTPException
 logger = get_logger(__name__)
 
 # Define collection names as constants
@@ -21,6 +24,7 @@ EMAIL_TEMPLATES_COLLECTION = "email_templates"
 JOB_DESCRIPTIONS_COLLECTION = "job_descriptions"
 JOB_POSTINGS_COLLECTION = "job_postings"
 CODING_QUESTIONS_COLLECTION = "coding_questions"
+OTP_COLLECTION = "otp_collection"
 
 client = None
 db = None
@@ -561,3 +565,32 @@ async def save_coding_round_answers(db, interview_id:str, question_id, candidate
     except Exception as e:
         logger.info(f"Error while saving the coding round answers: {e}")
         raise RuntimeError(f"Error in save_coding_round_answers {e}")
+    
+
+async def update_admin_password(email: str, new_password: str):
+    try:
+        # validate password; validate_password_strength will raise HTTPException on failure
+        validate_password_strength(new_password)
+    except HTTPException:
+        # propagate validation errors to the route so client receives a 400 with detail
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during password validation: {e}")
+        raise RuntimeError("Failed during password validation")
+
+    try:
+        db = get_database()
+        hashed_pw = hash_password(new_password)
+        result = await db[AUTH_COLLECTION].update_one(
+            {"email": email},
+            {"$set": {"hashed_password": hashed_pw}}
+        )
+        if result.modified_count == 1:
+            logger.info(f"Password updated for email: {email}")
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Error updating admin password: {e}")
+        raise RuntimeError("Failed to update password")
+    
+

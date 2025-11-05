@@ -9,6 +9,8 @@ import MainLayout from './components/Layout/MainLayout';
 // Admin Pages
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import InterviewList from './pages/InterviewList';
 import InterviewCreate from './pages/InterviewCreate';
@@ -48,6 +50,8 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
           {/* Candidate routes (public) */}
           <Route path="/candidate/interview/:interviewId" element={<CandidateInterview />} />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Email as EmailIcon, Lock as LockIcon } from '@mui/icons-material';
+import { Email as EmailIcon, Lock as LockIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 
 /**
  * Login page component
@@ -9,6 +9,7 @@ import { Email as EmailIcon, Lock as LockIcon } from '@mui/icons-material';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { signIn } = useAuth();
@@ -38,7 +39,7 @@ function Login() {
   };
 
   return (
-    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition">
+    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition" style={{ background: 'linear-gradient(135deg, #d7d8f6, #f8dce5)' }}>
       <div className="max-w-sm w-full bg-white/90 backdrop-blur-sm border-2 border-gray-300 rounded-lg shadow-[0_10px_25px_-5px_rgba(75,85,99,0.3)] p-6">
         <h2 className="text-center text-2xl font-bold mb-4 text-gray-800 animate-fadeIn">Login</h2>
         
@@ -84,15 +85,28 @@ function Login() {
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10"
+              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 pr-10"
               style={{ animationDelay: '0.4s' }}
               placeholder="Password"
             />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button
+                type="button"
+                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <VisibilityOff className="h-5 w-5" />
+                ) : (
+                  <Visibility className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end animate-fadeIn" style={{ animationDelay: '0.5s' }}>
