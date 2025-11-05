@@ -6,6 +6,8 @@ import logging
 import secrets
 import time
 from fastapi import Query, Body, Depends, Request, Header
+from fastapi import HTTPException
+from app.utils.validate_password_strength import validate_password_strength 
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +17,8 @@ admin_sessions = {}
 async def create_admin_account(email: str, password: str):
     try:
         db = get_database()
+        # validate_password_strength is synchronous and will raise HTTPException on failure
+        validate_password_strength(password)
         # Check if admin already exists
         existing_admin = await db[AUTH_COLLECTION].find_one({"email": email})
         if existing_admin:

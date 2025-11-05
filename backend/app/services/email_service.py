@@ -575,3 +575,59 @@ Neutrino Tech Systems
         except Exception as e:
             logger.error(f"Failed to send email to TA team for candidate {candidate_name}: {e}")
             raise RuntimeError(f"Failed to send email to TA team: {e}")
+        
+
+    async def send_otp_email(
+        self,
+        user_email: str,
+        otp: int
+    ) -> bool:
+        """Send forgot password email to user"""
+        try:
+            if not self.smtp_username or not self.smtp_password:
+                logger.warning("SMTP credentials not configured. Skipping email send.")
+                return False
+            
+            # Create message
+            msg = EmailMessage()
+            msg['From'] = self.from_email
+            msg['To'] = user_email
+            msg['Subject'] = "Password Reset Request"
+            
+            # Email body
+            body = f"""
+            Dear User,
+            Your OTP for password reset is {otp}. It expires in 5 minutes.
+
+            Best regards,
+            Interview System Team
+            """
+            msg.set_content(body)
+            # Connect to SMTP server and send email
+            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
+            server.set_debuglevel(2)  
+            logger.info("SMTP connection established")
+            try:
+                server.ehlo()
+                logger.info("Starting TLS...")
+                server.starttls()
+                server.ehlo()
+
+                logger.info(f"Logging in as {self.smtp_username}")
+                server.login(self.smtp_username, self.smtp_password)
+                logger.info("SMTP login successful")
+                server.send_message(msg)
+                logger.info(f"Email successfully sent")
+            except smtplib.SMTPException as e:
+                logger.error(f"SMTP error while sending email")
+                raise
+            finally:
+                server.quit()
+                logger.info("SMTP connection closed")
+
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send email to {user_email}: {e}")
+            raise RuntimeError(f"Failed to send email {user_email}: {e}")
+        
