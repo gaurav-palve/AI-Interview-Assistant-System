@@ -2,28 +2,36 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 /**
- * ProtectedRoute component to protect routes that require authentication
- * Redirects to login if user is not authenticated
+ * ProtectedRoute component — restricts access to authenticated users only.
+ * If not authenticated, redirects to /login.
  */
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const auth = useAuth();
   const location = useLocation();
 
-  // Show loading state while checking authentication
+  // Handle missing context edge case
+  if (!auth) {
+    console.error("⚠️ ProtectedRoute: useAuth() returned undefined — make sure AuthProvider wraps your App in main.jsx");
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  const { isAuthenticated, loading } = auth;
+
+  // Show loader while verifying authentication
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
+  // Redirect if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Render children if authenticated
+  // Render protected content
   return children;
 }
 

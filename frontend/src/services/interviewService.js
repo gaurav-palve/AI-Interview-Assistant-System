@@ -119,10 +119,14 @@ const interviewService = {
       formData.append('jd', jdFile);
       formData.append('resume', resumeFile);
 
+      // Get the token from localStorage
+      const token = localStorage.getItem('session_token');
+      
       const response = await api.post('/interviews/resume/upload-resume', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        // Token will be added by the api interceptor automatically
       });
       return response.data;
     } catch (error) {

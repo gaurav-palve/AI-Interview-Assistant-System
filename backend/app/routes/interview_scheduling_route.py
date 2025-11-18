@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 from ..utils.logger import get_logger
 from ..database import get_database, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION, save_candidate_data
-from ..services.auth_service import verify_session
+from ..utils.auth_dependency import require_auth, get_current_user
 from ..services.email_service import EmailService
 
 logger = get_logger(__name__)
@@ -32,12 +32,7 @@ class BulkInterviewScheduleRequest(BaseModel):
     job_description: str
     attachments: Optional[List[AttachmentInfo]] = []
 
-async def get_current_user(session_token: str = Query(..., description="Session token")):
-    """Dependency to get current authenticated user"""
-    user = await verify_session(session_token)
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    return user
+# Note: We're now using the get_current_user from auth_dependency.py
 
 @router.post("/bulk-schedule")
 async def schedule_interviews_bulk(
@@ -47,8 +42,6 @@ async def schedule_interviews_bulk(
     """
     Schedule interviews for multiple candidates at once
     """
-    logger.info(f"Bulk scheduling interviews for job posting {request.job_posting_id}")
-    logger.info(f"Number of candidates: {len(request.candidates)}")
     
     try:
         # Verify session
@@ -57,24 +50,36 @@ async def schedule_interviews_bulk(
         logger.info(f"Generated default admin ID: {default_admin_id}")
         
         admin_id = None  # Initialize admin_id as None
-        if session_token:
-            session_data = await verify_session(session_token)
-            if session_data:
-                # Get admin_id from session data
-                admin_id_str = session_data.get("admin_id")
-                # Convert to ObjectId if it's a valid ObjectId string
+        try:
+            # Try to get the user from the JWT token
+            if session_token:
+                # Create a mock request object with the token in the query parameters
+                from fastapi import Request
+                from starlette.datastructures import QueryParams, URL
+                
+                # Create mock request with the token in query params
+                mock_request = Request({"type": "http", "query_string": f"session_token={session_token}".encode()})
+                mock_request._query_params = QueryParams(f"session_token={session_token}")
+                mock_request._url = URL(f"/mock-endpoint?session_token={session_token}")
+                
+                # Get user from token
+                user_data = await get_current_user(mock_request)
+                
+                # Get admin_id from user data
+                admin_id_str = user_data.get("admin_id")
+                
+                # Convert to ObjectId if valid
                 if admin_id_str and ObjectId.is_valid(admin_id_str):
                     admin_id = ObjectId(admin_id_str)
                     logger.info(f"Admin {admin_id} is scheduling interviews")
                 else:
-                    # If not a valid ObjectId, use the default
                     admin_id = ObjectId(default_admin_id)
-                    logger.info(f"Using default admin ID: {admin_id}")
+                    logger.info(f"Using default admin ID: {admin_id} (invalid admin_id in token)")
             else:
-                logger.warning("Invalid session token provided, using default admin ID")
+                logger.warning("No session token provided, using default admin ID")
                 admin_id = ObjectId(default_admin_id)
-        else:
-            logger.warning("No session token provided, using default admin ID")
+        except Exception as e:
+            logger.warning(f"Error validating token, using default admin ID: {e}")
             admin_id = ObjectId(default_admin_id)
         
         # Verify database connection before insert

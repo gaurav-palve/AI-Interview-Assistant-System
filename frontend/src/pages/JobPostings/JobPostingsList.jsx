@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
+import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 
 // Material UI Icons
 import {
@@ -13,7 +14,6 @@ import {
   AccessTime as TimeIcon,
   Share as ShareIcon,
   MoreVert as MoreIcon,
-  Lightbulb as AIIcon,
   TrendingUp as TrendingIcon,
   Group as GroupIcon,
   CalendarToday as CalendarIcon,
@@ -42,31 +42,56 @@ function JobPostingsList() {
 
   // Fetch job postings on component mount and when filters change
   useEffect(() => {
-    const fetchJobPostings = async () => {
-      try {
-        setLoading(true);
-        
-        // Prepare filter parameters
-        const filterParams = {
-          ...filters,
-          status: activeTab !== 'all' ? activeTab : undefined,
-          search: searchQuery || undefined,
-          sort: sortOption
-        };
-        
-        const response = await jobPostingService.getJobPostings(filterParams);
-        setJobPostings(response.job_postings || []);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching job postings:', err);
-        setError('Failed to load job postings. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchJobPostings();
   }, [activeTab, searchQuery, filters, sortOption]);
+
+  const fetchJobPostings = async () => {
+    try {
+      setLoading(true);
+      
+      // Prepare filter parameters
+      const filterParams = {
+        ...filters,
+        status: activeTab !== 'all' ? activeTab : undefined,
+        search: searchQuery || undefined,
+        sort: sortOption
+      };
+      
+      const response = await jobPostingService.getJobPostings(filterParams);
+      setJobPostings(response.job_postings || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching job postings:', err);
+      setError('Failed to load job postings. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle status change
+  const handleStatusChange = async (jobId, newStatus) => {
+    console.log(`Updating job ${jobId} status to ${newStatus} in list view`);
+    
+    try {
+      // Update locally first for better UX
+      setJobPostings(prevPostings =>
+        prevPostings.map(job =>
+          job.id === jobId ? { ...job, status: newStatus } : job
+        )
+      );
+      
+      // Try to refresh the list to get the latest data, but don't override local state if it fails
+      try {
+        await fetchJobPostings();
+      } catch (fetchError) {
+        console.warn('Could not refresh job postings after status change:', fetchError);
+        // The local state update is still maintained, so the UI will reflect the change
+      }
+    } catch (err) {
+      console.error('Error in handleStatusChange:', err);
+      // Even on error, keep the local state updated for better UX
+    }
+  };
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -251,8 +276,7 @@ function JobPostingsList() {
       ) : jobPostings.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobPostings.map((job, index) => (
-            <Link
-              to={`/job-postings/${job.id}`}
+            <div
               key={job.id}
               className={`
                 group relative bg-white rounded-2xl overflow-hidden border border-gray-100
@@ -263,136 +287,128 @@ function JobPostingsList() {
               onMouseEnter={() => setHoveredCard(job.id)}
               onMouseLeave={() => setHoveredCard(null)}
             >
-              {/* Gradient overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              {/* Status indicator */}
-              <div className="absolute top-4 right-4 z-10">
-                <span className={`
-                  px-3 py-1 text-xs font-semibold rounded-full
-                  ${job.status === 'active' ? 'bg-green-100 text-green-700' : 
-                    job.status === 'draft' ? 'bg-yellow-100 text-yellow-700' :
-                    job.status === 'closed' ? 'bg-red-100 text-red-700' :
-                    'bg-gray-100 text-gray-700'}
-                  transform transition-all duration-300 group-hover:scale-110
-                `}>
-                  {job.status || 'Active'}
-                </span>
-              </div>
-              
-              <div className="p-6 relative">
-                {/* Header with company avatar */}
-                <div className="flex items-start mb-4">
-                  <div className={`
-                    flex-shrink-0 h-12 w-12 rounded-xl ${getCompanyColor(job.company)} 
-                    text-white flex items-center justify-center font-bold text-lg
-                    transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
-                  `}>
-                    {getCompanyInitial(job.company)}
-                  </div>
-                  <div className="ml-4 flex-grow">
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors duration-300">
-                      {job.job_title}
-                    </h3>
-                    <p className="text-sm text-gray-600 flex items-center">
-                      <BusinessIcon className="h-3 w-3 mr-1" />
-                      {job.company}
-                    </p>
-                  </div>
+              <div className="relative">
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Status dropdown */}
+                <div
+                  className="absolute top-4 right-4 z-10"
+                  onClick={(e) => e.preventDefault()}
+                  data-testid={`status-dropdown-${job.id}`}
+                >
+                  <StatusDropdown
+                    key={`status-${job.id}-${job.status}`}
+                    jobId={job.id}
+                    currentStatus={job.status || 'active'}
+                    onStatusChange={(newStatus) => handleStatusChange(job.id, newStatus)}
+                  />
                 </div>
                 
-                {/* AI Badge */}
-                {/* {job.ai_generated && (
-                  <div className="absolute top-6 right-6 animate-pulse">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg">
-                      <AIIcon className="h-3 w-3 mr-1" />
-                      AI-Powered
-                    </span>
-                  </div>
-                )} */}
-                
-                {/* Job details with icons */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                    <WorkIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                    <span className="font-medium">{job.job_type || 'Full-time'}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                    <LocationIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                    <span>{job.location || 'Remote'}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                    <TimeIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                    <span>{job.experience_level || 'Entry Level'}</span>
+                <div className="p-6 relative">
+                  {/* Header with company avatar */}
+                  <div className="flex items-start mb-4">
+                    <div className={`
+                      flex-shrink-0 h-12 w-12 rounded-xl ${getCompanyColor(job.company)} 
+                      text-white flex items-center justify-center font-bold text-lg
+                      transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
+                    `}>
+                      {getCompanyInitial(job.company)}
+                    </div>
+                    <div className="ml-4 flex-grow">
+                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors duration-300">
+                        {job.job_title}
+                      </h3>
+                      <p className="text-sm text-gray-600 flex items-center">
+                        <BusinessIcon className="h-3 w-3 mr-1" />
+                        {job.company}
+                      </p>
+                    </div>
                   </div>
                   
-                  <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                    <span>Posted {new Date().toLocaleDateString()}</span>
+                  {/* Job details with icons */}
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+                      <WorkIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
+                      <span className="font-medium">{job.job_type || 'Full-time'}</span>
+                    </div>
+                    
+                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+                      <LocationIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
+                      <span>{job.location || 'Remote'}</span>
+                    </div>
+                    
+                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+                      <TimeIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
+                      <span>{job.experience_level || 'Entry Level'}</span>
+                    </div>
+                    
+                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
+                      <CalendarIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
+                      <span>Posted {new Date().toLocaleDateString()}</span>
+                    </div>
                   </div>
-                </div>
-                
-                {/* Skills tags */}
-                {job.required_skills && job.required_skills.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {job.required_skills.slice(0, 3).map((skill, idx) => (
-                      <span 
-                        key={idx} 
-                        className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg group-hover:bg-primary-100 group-hover:text-primary-700 transition-colors duration-300"
+                  
+                  {/* Skills tags */}
+                  {job.required_skills && job.required_skills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {job.required_skills.slice(0, 3).map((skill, idx) => (
+                        <span 
+                          key={idx} 
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg group-hover:bg-primary-100 group-hover:text-primary-700 transition-colors duration-300"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {job.required_skills.length > 3 && (
+                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-lg">
+                          +{job.required_skills.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Footer with stats */}
+                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <GroupIcon className="h-4 w-4 mr-1" />
+                        <span className="font-medium">0</span> applicants
+                      </span>
+                      <span className="flex items-center">
+                        <ViewIcon className="h-4 w-4 mr-1" />
+                        <span className="font-medium">0</span> views
+                      </span>
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <div className={`
+                      flex items-center space-x-2 transition-all duration-300
+                      ${hoveredCard === job.id ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}
+                    `}>
+                      <Link 
+                        to={`/job-postings/${job.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2 rounded-lg bg-gray-100 hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200"
                       >
-                        {skill}
-                      </span>
-                    ))}
-                    {job.required_skills.length > 3 && (
-                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-lg">
-                        +{job.required_skills.length - 3} more
-                      </span>
-                    )}
+                        <EditIcon className="h-4 w-4" />
+                      </Link>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Share functionality can be added here
+                          console.log('Share:', job.id);
+                        }}
+                        className="p-2 rounded-lg bg-gray-100 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        <ShareIcon className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                )}
-                
-                {/* Footer with stats */}
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span className="flex items-center">
-                      <GroupIcon className="h-4 w-4 mr-1" />
-                      <span className="font-medium">0</span> applicants
-                    </span>
-                    <span className="flex items-center">
-                      <ViewIcon className="h-4 w-4 mr-1" />
-                      <span className="font-medium">0</span> views
-                    </span>
-                  </div>
-                  
-                  {/* Action buttons on hover */}
-                  {/* <div className={`
-                    flex items-center space-x-2 transition-all duration-300
-                    ${hoveredCard === job.id ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}
-                  `}>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log('Edit:', job.id);
-                      }}
-                      className="p-2 rounded-lg bg-gray-100 hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200"
-                    >
-                      <EditIcon className="h-4 w-4" />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log('Share:', job.id);
-                      }}
-                      className="p-2 rounded-lg bg-gray-100 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200"
-                    >
-                      <ShareIcon className="h-4 w-4" />
-                    </button>
-                  </div> */}
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       ) : (

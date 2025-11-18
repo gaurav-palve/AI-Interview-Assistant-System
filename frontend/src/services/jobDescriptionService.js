@@ -15,14 +15,14 @@ const jobDescriptionService = {
    * @param {string} requirements.skills - Required skills
    * @returns {Promise} - Promise with the generated job description
    */
-  generateJobDescription: async (requirements) => {
-    try {
-      const response = await api.post('/job-descriptions/generate', requirements);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred while generating job description' };
-    }
-  },
+  // generateJobDescription: async (requirements) => {
+  //   try {
+  //     const response = await api.post('/job-descriptions/generate', requirements);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw error.response?.data || { detail: 'An error occurred while generating job description' };
+  //   }
+  // },
 
   /**
    * Save a job description to the database
