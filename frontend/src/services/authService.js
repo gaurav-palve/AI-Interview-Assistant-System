@@ -1,7 +1,8 @@
-import api from './api';
+import api, { updateStoredToken, parseTokenExpiry } from './api';
 
 /**
  * Authentication service for handling user authentication
+ * Uses JWT tokens with refresh capability
  */
 const authService = {
   /**
@@ -12,9 +13,16 @@ const authService = {
    */
   signIn: async (email, password) => {
     try {
-      const response = await api.post('/auth/signin', { email, password });
+      const response = await api.post('/auth/signin',
+        { email, password },
+        {
+          withCredentials: true // Important to receive and store HttpOnly cookies
+        }
+      );
+      
       if (response.data.access_token) {
-        localStorage.setItem('session_token', response.data.access_token);
+        // Use the shared utility to store token and update expiry time
+        updateStoredToken(response.data.access_token);
         localStorage.setItem('user_email', email);
       }
       return response.data;
@@ -75,15 +83,28 @@ const authService = {
    */
   logout: async () => {
     try {
-      const token = localStorage.getItem('session_token');
-      if (token) {
-        await api.post('/auth/logout', { token });
-      }
+      // Get stored refresh token from cookie (sent automatically)
+      // Call the logout endpoint with credentials to send the httpOnly cookie
+      await api.post('/auth/logout', {}, {
+        withCredentials: true // Important to send the HttpOnly cookie
+      });
+      
+      // Clear local storage tokens
       localStorage.removeItem('session_token');
       localStorage.removeItem('user_email');
-      return { success: true };
+      localStorage.removeItem('token_expiry'); // Clear expiration time if stored
+      
+      // Redirect to login page after successful logout
+      return { success: true, message: 'Logged out successfully' };
     } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred during logout' };
+      // If the request fails, still remove local tokens as a fallback
+      localStorage.removeItem('session_token');
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('token_expiry');
+      
+      console.error('Logout error:', error);
+      // Still return success since we've cleared local tokens
+      return { success: true, message: 'Logged out locally' };
     }
   },
 
@@ -92,7 +113,14 @@ const authService = {
    * @returns {boolean} - True if the user is authenticated
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('session_token');
+    const token = localStorage.getItem('session_token');
+    if (!token) return false;
+    
+    // Check if token is expired
+    const expiry = parseTokenExpiry(token);
+    if (!expiry) return false;
+    
+    return Date.now() < expiry;
   },
 
   /**
@@ -108,7 +136,19 @@ const authService = {
    * @returns {string|null} - The session token or null if not authenticated
    */
   getToken: () => {
-    return localStorage.getItem('session_token');
+    // Check if token exists and is valid before returning
+    const token = localStorage.getItem('session_token');
+    if (!token) return null;
+    
+    // Check if token is expired
+    const expiry = parseTokenExpiry(token);
+    if (!expiry || Date.now() >= expiry) {
+      // Token is expired, clear it
+      localStorage.removeItem('session_token');
+      return null;
+    }
+    
+    return token;
   }
 };
 

@@ -1,6 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { CameraProvider } from './contexts/CameraContext';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -38,166 +36,200 @@ import VoiceInterviewInstructions from './pages/VoiceInterviewInstructions';
 // Coding interview
 import CodingInstructions from './pages/CodingInstructions';
 import LeetCodeLayout from './components/LeetCodeLayout';
+
 /**
  * Main App component
- * Sets up routing and authentication
+ * Routing and authentication setup
  */
 function App() {
   return (
-    <AuthProvider>
-      <CameraProvider>
-        <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          
-          {/* Candidate routes (public) */}
-          <Route path="/candidate/interview/:interviewId" element={<CandidateInterview />} />
-          
-          {/* Protected admin routes */}
-          <Route path="/" element={
+    <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* Candidate routes (public) */}
+        <Route path="/candidate/interview/:interviewId" element={<CandidateInterview />} />
+        <Route path="/voice-interview-instructions/:interviewId" element={<VoiceInterviewInstructions />} />
+        <Route path="/voice-interview/:interviewId" element={<VoiceInterview />} />
+        <Route path="/coding-instructions/:interviewId" element={<CodingInstructions />} />
+        <Route path="/leetcode/:interviewId" element={<LeetCodeLayout />} />
+        <Route path="/interview-complete" element={<InterviewComplete />} />
+
+        {/* Protected admin routes */}
+        <Route
+          path="/"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <Dashboard />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard" element={
+          }
+        />
+
+        <Route
+          path="/dashboard"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <Dashboard />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/interviews" element={
+          }
+        />
+
+        <Route
+          path="/interviews"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <InterviewList />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/interviews/new" element={
+          }
+        />
+
+        <Route
+          path="/interviews/new"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <InterviewCreate />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/interviews/:id" element={
+          }
+        />
+
+        <Route
+          path="/interviews/:id"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <InterviewDetail />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/interviews/:id/edit" element={
+          }
+        />
+
+        <Route
+          path="/interviews/:id/edit"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <InterviewEdit />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/upload" element={
+          }
+        />
+
+        <Route
+          path="/upload"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <FileUpload />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/mcq" element={
+          }
+        />
+
+        <Route
+          path="/mcq"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <MCQGeneration />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/statistics" element={
+          }
+        />
+
+        <Route
+          path="/statistics"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <Statistics />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/resume-screening" element={
+          }
+        />
+
+        <Route
+          path="/resume-screening"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <ResumeScreening />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/candidate-assessment-reports" element={
+          }
+        />
+
+        <Route
+          path="/candidate-assessment-reports"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <CandidateAssessmentReports />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/job-description-generator" element={
+          }
+        />
+
+        <Route
+          path="/job-description-generator"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <JobDescriptionGenerator />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/job-postings" element={
+          }
+        />
+
+        <Route
+          path="/job-postings"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <JobPostingsList />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/job-postings/new" element={
+          }
+        />
+
+        <Route
+          path="/job-postings/new"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <CreateJobPosting />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          <Route path="/job-postings/:id" element={
+          }
+        />
+
+        <Route
+          path="/job-postings/:id"
+          element={
             <ProtectedRoute>
               <MainLayout>
                 <JobPostingDetail />
               </MainLayout>
             </ProtectedRoute>
-          } />
-          
-          {/* 404 Not Found route */}
-          <Route path="/404" element={<NotFound />} />
-          
-          {/* Voice interview routes - Make them public for candidates */}
-          <Route path="/voice-interview-instructions/:interviewId" element={<VoiceInterviewInstructions />} />
-          <Route path="/voice-interview/:interviewId" element={<VoiceInterview />} />
-          
-          {/* Coding interview routes - Make them public for candidates */}
-          <Route path="/coding-instructions/:interviewId" element={<CodingInstructions />} />
-          <Route path="/leetcode/:interviewId" element={<LeetCodeLayout />} />
-          
-          {/* Interview completion page */}
-          <Route path="/interview-complete" element={<InterviewComplete />} />
-          
-          {/* Redirect any unknown routes to 404 */}
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-        </Router>
-      </CameraProvider>
-    </AuthProvider>
+          }
+        />
+
+        {/* 404 Not Found route */}
+        <Route path="/404" element={<NotFound />} />
+
+        {/* Redirect any unknown routes to 404 */}
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
   );
 }
 

@@ -4,7 +4,7 @@ from ..services.mcq_generation_service import generate_mcqs
 from ..services.resume_upload_service import save_files
 from ..utils.extract_jd_text import extract_text_from_jd
 from ..utils.extract_resume_text import extract_text_from_resume
-from ..services.auth_service import verify_session
+from ..utils.auth_dependency import require_auth
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 import logging
@@ -28,17 +28,13 @@ class MCQGenerationRequest(BaseModel):
 @router.post("/generate-mcqs/")
 async def generate_mcqs_route(
     request: MCQGenerationRequest = Body(...),
-    session_token: str = Query(None)
+    session_data: dict = Depends(require_auth)
 ):
     """
     Generate MCQs based on the candidate's resume and job description
     
-    Requires authentication with a valid session token
+    Requires authentication with a valid JWT token
     """
-    # Verify session
-    session_data = await verify_session(session_token)
-    if not session_data:
-        raise HTTPException(status_code=401, detail="Authentication required")
     
     admin_id = session_data.get("admin_id")
     candidate_email = request.candidate_email
