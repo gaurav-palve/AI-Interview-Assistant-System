@@ -43,17 +43,33 @@ function JobDescription({ formData, handleChange }) {
       setLoading(true);
       setError(null);
       
-      // Prepare data for AI generation
-      const jobData = {
-        company_description: formData.company_description,
-        job_role: formData.job_title,
-        location: formData.location,
-        experience: formData.experience_level,
-        qualifications: formData.qualifications,
-        skills: formData.required_skills.join(', '),
-        additional_context: aiContext
+      // Extract experience from requirements
+      const extractExperienceFromRequirements = () => {
+        if (!Array.isArray(formData.requirements) || formData.requirements.length === 0) {
+          return '';
+        }
+        
+        // Join all requirements that might contain experience information
+        return formData.requirements.join(', ');
       };
       
+      // Prepare data for AI generation - match exactly what the backend expects
+      const jobData = {
+        job_title: formData.job_title,
+        company: formData.company,
+        job_type: formData.job_type,
+        work_location: formData.work_location,
+        // Convert required_skills array to string as expected by backend
+        required_skills: Array.isArray(formData.required_skills) ? formData.required_skills.join(', ') : '',
+        // Use requirements for experience information
+        experience_level: extractExperienceFromRequirements(),
+        responsibilities: typeof formData.responsibilities === 'string' ? formData.responsibilities :
+                         (Array.isArray(formData.responsibilities) ? formData.responsibilities.join('\n') : ''),
+        qualifications: formData.qualifications || '',
+        job_description: formData.job_description || '',
+        additional_context: aiContext
+      };
+      console.log('Generating job description with data:', jobData);
       // Call the API to generate job description
       const response = await jobPostingService.generateJobDescription(jobData);
       

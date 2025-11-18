@@ -6,8 +6,10 @@ import warnings
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from app.services.auth_service import verify_token_from_query_or_header
+
 
 # Suppress warnings globally
 warnings.filterwarnings("ignore")
@@ -20,6 +22,7 @@ from app.database import (
 )
 from app.utils.logger import get_logger
 from app.utils.websocket_manager import set_event_loop
+from app.services.auth_service import verify_token_from_query_or_header, get_token_from_request
 
 # Import all route modules
 from app.routes import (
@@ -93,13 +96,16 @@ app = FastAPI(
 # ------------------------------------------------------------------------------
 # CORS Middleware
 # ------------------------------------------------------------------------------
+# Get frontend URL from environment variables for CORS
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL],  # Restrict to specific origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Explicit methods
+    allow_headers=["Authorization", "Content-Type", "Accept"],  # Explicit headers
+    expose_headers=["Authorization"],  # Only expose necessary headers
     max_age=600,
 )
 

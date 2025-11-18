@@ -31,27 +31,28 @@ function CreateJobPosting() {
   const [error, setError] = useState(null);
   const [stepAnimation, setStepAnimation] = useState(false);
   const [formData, setFormData] = useState({
-    // Basic Information
+    // Basic Information - match field names with backend expectations
     job_title: '',
     company: '',
     job_type: 'Full-time',
-    work_location_type: 'On-site',
-    location: '',
-    experience_level: '',
+    work_location: 'On-site',
+    location: '',  // Added missing required field for physical job location
+    experience_level: '', // Changed from experience to experience_level to match backend
     department: '',
     
     // Skills
-    required_skills: [],
+    required_skills: [], // Will be converted to string when sent to backend
     
     // Requirements & Responsibilities
     requirements: [],
-    responsibilities: [],
-    qualifications: '',
+    responsibilities: [], // Changed to array format to match backend
+    qualifications: '',  // Changed from qualification_details to match backend
     
     // Job Description
     company_description: '',
     job_description: '',
     use_ai_generation: true,
+    additional_context: '',
     
     status: 'draft'
   });
@@ -114,9 +115,25 @@ function CreateJobPosting() {
       setLoading(true);
       setError(null);
       
+      // Format data to ensure it matches backend expectations
+      // Extract experience from requirements
+      const extractExperienceFromRequirements = () => {
+        if (!Array.isArray(formData.requirements) || formData.requirements.length === 0) {
+          return 'Not specified';
+        }
+        // Join all requirements that might contain experience information
+        return formData.requirements.join(', ');
+      };
+
       const jobPostingData = {
         ...formData,
-        status: 'draft'
+        status: 'draft',
+        // Ensure all required fields are present
+        location: formData.location || 'Not specified',
+        experience_level: extractExperienceFromRequirements(), // Use requirements as experience
+        responsibilities: Array.isArray(formData.responsibilities)
+          ? formData.responsibilities
+          : formData.responsibilities.split('\n').filter(item => item.trim() !== '')
       };
       
       const response = await jobPostingService.createJobPosting(jobPostingData);
@@ -135,9 +152,25 @@ function CreateJobPosting() {
       setLoading(true);
       setError(null);
       
+      // Extract experience from requirements
+      const extractExperienceFromRequirements = () => {
+        if (!Array.isArray(formData.requirements) || formData.requirements.length === 0) {
+          return 'Not specified';
+        }
+        // Join all requirements that might contain experience information
+        return formData.requirements.join(', ');
+      };
+
+      // Format data to ensure it matches backend expectations
       const jobPostingData = {
         ...formData,
-        status: 'active'
+        status: 'active',
+        // Ensure all required fields are present
+        location: formData.location || 'Not specified',
+        experience_level: extractExperienceFromRequirements(), // Use requirements as experience
+        responsibilities: Array.isArray(formData.responsibilities)
+          ? formData.responsibilities
+          : formData.responsibilities.split('\n').filter(item => item.trim() !== '')
       };
       
       const response = await jobPostingService.createJobPosting(jobPostingData);

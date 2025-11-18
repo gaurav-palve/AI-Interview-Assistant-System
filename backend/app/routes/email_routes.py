@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Body, File, UploadFile, Form
+from fastapi.params import Depends
 from ..services.email_service import EmailService
-from ..services.auth_service import verify_session
+from ..utils.auth_dependency import require_auth
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from typing import Optional
@@ -36,17 +37,10 @@ class TestEmailRequest(BaseModel):
 @router.post("/send-confirmation")
 async def send_confirmation_email(
     request: EmailConfirmationRequest,
-    session_token: str = Query(None)
+    session_data: dict = Depends(require_auth)
 ):
-    """
-    Send interview confirmation email to candidate
-    
-    Requires authentication with a valid session token
-    """
-    # Verify session
-    session_data = await verify_session(session_token)
-    if not session_data:
-        raise HTTPException(status_code=401, detail="Authentication required")
+
+    """Send interview confirmation email"""
     
     admin_id = session_data.get("admin_id")
     logger.info(f"Admin {admin_id} requested to send confirmation email to {request.candidate_email}")
@@ -71,10 +65,7 @@ async def send_confirmation_email(
         
         if result:
             return {"message": "Confirmation email sent successfully"}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to send confirmation email")
-    except HTTPException:
-        raise
+        raise HTTPException(status_code=500, detail="Failed to send confirmation email")  
     except Exception as e:
         logger.error(f"Error sending confirmation email: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error sending confirmation email: {str(e)}")
@@ -82,17 +73,8 @@ async def send_confirmation_email(
 @router.post("/send-reminder")
 async def send_reminder_email(
     request: EmailReminderRequest,
-    session_token: str = Query(None)
+    session_data: dict = Depends(require_auth)
 ):
-    """
-    Send interview reminder email to candidate
-    
-    Requires authentication with a valid session token
-    """
-    # Verify session
-    session_data = await verify_session(session_token)
-    if not session_data:
-        raise HTTPException(status_code=401, detail="Authentication required")
     
     admin_id = session_data.get("admin_id")
     logger.info(f"Admin {admin_id} requested to send reminder email to {request.candidate_email}")
@@ -128,17 +110,9 @@ async def send_reminder_email(
 @router.post("/test")
 async def test_email_configuration(
     request: TestEmailRequest,
-    session_token: str = Query(None)
+    session_data: dict = Depends(require_auth)
 ):
-    """
-    Test email configuration by sending a test email
-    
-    Requires authentication with a valid session token
-    """
-    # Verify session
-    session_data = await verify_session(session_token)
-    if not session_data:
-        raise HTTPException(status_code=401, detail="Authentication required")
+    """Test email configuration by sending a test email"""
     
     admin_id = session_data.get("admin_id")
     logger.info(f"Admin {admin_id} requested to test email configuration with {request.test_email}")
@@ -180,17 +154,9 @@ async def send_custom_confirmation_email(
     interview_id: str = Form(...),
     custom_body: str = Form(...),
     attachments: List[UploadFile] = File(None),
-    session_token: str = Query(None)
+    session_data: dict = Depends(require_auth)
 ):
-    """
-    Send custom interview confirmation email to candidate with optional attachments
-    
-    Requires authentication with a valid session token
-    """
-    # Verify session
-    session_data = await verify_session(session_token)
-    if not session_data:
-        raise HTTPException(status_code=401, detail="Authentication required")
+    """Send custom confirmation email with optional attachments"""
     
     admin_id = session_data.get("admin_id")
     logger.info(f"Admin {admin_id} requested to send custom confirmation email to {candidate_email}")
@@ -222,11 +188,12 @@ async def send_custom_confirmation_email(
             candidate_email=candidate_email,
             candidate_name=candidate_name,
             job_role=job_role,
+           
             scheduled_datetime=scheduled_datetime,
             interview_id=interview_id,
             custom_body=custom_body,
-            attachments=attachment_data if attachment_data else None
-        )
+            attachments=attachment_data if attachment_data else None,
+            )
         
         if result:
             return {"message": "Custom confirmation email sent successfully"}

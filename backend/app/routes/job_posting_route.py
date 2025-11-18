@@ -16,7 +16,7 @@ class JobPostingBase(BaseModel):
     job_title: str
     company: str
     job_type: str
-    work_location_type: str
+    work_location: str
     location: str
     experience_level: Optional[str] = None
     department: Optional[str] = None
@@ -42,11 +42,11 @@ class JobPostingCreate(BaseModel):
     job_title: str
     company: str
     job_type: str
-    work_location_type: str
+    work_location: str
     location: str
     experience_level: Optional[str] = None
     department: Optional[str] = None
-    
+    status: str = None
     # Skills
     required_skills: List[str] = []
     
@@ -68,7 +68,7 @@ class JobPostingUpdate(BaseModel):
     job_title: Optional[str] = None
     company: Optional[str] = None
     job_type: Optional[str] = None
-    work_location_type: Optional[str] = None
+    work_location: Optional[str] = None
     location: Optional[str] = None
     experience_level: Optional[str] = None
     department: Optional[str] = None
@@ -90,13 +90,15 @@ class JobPostingStatusUpdate(BaseModel):
     status: str
 
 class JobDescriptionGenerate(BaseModel):
-    company_description: Optional[str] = None
-    job_role: str
-    location: Optional[str] = None
-    experience: Optional[str] = None
-    qualifications: Optional[str] = None
-    skills: Optional[str] = None
-    additional_context: Optional[str] = None
+    job_title: str
+    company: str
+    job_type: str
+    work_location: str
+    required_skills: Optional[str]
+    experience_level: Optional[str]
+    responsibilities: Optional[str]
+    qualifications: Optional[str]
+    additional_context: Optional[str]
 
 def job_posting_dict(job_posting: JobPostingCreate) -> Dict[str, Any]:
     """Convert JobPostingBase to dictionary for database storage"""
@@ -130,7 +132,7 @@ async def create_job_posting(job_posting: JobPostingCreate):
             "job_title": job_doc["job_title"],
             "company": job_doc["company"],
             "job_type": job_doc["job_type"],
-            "work_location_type": job_doc["work_location_type"],
+            "work_location": job_doc["work_location"],
             "location": job_doc["location"],
             "experience_level": job_doc["experience_level"],
             "department": job_doc["department"],
@@ -309,7 +311,7 @@ async def delete_job_posting(job_id: str):
         logger.error(f"Error deleting job posting: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.patch("/{job_id}/status")
+@router.patch("/update-job-posting-status/{job_id}")
 async def update_job_posting_status(job_id: str, status_update: JobPostingStatusUpdate):
     """
     Update the status of a job posting

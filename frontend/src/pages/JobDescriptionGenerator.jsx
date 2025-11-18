@@ -72,7 +72,7 @@ function JobDescriptionGenerator() {
         skills: skills
       };
       
-      const response = await jobDescriptionService.generateJobDescription(requirements);
+      // const response = await jobDescriptionService.generateJobDescription(requirements);
       setGeneratedJD(response.job_description);
       setShowGeneratedJD(true);
       setSuccess('Job description generated successfully!');

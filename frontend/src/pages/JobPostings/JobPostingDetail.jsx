@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import { useAuth } from '../../contexts/AuthContext';
+import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 
 // Material UI Icons
 import {
@@ -65,23 +66,51 @@ function JobPostingDetail() {
 
   // Fetch job posting on component mount
   useEffect(() => {
-    const fetchJobPosting = async () => {
-      try {
-        setLoading(true);
-        const response = await jobPostingService.getJobPosting(id);
-        console.log("Job posting response:", response); // Add logging to see the response
-        // The backend returns the job posting directly, not wrapped in a job_posting field
-        setJobPosting(response || {});
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching job posting:', err);
-        setError('Failed to load job posting. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchJobPosting();
+  }, [id]);
+
+  // Fetch job posting data
+  const fetchJobPosting = async () => {
+    try {
+      setLoading(true);
+      const response = await jobPostingService.getJobPosting(id);
+      // The backend returns the job posting directly, not wrapped in a job_posting field
+      setJobPosting(response || {});
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching job posting:', err);
+      setError('Failed to load job posting. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Handle job posting status change
+  const handleStatusChange = async (newStatus) => {
+    console.log(`Updating job ${id} status to ${newStatus} in detail view`);
+    
+    try {
+      // Always update the UI immediately for better user experience
+      setJobPosting(prev => ({
+        ...prev,
+        status: newStatus
+      }));
+      
+      // Make the API call - if this fails, we've already updated the UI
+      const response = await jobPostingService.changeJobPostingStatus(id, newStatus);
+      
+      if (response.mock) {
+        console.log('Using mock implementation for status change in detail view');
+      }
+    } catch (err) {
+      console.error('Error updating job posting status:', err);
+      // Don't refresh on error - that could revert our UI state
+      // Just keep the optimistic UI update
+    }
+  };
+
+  // Fetch scheduled interviews if on interviews tab
+  useEffect(() => {
     
     // Fetch scheduled interviews if on interviews tab
     if (activeTab === 'interviews') {
@@ -92,7 +121,14 @@ function JobPostingDetail() {
   // Fetch scheduled interviews
   const fetchScheduledInterviews = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/interviews/job-posting/${id}`);
+      const token = localStorage.getItem("access_token"); 
+      const response = await fetch(`http://localhost:8000/api/bulk-interviews/get-interviews-by-job-posting/${id}`,
+      {
+         headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
       
       if (!response.ok) {
         console.error('Failed to fetch scheduled interviews');
@@ -138,7 +174,7 @@ function JobPostingDetail() {
       formData.append('jd_file', jdFile);
       
       // Use the axios instance with the correct baseURL
-      const response = await fetch('http://localhost:8000/resume-screening', {
+      const response = await fetch('http://localhost:8000/api/screening/resume-screening', {
         method: 'POST',
         body: formData,
       });
@@ -258,7 +294,7 @@ function JobPostingDetail() {
       }
       
       // Call API to schedule interviews
-      const url = new URL('http://localhost:8000/interviews/bulk-schedule');
+      const url = new URL('http://localhost:8000/api/bulk-interviews/bulk-schedule');
       if (sessionToken) {
         url.searchParams.append('session_token', sessionToken);
       }
@@ -414,7 +450,12 @@ function JobPostingDetail() {
             { icon: GroupIcon, label: 'Applicants', value: '0' },
             { icon: ViewIcon, label: 'Views', value: '0' },
             { icon: ScheduleIcon, label: 'Interviews', value: scheduledInterviews.length },
-            { icon: StarIcon, label: 'Status', value: jobPosting.status || 'Active' },
+            {
+              icon: StarIcon,
+              label: 'Status',
+              value: jobPosting.status || 'Active',
+              isStatus: true
+            },
           ].map((stat, index) => (
             <div 
               key={index}
@@ -423,10 +464,21 @@ function JobPostingDetail() {
             >
               <div className="flex items-center space-x-3">
                 <stat.icon className="h-5 w-5 text-primary-500" />
-                <div>
-                  <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                  <p className="text-xs text-gray-500">{stat.label}</p>
-                </div>
+                {stat.isStatus ? (
+                  <div className="flex flex-col">
+                    <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
+                    <StatusDropdown
+                      jobId={id}
+                      currentStatus={jobPosting.status || 'active'}
+                      onStatusChange={handleStatusChange}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+                    <p className="text-xs text-gray-500">{stat.label}</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
