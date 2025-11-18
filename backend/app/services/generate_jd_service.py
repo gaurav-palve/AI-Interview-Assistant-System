@@ -10,12 +10,15 @@ def generate_jd(requirements: dict) -> str:
     Create a concise, professional job description that fits within a single A4 PDF page.
     
     Company Description: {company_description}
-    Job Role: {job_role}
-    Location: {location}
-    Required Experience: {experience}
+    Company Name : {company}
+    Job Role: {job_title}
+    Job Type: {job_type}
+    Location: {work_location}
+    Required Experience: {experience_level}
     Required Qualifications: {qualifications}
-    Required Skills: {skills}
-    
+    Required Skills: {required_skills}
+    Responsibilities: {responsibilities}
+
     Keep the description clear, impactful, and short:
     - Job Summary should be 3-4 lines max.
     - List only 4-5 key responsibilities.
@@ -28,11 +31,12 @@ def generate_jd(requirements: dict) -> str:
         template=prompt_template,
         input_variables=[
             "company_description",
-            "job_role",
-            "location",
-            "experience",
-            "qualifications",
-            "skills"
+            "company",
+            "job_title",
+            "job_type",
+            "work_location",
+            "required_skills",
+            "responsibilities"
         ]
     )
 
@@ -42,11 +46,14 @@ def generate_jd(requirements: dict) -> str:
 
     response = chain.invoke({
         "company_description": requirements.get("company_description", ""),
-        "job_role": requirements.get("job_role", ""),
-        "location": requirements.get("location", ""),
-        "experience": requirements.get("experience", ""),
+        "company": requirements.get("company", ""),
+        "job_title": requirements.get("job_title", ""),
+        "job_type": requirements.get("job_type", ""),
+        "work_location": requirements.get("work_location", ""),
+        "experience_level": requirements.get("experience_level", ""),
         "qualifications": requirements.get("qualifications", ""),
-        "skills": requirements.get("skills", "")
+        "required_skills": requirements.get("required_skills", ""),
+        "responsibilities": requirements.get("responsibilities", "")
     })
 
     return response.content

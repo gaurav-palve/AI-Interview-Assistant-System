@@ -40,7 +40,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition" style={{ background: 'linear-gradient(135deg, #d7d8f6, #f8dce5)' }}>
+    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition">
       <div className="max-w-sm w-full bg-white/90 backdrop-blur-sm border-2 border-gray-300 rounded-lg shadow-[0_10px_25px_-5px_rgba(75,85,99,0.3)] p-6">
         <h2 className="text-center text-2xl font-bold mb-4 text-gray-800 animate-fadeIn">Forgot Password</h2>
         

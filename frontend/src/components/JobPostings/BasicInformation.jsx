@@ -169,7 +169,7 @@ function BasicInformation({ formData, handleChange }) {
                 onFocus={() => handleFocus('job_title')}
                 onBlur={(e) => {
                   handleBlur();
-                  fetchSkillSuggestions(e.target.value); // ✅ Fetch when user leaves field
+                  fetchSkillSuggestions(e.target.value);
                 }}
                 placeholder="e.g. HR Executive"
                 className={`input input-bordered w-full pl-12 hover:border-primary-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 ${errors.job_title ? 'input-error border-danger-500' : ''} ${focusedField === 'job_title' ? 'shadow-lg scale-105' : ''}`}
@@ -239,11 +239,11 @@ function BasicInformation({ formData, handleChange }) {
           {/* Work Location Type */}
           <div className="form-control group">
             <label className="label">
-              <span className="label-text font-semibold text-gray-700">Work Location</span>
+              <span className="label-text font-semibold text-gray-700">Work Mode</span>
             </label>
             <select
-              name="work_location_type"
-              value={formData.work_location_type}
+              name="work_location"
+              value={formData.work_location}
               onChange={handleSelectChange}
               className="select select-bordered w-full hover:border-primary-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200"
             >
@@ -252,6 +252,40 @@ function BasicInformation({ formData, handleChange }) {
               <option value="Hybrid">🏢🏠 Hybrid</option>
             </select>
           </div>
+
+          {/* Physical Location */}
+          <div className="form-control group">
+            <label className="label">
+              <span className="label-text font-semibold text-gray-700 flex items-center">
+                <LocationIcon className="h-4 w-4 mr-2 text-primary-500" />
+                Location *
+              </span>
+            </label>
+            <div className="relative">
+              <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${focusedField === 'location' ? 'text-primary-500' : 'text-gray-400'}`}>
+                <LocationIcon className="h-5 w-5" />
+              </div>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                onFocus={() => handleFocus('location')}
+                onBlur={handleBlur}
+                placeholder="e.g. New York, NY"
+                className={`input input-bordered w-full pl-12 hover:border-primary-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 ${errors.location ? 'input-error border-danger-500' : ''} ${focusedField === 'location' ? 'shadow-lg scale-105' : ''}`}
+                required
+              />
+            </div>
+            {errors.location && (
+              <p className="text-xs text-danger-600 mt-2 flex items-center animate-slideIn">
+                <div className="w-1 h-1 bg-danger-500 rounded-full mr-2"></div>
+                {errors.location}
+              </p>
+            )}
+          </div>
+
+          {/* Experience level is now handled internally in the form data state */}
         </div>
       </div>
 
@@ -270,7 +304,7 @@ function BasicInformation({ formData, handleChange }) {
 
           {suggestions.length > 0 && (
             <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold">Suggested Skills</h4>
                 <button type="button" onClick={addAllSuggested} className="btn btn-sm bg-orange-400 hover:bg-orange-500 text-white">Add all</button>
               </div>

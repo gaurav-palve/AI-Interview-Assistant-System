@@ -102,7 +102,6 @@ Interview System Team
                             subtype=subtype,
                             filename=filename
                         )
-                        logger.info(f"Added attachment: {filename} ({content_type})")
                     except Exception as e:
                         logger.warning(f"Error adding attachment {filename}: {e}")
             
@@ -148,27 +147,8 @@ Interview System Team
                     logger.warning(f"PDF attachment not found at {pdf_path}, skipping")
             except Exception as e:
                 logger.warning(f"Error attaching PDF: {e}, continuing without PDF attachment")
-
-                        
-
-            # Connect to SMTP server and send email
-            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
-            logger.info(f"Using SMTP username: {self.smtp_username}")
-            logger.info(f"From email: {self.from_email}")
             
             try:
-                # Print all email configuration for debugging
-                logger.info("=== EMAIL CONFIGURATION DEBUG ===")
-                logger.info(f"SMTP Server: {self.smtp_server}")
-                logger.info(f"SMTP Port: {self.smtp_port}")
-                logger.info(f"SMTP Username: {self.smtp_username}")
-                logger.info(f"Using OAuth2: {settings.USE_OAUTH2}")
-                logger.info(f"From Email: {self.from_email}")
-                logger.info(f"To Email: {candidate_email}")
-                logger.info(f"Email Subject: {msg['Subject']}")
-                logger.info("Email Body Preview: " + body[:100] + "...")
-                logger.info("=== END EMAIL CONFIGURATION DEBUG ===")
-                
                 # Create SMTP connection with extended timeout
                 logger.info("Creating SMTP connection...")
                 server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
@@ -248,7 +228,8 @@ Interview System Team
         scheduled_datetime: str,
         interview_id: str,
         custom_body: str,
-        attachments: list = None
+        attachments: list = None,
+        session_data: dict = None,
     ) -> bool:
         """Send custom interview confirmation email to candidate"""
         try:
@@ -291,23 +272,7 @@ Interview System Team
                     )
                     logger.info(f"Added attachment: {file_name} ({file_type})")
             
-            # Connect to SMTP server and send email
-            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
-            logger.info(f"Using SMTP username: {self.smtp_username}")
-            logger.info(f"From email: {self.from_email}")
-            
             try:
-                # Print all email configuration for debugging
-                logger.info("=== EMAIL CONFIGURATION DEBUG ===")
-                logger.info(f"SMTP Server: {self.smtp_server}")
-                logger.info(f"SMTP Port: {self.smtp_port}")
-                logger.info(f"SMTP Username: {self.smtp_username}")
-                logger.info(f"Using OAuth2: {settings.USE_OAUTH2}")
-                logger.info(f"From Email: {self.from_email}")
-                logger.info(f"To Email: {candidate_email}")
-                logger.info(f"Email Subject: {msg['Subject']}")
-                logger.info("Email Body Preview: " + custom_body[:100] + "...")
-                logger.info("=== END EMAIL CONFIGURATION DEBUG ===")
                 
                 # Create SMTP connection with extended timeout
                 logger.info("Creating SMTP connection...")
@@ -424,23 +389,9 @@ Interview System Team
             
             msg.attach(MIMEText(body, 'plain'))
             
-            # Connect to SMTP server and send email
-            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
-            logger.info(f"Using SMTP username: {self.smtp_username}")
-            logger.info(f"From email: {self.from_email}")
+            
             
             try:
-                # Print all email configuration for debugging
-                logger.info("=== EMAIL CONFIGURATION DEBUG ===")
-                logger.info(f"SMTP Server: {self.smtp_server}")
-                logger.info(f"SMTP Port: {self.smtp_port}")
-                logger.info(f"SMTP Username: {self.smtp_username}")
-                logger.info(f"Using OAuth2: {settings.USE_OAUTH2}")
-                logger.info(f"From Email: {self.from_email}")
-                logger.info(f"To Email: {candidate_email}")
-                logger.info(f"Email Subject: {msg['Subject']}")
-                logger.info("Email Body Preview: " + body[:100] + "...")
-                logger.info("=== END EMAIL CONFIGURATION DEBUG ===")
                 
                 # Create SMTP connection with extended timeout
                 logger.info("Creating SMTP connection...")
@@ -548,8 +499,6 @@ Neutrino Tech Systems
 """
 
             msg.set_content(body)
-            # Connect to SMTP server and send email
-            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
             server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
             server.set_debuglevel(2)  
             logger.info("SMTP connection established")
@@ -604,7 +553,6 @@ Neutrino Tech Systems
             """
             msg.set_content(body)
             # Connect to SMTP server and send email
-            logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
             server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
             server.set_debuglevel(2)  
             logger.info("SMTP connection established")

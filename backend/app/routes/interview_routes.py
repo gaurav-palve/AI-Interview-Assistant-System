@@ -3,24 +3,21 @@ from ..schemas.interview_schema import (
     InterviewCreate, InterviewUpdate, InterviewResponse, InterviewListResponse
 )
 from ..services.interview_service import InterviewService
-from ..services.auth_service import verify_session
 from typing import Optional
+from ..utils.auth_dependency import get_current_user, require_auth
+from fastapi import Request
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["Interviews"])
 
-async def get_current_user(session_token: str = Query(..., description="Session token")):
-    """Dependency to get current authenticated user"""
-    user = await verify_session(session_token)
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    return user
+# The get_current_user function is now imported from auth_dependency.py
 
 @router.post("/create-interview", response_model=dict)
 async def create_interview(
+    request: Request,
     interview_data: InterviewCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_auth)
 ):
     """Create a new interview"""
     logger.info(f"Request to create interview for candidate: {interview_data.candidate_email}")
@@ -70,7 +67,8 @@ async def create_interview(
 @router.get("/get-interview/{interview_id}", response_model=InterviewResponse)
 async def get_interview(
     interview_id: str,
-    current_user: dict = Depends(get_current_user)
+    request: Request,
+    current_user: dict = Depends(require_auth)
 ):
     """Get interview by ID"""
     try:
@@ -93,18 +91,26 @@ async def get_interview(
 
 @router.get("/list-interviews", response_model=InterviewListResponse)
 async def list_interviews(
+    request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Page size"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_auth)
 ):
     """List interviews created by the current user"""
     try:
+        logger.info(f"Received request to list interviews. Query params: {request.query_params}")
+        logger.info(f"Authenticated user: {current_user['email']}")
+            
+        # Process the interview listing
+        logger.info(f"Fetching interviews for user ID: {current_user['admin_id']}")
         interview_service = InterviewService()
         result = await interview_service.get_interviews_by_creator(
-            current_user["admin_id"], 
-            page, 
+            current_user["admin_id"],
+            page,
             page_size
         )
+        
+        logger.info(f"Successfully retrieved {len(result['interviews'])} interviews")
         
         return InterviewListResponse(
             interviews=result["interviews"],
@@ -112,15 +118,18 @@ async def list_interviews(
             page=result["page"],
             page_size=result["page_size"]
         )
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
-        logger.error(f"Error listing interviews: {e}")
+        logger.exception(f"Unexpected error listing interviews: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/update-interview/{interview_id}", response_model=dict)
 async def update_interview(
     interview_id: str,
     update_data: InterviewUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_auth)
 ):
     """Update an existing interview"""
     try:
@@ -150,7 +159,7 @@ async def update_interview(
 @router.delete("/delete-interview/{interview_id}", response_model=dict)
 async def delete_interview(
     interview_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_auth)
 ):
     """Delete an interview"""
     try:
@@ -178,7 +187,7 @@ async def delete_interview(
 
 @router.get("/stats/summary", response_model=dict)
 async def get_interview_statistics(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_auth)
 ):
     """Get interview statistics for the current user"""
     try:
