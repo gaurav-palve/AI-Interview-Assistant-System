@@ -138,7 +138,7 @@ function JobPostingDetail() {
       formData.append('jd_file', jdFile);
       
       // Use the axios instance with the correct baseURL
-      const response = await fetch('http://localhost:8000/resume-screening', {
+      const response = await fetch('http://localhost:8000/api/screening/resume-screening', {
         method: 'POST',
         body: formData,
       });

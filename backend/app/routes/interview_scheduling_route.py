@@ -39,7 +39,7 @@ async def get_current_user(session_token: str = Query(..., description="Session 
         raise HTTPException(status_code=401, detail="Invalid or expired session")
     return user
 
-@router.post("/interviews/bulk-schedule")
+@router.post("/bulk-schedule")
 async def schedule_interviews_bulk(
     request: BulkInterviewScheduleRequest = Body(...),
     session_token: str = Query(None)
@@ -371,7 +371,7 @@ async def schedule_interviews_bulk(
         logger.error(f"Error scheduling interviews: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to schedule interviews: {str(e)}")
 
-@router.get("/interviews/job-posting/{job_posting_id}")
+@router.get("/get-interviews-by-job-posting/{job_posting_id}")
 async def get_interviews_by_job_posting(job_posting_id: str):
     """
     Get all interviews for a specific job posting

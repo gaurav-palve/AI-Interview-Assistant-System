@@ -28,6 +28,7 @@ import {
 import { ChevronLeft, ChevronRight, LightMode, DarkMode } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import ProblemDescription from "./ProblemDescription";
+import { useCamera } from "../contexts/CameraContext";
 import CodeEditorPanel from "./CodeEditorPanel";
 import {
   fetchCodingQuestions,
@@ -38,6 +39,8 @@ import {
 import { CODE_SNIPPETS } from "../constants";
 
 const LeetCodeLayout = () => {
+  // Get the stopCamera function from the camera context
+  const { stopCamera } = useCamera();
   const { interviewId } = useParams();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -486,6 +489,15 @@ const LeetCodeLayout = () => {
     // Auto-save all answers
     const saveSuccess = await autoSaveAllAnswers();
     
+    // Stop the camera when time is up
+    try {
+      await stopCamera();
+      console.log("Camera stopped successfully on time up");
+    } catch (cameraError) {
+      console.error("Error stopping camera on time up:", cameraError);
+      // Continue with interview completion even if camera stop fails
+    }
+    
     // Show completion modal
     setShowCompletionModal(true);
     
@@ -758,6 +770,15 @@ const LeetCodeLayout = () => {
     try {
       console.log("Updating interview status to completed for interview ID:", interviewId);
       
+      // Stop the camera before completing the interview
+      try {
+        await stopCamera();
+        console.log("Camera stopped successfully");
+      } catch (cameraError) {
+        console.error("Error stopping camera:", cameraError);
+        // Continue with interview completion even if camera stop fails
+      }
+      
       // Make API call to update interview status to completed
       const response = await fetch(`http://localhost:8000/api/candidate/complete_interview/${interviewId}`, {
         method: 'POST',
@@ -798,6 +819,15 @@ const LeetCodeLayout = () => {
     
     // Save all answers
     const saveSuccess = await autoSaveAllAnswers();
+    
+    // Stop the camera when ending the interview
+    try {
+      await stopCamera();
+      console.log("Camera stopped successfully on interview end");
+    } catch (cameraError) {
+      console.error("Error stopping camera on interview end:", cameraError);
+      // Continue with interview completion even if camera stop fails
+    }
     
     if (saveSuccess) {
       toast({
