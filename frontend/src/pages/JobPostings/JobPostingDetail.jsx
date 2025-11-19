@@ -599,19 +599,30 @@ function JobPostingDetail() {
                   Upload a job description PDF and a zip file containing candidate resumes to screen them against this job posting.
                 </p>
                 
+                {/* Warning message when job is not active */}
+                {jobPosting.status !== 'active' && (
+                  <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md mb-6">
+                    <div className="flex">
+                      <WarningIcon className="h-5 w-5 text-amber-500 mr-2" />
+                      <p className="text-sm text-amber-700">
+                        <strong>Resume screening is disabled.</strong> Job posting is not open.                      </p>
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* JD Upload */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={`block text-sm font-medium ${jobPosting.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
                       Upload Job Description (PDF)
                     </label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting.status !== 'active' ? 'opacity-60' : ''}`}>
                       <div className="space-y-1 text-center">
-                        <DescriptionIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <div className="flex text-sm text-gray-600">
-                          <label htmlFor="jd-file" className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                        <DescriptionIcon className={`mx-auto h-12 w-12 ${jobPosting.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
+                        <div className={`flex text-sm ${jobPosting.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          <label htmlFor="jd-file" className={`relative ${jobPosting.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
                             <span>Upload a file</span>
                             <input
+                              disabled={jobPosting.status !== 'active'}
                               id="jd-file"
                               name="jd-file"
                               type="file"
@@ -636,16 +647,17 @@ function JobPostingDetail() {
                   
                   {/* Resumes Upload */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={`block text-sm font-medium ${jobPosting.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
                       Upload Resumes (ZIP file)
                     </label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting.status !== 'active' ? 'opacity-60' : ''}`}>
                       <div className="space-y-1 text-center">
-                        <CloudUploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <div className="flex text-sm text-gray-600">
-                          <label htmlFor="resume-file" className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                        <CloudUploadIcon className={`mx-auto h-12 w-12 ${jobPosting.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
+                        <div className={`flex text-sm ${jobPosting.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          <label htmlFor="resume-file" className={`relative ${jobPosting.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
                             <span>Upload a file</span>
                             <input
+                              disabled={jobPosting.status !== 'active'}
                               id="resume-file"
                               name="resume-file"
                               type="file"
@@ -672,8 +684,9 @@ function JobPostingDetail() {
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handleScreenResumes}
-                    disabled={!jdFile || !resumeFile || screeningLoading}
-                    className="btn btn-primary w-full md:w-auto"
+                    disabled={!jdFile || !resumeFile || screeningLoading || jobPosting.status !== 'active'}
+                    className={`btn w-full md:w-auto ${jobPosting.status === 'active' ? 'btn-primary' : 'btn-disabled bg-gray-300'}`}
+                    title={jobPosting.status !== 'active' ? "Resume screening is only available for active job postings" : ""}
                   >
                     {screeningLoading ? (
                       <>
@@ -701,23 +714,24 @@ function JobPostingDetail() {
                 
                 {/* Email Attachments */}
 <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700 mb-1">
+  <label className={`block text-sm font-medium ${jobPosting.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
     Email Attachments (Optional)
   </label>
-  <div className="mt-1 flex justify-center px-6 pt-3 pb-3 border-2 border-gray-300 border-dashed rounded-md">
+  <div className={`mt-1 flex justify-center px-6 pt-3 pb-3 border-2 ${jobPosting.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting.status !== 'active' ? 'opacity-60' : ''}`}>
     <div className="space-y-1 text-center">
       <div className="flex flex-col items-center">
-        <EmailIcon className="mx-auto h-8 w-8 text-gray-400" />
+        <EmailIcon className={`mx-auto h-8 w-8 ${jobPosting.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
         <div className="flex text-sm text-gray-600">
           <label
             htmlFor="attachment-upload"
-            className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500"
+            className={`relative ${jobPosting.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'}`}
           >
             <span>Upload attachments</span>
             <input
               id="attachment-upload"
               name="attachment-upload"
               type="file"
+              disabled={jobPosting.status !== 'active'}
               className="sr-only"
               multiple
               onChange={handleEmailAttachmentChange}
