@@ -72,6 +72,16 @@ function JobPostingsList() {
   const handleStatusChange = async (jobId, newStatus) => {
     console.log(`Updating job ${jobId} status to ${newStatus} in list view`);
     
+    // Show error message for demonstration
+    setStatusUpdateError({
+      [jobId]: true
+    });
+    
+    // Clear error after 3 seconds
+    setTimeout(() => {
+      setStatusUpdateError({});
+    }, 3000);
+    
     try {
       // Update locally first for better UX
       setJobPostings(prevPostings =>
@@ -131,6 +141,9 @@ function JobPostingsList() {
     const index = company ? company.charCodeAt(0) % colors.length : 0;
     return colors[index];
   };
+
+  // Error message for status update
+  const [statusUpdateError, setStatusUpdateError] = useState({});
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -276,12 +289,13 @@ function JobPostingsList() {
       ) : jobPostings.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobPostings.map((job, index) => (
-            <div
+            <Link
               key={job.id}
+              to={`/job-postings/${job.id}`}
               className={`
                 group relative bg-white rounded-2xl overflow-hidden border border-gray-100
                 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl
-                animate-slideInUp
+                animate-slideInUp cursor-pointer
               `}
               style={{ animationDelay: `${index * 100}ms` }}
               onMouseEnter={() => setHoveredCard(job.id)}
@@ -294,7 +308,10 @@ function JobPostingsList() {
                 {/* Status dropdown */}
                 <div
                   className="absolute top-4 right-4 z-10"
-                  onClick={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
                   data-testid={`status-dropdown-${job.id}`}
                 >
                   <StatusDropdown
@@ -303,6 +320,13 @@ function JobPostingsList() {
                     currentStatus={job.status || 'active'}
                     onStatusChange={(newStatus) => handleStatusChange(job.id, newStatus)}
                   />
+                  
+                  {/* Error message for status update */}
+                  {statusUpdateError[job.id] && (
+                    <div className="absolute right-0 mt-2 bg-red-50 text-red-600 text-xs p-2 rounded-md border border-red-100 w-44">
+                      Failed to update status
+                    </div>
+                  )}
                 </div>
                 
                 <div className="p-6 relative">
@@ -316,7 +340,7 @@ function JobPostingsList() {
                       {getCompanyInitial(job.company)}
                     </div>
                     <div className="ml-4 flex-grow">
-                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors duration-300">
+                      <h3 className="text-2xl font-bold text-blue-600 group-hover:text-primary-700 transition-colors duration-300">
                         {job.job_title}
                       </h3>
                       <p className="text-sm text-gray-600 flex items-center">
@@ -369,7 +393,7 @@ function JobPostingsList() {
                   )}
                   
                   {/* Footer with stats */}
-                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="pt-4 border-t border-gray-100 flex items-center">
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <GroupIcon className="h-4 w-4 mr-1" />
@@ -380,35 +404,10 @@ function JobPostingsList() {
                         <span className="font-medium">0</span> views
                       </span>
                     </div>
-                    
-                    {/* Action buttons */}
-                    <div className={`
-                      flex items-center space-x-2 transition-all duration-300
-                      ${hoveredCard === job.id ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}
-                    `}>
-                      <Link 
-                        to={`/job-postings/${job.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 rounded-lg bg-gray-100 hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200"
-                      >
-                        <EditIcon className="h-4 w-4" />
-                      </Link>
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          // Share functionality can be added here
-                          console.log('Share:', job.id);
-                        }}
-                        className="p-2 rounded-lg bg-gray-100 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200"
-                      >
-                        <ShareIcon className="h-4 w-4" />
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
