@@ -230,73 +230,7 @@ function CandidateAssessmentReports() {
           </div>
         )}
         
-        {/* Filter form */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
-            <SearchIcon className="mr-2 text-primary-600" />
-            Filter Reports
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Candidate Name</label>
-              <input
-                type="text"
-                name="candidate_name"
-                value={filters.candidate_name}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="text"
-                name="candidate_email"
-                value={filters.candidate_email}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by email"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Job Role</label>
-              <input
-                type="text"
-                name="job_role"
-                value={filters.job_role}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by job role"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Interview ID</label>
-              <input
-                type="text"
-                name="interview_id"
-                value={filters.interview_id}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by ID"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end space-x-3">
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Reset
-            </button>
-            <button
-              onClick={applyFilters}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
+      
         
         {/* Assessment summary cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -408,52 +342,74 @@ function CandidateAssessmentReports() {
             </div>
           </div>
         </div>
-        
-        {/* Filters and controls */}
-        <div className="flex flex-wrap gap-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm">
-              <option value="">All Positions</option>
-              <option value="software-engineer">Software Engineer</option>
-              <option value="frontend-developer">Frontend Developer</option>
-              <option value="devops-engineer">DevOps Engineer</option>
-              <option value="data-scientist">Data Scientist</option>
-            </select>
+          {/* Filter form */}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+          <h2 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
+            <SearchIcon className="mr-2 text-primary-600" />
+            Filter Reports
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Candidate Name</label>
+              <input
+                type="text"
+                name="candidate_name"
+                value={filters.candidate_name}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
+                placeholder="Search by name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="text"
+                name="candidate_email"
+                value={filters.candidate_email}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
+                placeholder="Search by email"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Job Role</label>
+              <input
+                type="text"
+                name="job_role"
+                value={filters.job_role}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
+                placeholder="Search by job role"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Interview ID</label>
+              <input
+                type="text"
+                name="interview_id"
+                value={filters.interview_id}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
+                placeholder="Search by ID"
+              />
+            </div>
           </div>
-          
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Assessment Type</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm">
-              <option value="">All Assessments</option>
-              <option value="mcq">MCQ Test</option>
-              <option value="voice">Voice Interview</option>
-              <option value="coding">Coding Challenge</option>
-            </select>
-          </div>
-          
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Performance</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm">
-              <option value="">All Ratings</option>
-              <option value="excellent">Excellent (85%+)</option>
-              <option value="good">Good (70-84%)</option>
-              <option value="average">Average (50-69%)</option>
-              <option value="poor">Poor (Below 50%)</option>
-            </select>
-          </div>
-          
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm">
-              <option value="last-week">Last 7 days</option>
-              <option value="last-month">Last 30 days</option>
-              <option value="last-quarter">Last 90 days</option>
-              <option value="custom">Custom Range</option>
-            </select>
+          <div className="mt-4 flex justify-end space-x-3">
+            <button
+              onClick={resetFilters}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Reset
+            </button>
+            <button
+              onClick={applyFilters}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+            >
+              Apply Filters
+            </button>
           </div>
         </div>
-        
+       
         {/* Candidate reports table */}
         <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
           {loading ? (
@@ -530,22 +486,28 @@ function CandidateAssessmentReports() {
                       <span className="text-xs text-gray-500">{candidate.mcq.strengths}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center mb-1">
-                      <div className="w-full bg-purple-100 rounded-full h-2.5 mr-2 w-24">
-                        <div 
-                          className="bg-purple-600 h-2.5 rounded-full" 
-                          style={{ width: `${candidate.voice.score}%` }}
-                        ></div>
+                  {/* Voice Interview Column (YOUR REQUESTED CHANGES) */}
+                  <td className="px-6 py-4 w-48"> {/* 1. Ensures same column length as MCQ */}
+                      <div className="flex items-center mb-1">
+                          <div className="w-full bg-purple-100 rounded-full h-2.5 mr-2 w-24">
+                              <div 
+                                className="bg-purple-600 h-2.5 rounded-full" 
+                                style={{ width: `${candidate.voice.score}%` }}
+                              ></div>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">{candidate.voice.score}%</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{candidate.voice.score}%</span>
-                    </div>
-                    <div className="text-xs text-gray-500">{candidate.voice.details}</div>
-                    <div className="mt-1 flex items-center">
-                      <span className="text-xs text-purple-700 font-medium mr-1">Strengths:</span>
-                      <span className="text-xs text-gray-500">{candidate.voice.strengths}</span>
-                    </div>
+                      
+                      {/* 2. Scrollable Container for all text content */}
+                      <div className="mt-1 max-h-9 overflow-y-auto pr-1"> 
+                        <div className="text-xs text-gray-500">{candidate.voice.details}</div>
+                        <div className="mt-1 flex items-center">
+                          <span className="text-xs text-purple-700 font-medium mr-1">Strengths:</span>
+                          <span className="text-xs text-gray-500">{candidate.voice.strengths}</span>
+                        </div>
+                      </div>
                   </td>
+                  {/* Coding Challenge Column (YOUR REQUESTED CHANGES) */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center mb-1">
                       <div className="w-full bg-green-100 rounded-full h-2.5 mr-2 w-24">
