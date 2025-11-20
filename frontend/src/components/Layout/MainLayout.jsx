@@ -247,24 +247,24 @@ export default function MainLayout({ children }) {
         {/* Header */}
         <div className="sticky h-[70px] top-0 z-10 bg-gradient-to-r from-primary-700 via-primary-800 to-primary-700 shadow-lg border-b border-primary-600/50 backdrop-blur-sm transition-all duration-300 w-full" style={{ margin: 0, padding: 0 }}>
           {/* Mobile Header */}
-          <div className="md:hidden pl-6 pt-3 flex items-center justify-between">
+          <div className="md:hidden h-full flex items-center justify-center">
             <button
-              className="h-12 w-12 inline-flex items-center justify-center rounded-md text-white hover:text-primary-200 hover:bg-primary-500/30 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-300 transition-all duration-200"
+              className="absolute left-4 h-12 w-12 inline-flex items-center justify-center rounded-md text-white hover:text-primary-200 hover:bg-primary-500/30 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-300 transition-all duration-200"
               onClick={() => setSidebarOpen(true)}
             >
               <MenuIcon className="h-6 w-6" />
             </button>
-            <h1 className="text-base font-semibold text-white ml-2 font-serif">
-                            {greeting}, <span className="font-bold text-white">{user?.email?.split('@')[0]}</span>
+            <h1 className="text-base font-semibold text-white font-serif">
+              {greeting},<span className="font-bold text-white">{user?.email?.split('@')[0]}</span>
             </h1>
           </div>
  
           {/* Desktop Header */}
-         <div
-  className={`hidden md:flex items-center justify-between px-6 py-4 transition-all duration-300`}
+       <div
+  className="hidden md:flex items-center justify-between px-6 h-full relative transition-all duration-300"
 >
-  {/* Greeting fixed at left side */}
-  <div className="absolute left-6">
+  {/* Greeting centered vertically & aligned left */}
+  <div className="flex items-center h-full ml-6">
     <h1 className="text-xl font-semibold text-white font-serif">
       {greeting},{" "}
       <span className="font-bold text-white">
