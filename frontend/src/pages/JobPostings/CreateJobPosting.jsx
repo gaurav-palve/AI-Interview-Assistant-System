@@ -321,71 +321,76 @@ function CreateJobPosting() {
         </div>
       </div>
 
-      {/* Enhanced Navigation Buttons */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-slideInUp animation-delay-300">
-        <div className="flex justify-between items-center">
-          <button
-            onClick={handleBack}
-            disabled={currentStep === 1 || loading}
-            className={`
-              btn group transition-all duration-300
-              ${currentStep === 1 
-                ? 'btn-disabled opacity-50 cursor-not-allowed' 
-                : 'btn-outline hover:bg-gray-50 hover:-translate-x-1'
-              }
-            `}
-          >
-            <BackIcon className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
-            Previous
-          </button>
-          
-          {/* Progress Indicator */}
-          <div className="flex items-center space-x-2">
-            {steps.map((_, index) => (
-              <div
-                key={index}
-                className={`
-                  h-2 rounded-full transition-all duration-300
-                  ${index < currentStep 
-                    ? 'w-8 bg-gradient-to-r from-primary-400 to-primary-500' 
-                    : 'w-2 bg-gray-200'
-                  }
-                `}
-              ></div>
-            ))}
-          </div>
-          
-          {currentStep < steps.length ? (
-            <button
-              onClick={handleNext}
-              disabled={loading}
-              className="btn btn-primary group hover:translate-x-1 transition-all duration-300"
-            >
-              Next Step
-              <NextIcon className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
-            </button>
-          ) : (
-            <button
-              onClick={submitJobPosting}
-              disabled={loading}
-              className="btn bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 group transition-all duration-300"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white mr-2"></div>
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <CheckIcon className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Publish Job Posting
-                </>
-              )}
-            </button>
-          )}
+{/* Enhanced Navigation Buttons */}
+<div>
+<div className="flex justify-between items-center">
+{/* Previous button */}
+<button
+onClick={handleBack}
+disabled={currentStep === 1 || loading}
+className={`
+btn group transition-all duration-300
+${currentStep === 1
+? 'btn-disabled opacity-50 cursor-not-allowed'
+: 'btn-outline hover:bg-gray-50 hover:-translate-x-1'
+}
+`}
+>
+<BackIcon className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
+Previous
+</button>
+
+{/* Progress Indicator */}
+<div className="flex items-center space-x-2">
+{steps.map((_, index) => (
+<div
+key={index}
+className={`
+h-2 rounded-full transition-all duration-300
+${index < currentStep
+? 'w-8 bg-gradient-to-r from-primary-400 to-primary-500'
+: 'w-2 bg-gray-200'
+}
+`}
+></div>
+))}
+</div>
+
+{/* Next / Publish button */}
+{currentStep < steps.length ? (
+<button
+onClick={handleNext}
+disabled={loading}
+className="btn btn-primary group hover:translate-x-1 transition-all duration-300"
+>
+Next Step
+<NextIcon className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
+</button>
+) : (
+<button
+onClick={submitJobPosting}
+disabled={loading}
+className="btn bg-gradient-to-r from-green-500 to-green-600 text-white
+hover:from-green-600 hover:to-green-700 group transition-all duration-300"
+>
+{loading ? (
+<>
+<div className="animate-spin rounded-full h-5 w-5 border-2 border-white mr-2"></div>
+Publishing...
+</>
+) : (
+<>
+<CheckIcon className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+Publish Job Posting
+</>
+)}
+</button>
+)}
+</div>
+</div>
+         
         </div>
-      </div>
-    </div>
+     
   );
 }
 

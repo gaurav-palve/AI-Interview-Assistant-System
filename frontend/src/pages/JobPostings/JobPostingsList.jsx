@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
-
+import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
 // Material UI Icons
 import {
   Add as AddIcon,
@@ -247,14 +247,14 @@ function JobPostingsList() {
       </div>
 
       {/* Status Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1">
         <nav className="flex space-x-2">
           {['all', 'active', 'draft', 'closed', 'archived'].map(tab => (
             <button
               key={tab}
               onClick={() => handleTabChange(tab)}
               className={`
-                relative px-4 py-3 rounded-lg font-medium transition-all duration-300 transform
+                relative px-6 py-3 rounded-lg font-medium transition-all duration-300 transform
                 ${activeTab === tab 
                   ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -269,9 +269,7 @@ function JobPostingsList() {
                   {getStatusCount(tab)}
                 </span>
               </span>
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-600 to-primary-700 rounded-full"></div>
-              )}
+             
             </button>
           ))}
         </nav>
@@ -321,24 +319,25 @@ function JobPostingsList() {
                     onStatusChange={(newStatus) => handleStatusChange(job.id, newStatus)}
                   />
                   
-                  {/* Error message for status update */}
-                  {statusUpdateError[job.id] && (
-                    <div className="absolute right-0 mt-2 bg-red-50 text-red-600 text-xs p-2 rounded-md border border-red-100 w-44">
-                      Failed to update status
-                    </div>
-                  )}
+                  
                 </div>
                 
                 <div className="p-6 relative">
                   {/* Header with company avatar */}
                   <div className="flex items-start mb-4">
-                    <div className={`
-                      flex-shrink-0 h-12 w-12 rounded-xl ${getCompanyColor(job.company)} 
-                      text-white flex items-center justify-center font-bold text-lg
-                      transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3
-                    `}>
-                      {getCompanyInitial(job.company)}
-                    </div>
+                     <div className="flex-shrink-0 rounded-xl
+    text-white flex items-center justify-center font-bold text-lg
+    shadow-md transform transition-all duration-300 bg-white">
+                        <div className="h-11 w-11 flex items-center">
+                          <img
+                            src={Nts_logo}
+                            alt="NTSLOGO"
+                            className="h-11 w-11 object-contain"
+                          />
+                        </div>
+                      </div>
+                     
+                   
                     <div className="ml-4 flex-grow">
                       <h3 className="text-2xl font-bold text-blue-600 group-hover:text-primary-700 transition-colors duration-300">
                         {job.job_title}
