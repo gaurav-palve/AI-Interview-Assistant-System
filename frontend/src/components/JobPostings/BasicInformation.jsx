@@ -154,12 +154,12 @@ function BasicInformation({ formData, handleChange }) {
             <label className="label">
               <span className="label-text font-semibold text-gray-700 flex items-center">
                 <WorkIcon className="h-4 w-4 mr-2 text-primary-500" />
-                Job Title *
+                Job Title 
               </span>
             </label>
             <div className="relative">
               <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${focusedField === 'job_title' ? 'text-primary-500' : 'text-gray-400'}`}>
-                <WorkIcon className="h-5 w-5" />
+                {/* <WorkIcon className="h-5 w-5" /> */}
               </div>
               <input
                 type="text"
@@ -189,12 +189,12 @@ function BasicInformation({ formData, handleChange }) {
             <label className="label">
               <span className="label-text font-semibold text-gray-700 flex items-center">
                 <BusinessIcon className="h-4 w-4 mr-2 text-primary-500" />
-                Company *
+                Company Name
               </span>
             </label>
             <div className="relative">
               <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${focusedField === 'company' ? 'text-primary-500' : 'text-gray-400'}`}>
-                <BusinessIcon className="h-5 w-5" />
+                {/* <BusinessIcon className="h-5 w-5" /> */}
               </div>
               <input
                 type="text"
@@ -203,7 +203,7 @@ function BasicInformation({ formData, handleChange }) {
                 onChange={handleInputChange}
                 onFocus={() => handleFocus('company')}
                 onBlur={handleBlur}
-                placeholder="e.g. Trayarunya Ventures LLC"
+                placeholder="e.g. Neutrino Tech Systems"
                 className={`input input-bordered w-full pl-12 hover:border-primary-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 ${errors.company ? 'input-error border-danger-500' : ''} ${focusedField === 'company' ? 'shadow-lg scale-105' : ''}`}
                 required
               />

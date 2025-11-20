@@ -23,7 +23,7 @@ The AI Interview Assistant consists of two main components:
 
 ## Tech Stack
 
-### Backend
+### Backend 
 - **FastAPI**: Modern, high-performance web framework
 - **MongoDB & Motor**: NoSQL database with async driver
 - **PyJWT**: JWT authentication
@@ -32,6 +32,7 @@ The AI Interview Assistant consists of two main components:
 - **Google Gemini & OpenAI**: AI providers for question generation
 - **GridFS**: Storage for resume files
 - **SMTP**: Email delivery
+
 
 ### Frontend
 - **React**: UI library

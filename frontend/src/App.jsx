@@ -23,6 +23,7 @@ import JobPostingsList from './pages/JobPostings/JobPostingsList';
 import CreateJobPosting from './pages/JobPostings/CreateJobPosting';
 import JobPostingDetail from './pages/JobPostings/JobPostingDetail';
 import CandidateAssessmentReports from './pages/CandidateAssessmentReports';
+import TokenUsage from './pages/Admin/TokenUsage';
 import NotFound from './pages/NotFound';
 
 // Candidate Pages
@@ -221,15 +222,36 @@ function App() {
                 <JobPostingDetail />
               </MainLayout>
             </ProtectedRoute>
-          }
-        />
-
-        {/* 404 Not Found route */}
-        <Route path="/404" element={<NotFound />} />
-
-        {/* Redirect any unknown routes to 404 */}
-        <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
+          } />
+          
+          <Route path="/admin/token-usage" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TokenUsage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          {/* 404 Not Found route */}
+          <Route path="/404" element={<NotFound />} />
+          
+          {/* Voice interview routes - Make them public for candidates */}
+          <Route path="/voice-interview-instructions/:interviewId" element={<VoiceInterviewInstructions />} />
+          <Route path="/voice-interview/:interviewId" element={<VoiceInterview />} />
+          
+          {/* Coding interview routes - Make them public for candidates */}
+          <Route path="/coding-instructions/:interviewId" element={<CodingInstructions />} />
+          <Route path="/leetcode/:interviewId" element={<LeetCodeLayout />} />
+          
+          {/* Interview completion page */}
+          <Route path="/interview-complete" element={<InterviewComplete />} />
+          
+          {/* Redirect any unknown routes to 404 */}
+          <Route path="*" element={<Navigate to="/404" replace />} />
+        </Routes>
+    //     </Router>
+    //   </CameraProvider>
+    // </AuthProvider>
   );
 }
 
