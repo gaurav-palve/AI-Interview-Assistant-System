@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Email as EmailIcon, Lock as LockIcon, LockReset as LockResetIcon, Visibility, VisibilityOff } from '@mui/icons-material';
-
+import { useFormValidation } from '../hooks/useFormValidation';
+import { validateConfirmPassword } from '../utils/validation';
+ 
 /**
  * Signup page component
  */
 function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +16,37 @@ function Signup() {
   const [success, setSuccess] = useState('');
   const { signUp } = useAuth();
   const navigate = useNavigate();
-
+ 
+  // Form validation
+  const {
+    values,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    validate,
+    setError: setFieldError
+  } = useFormValidation(
+    { email: '', password: '', confirmPassword: '' },
+    {
+      email: {
+        required: true,
+        email: true,
+        fieldName: 'Email'
+      },
+      password: {
+        required: true,
+        password: true,
+        minLength: 8,
+        fieldName: 'Password'
+      },
+      confirmPassword: {
+        required: true,
+        fieldName: 'Confirm Password'
+      }
+    }
+  );
+ 
   /**
    * Handle form submission
    * @param {Event} e - Form submit event
@@ -26,25 +55,25 @@ function Signup() {
     e.preventDefault();
     setError('');
     setSuccess('');
-
-    // Validate passwords match
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+ 
+    // Validate form
+    if (!validate()) {
       return;
     }
-
-    // Validate password strength
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+ 
+    // Validate password match
+    const confirmPasswordError = validateConfirmPassword(values.password, values.confirmPassword);
+    if (confirmPasswordError) {
+      setFieldError('confirmPassword', confirmPasswordError);
       return;
     }
-
+ 
     setIsLoading(true);
-
+ 
     try {
-      await signUp(email, password);
+      await signUp(values.email, values.password);
       setSuccess('Account created successfully! You can now sign in.');
-      
+     
       // Redirect to login after a short delay
       setTimeout(() => {
         navigate('/login');
@@ -55,73 +84,93 @@ function Signup() {
       setIsLoading(false);
     }
   };
-
+ 
   return (
-    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition" style={{ background: 'linear-gradient(180deg, #d7d8f6, #f8dce5)' }}>
-      <div className="max-w-sm w-full bg-white/90 backdrop-blur-sm border-2 border-gray-300 rounded-lg shadow-[0_10px_25px_-5px_rgba(75,85,99,0.3)] p-6">
-        <h2 className="text-center text-2xl font-bold mb-4 text-gray-800 animate-fadeIn">Signup</h2>
-        
+    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition relative overflow-hidden">
+      {/* Simple Animated Background - Only Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-primary-100/50 to-secondary-50 animate-gradient-shift"></div>
+     
+      {/* Content */}
+      <div className="relative z-10 max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+        <h2 className="text-center text-3xl font-bold mb-6 text-gray-900">Signup</h2>
+       
         {/* Tab Navigation */}
-        <div className="tab-nav mb-5 bg-gray-100 border border-gray-300">
-          <Link to="/login" className="tab-item tab-item-inactive text-gray-700 hover:text-gray-900 animate-slideInLeft" style={{ animationDelay: '0.1s' }}>
+        <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
+          <Link to="/login" className="flex-1 text-center py-2 px-4 rounded-md font-medium text-gray-700 hover:text-gray-900 transition-colors">
             Login
           </Link>
-          <Link to="/signup" className="tab-item tab-item-active animate-slideInRight" style={{ animationDelay: '0.2s' }}>
+          <Link to="/signup" className="flex-1 text-center py-2 px-4 rounded-md font-medium text-white bg-gradient-to-r from-primary-500 to-primary-600 shadow-sm transition-all">
             Signup
           </Link>
         </div>
-
+ 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r-md">
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
-
+ 
         {success && (
           <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r-md">
             <p className="text-sm text-green-700">{success}</p>
           </div>
         )}
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <EmailIcon className="h-5 w-5 text-gray-400" />
+ 
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <EmailIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={values.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                  errors.email && touched.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Enter your email"
+              />
             </div>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10"
-              style={{ animationDelay: '0.3s' }}
-              placeholder="Email Address"
-            />
+            {errors.email && touched.email && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.email}
+              </p>
+            )}
           </div>
-          
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LockIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 pr-10"
-              style={{ animationDelay: '0.4s' }}
-              placeholder="Password"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+         
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LockIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                  errors.password && touched.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Enter your password"
+              />
               <button
                 type="button"
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -131,28 +180,43 @@ function Signup() {
                 )}
               </button>
             </div>
+            {errors.password && touched.password && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.password}
+              </p>
+            )}
+            {!errors.password && values.password && (
+              <p className="mt-1 text-xs text-gray-500">
+                Password must be at least 8 characters with uppercase, lowercase, number, and special character
+              </p>
+            )}
           </div>
-          
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LockResetIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="confirm-password"
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 pr-10"
-              style={{ animationDelay: '0.5s' }}
-              placeholder="Confirm Password"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+         
+          <div>
+            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+              Confirm Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LockResetIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="confirm-password"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                value={values.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                  errors.confirmPassword && touched.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Confirm your password"
+              />
               <button
                 type="button"
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? (
@@ -162,27 +226,35 @@ function Signup() {
                 )}
               </button>
             </div>
+            {errors.confirmPassword && touched.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600 flex items-center">
+                <span className="mr-1">⚠</span>
+                {errors.confirmPassword}
+              </p>
+            )}
           </div>
-
+ 
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="btn w-full py-2 animate-slideIn bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-full hover:from-blue-600 hover:to-cyan-500 shadow-md"
-              style={{ animationDelay: '0.6s' }}
+              className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-primary-700 shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
-                <svg className="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating account...
+                </span>
               ) : (
                 "Signup"
               )}
             </button>
           </div>
-
-          <div className="text-center animate-fadeIn" style={{ animationDelay: '0.7s' }}>
+ 
+          <div className="text-center pt-2">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
@@ -195,5 +267,5 @@ function Signup() {
     </div>
   );
 }
-
+ 
 export default Signup;

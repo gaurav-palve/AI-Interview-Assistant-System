@@ -15,6 +15,7 @@
   @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300;
 }
 
+
 .badge {
   @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
 }
@@ -623,4 +624,17 @@
   @apply bg-gray-800/60 backdrop-blur-sm border border-gray-500 shadow-lg;
   @apply rounded-xl p-6;
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.15), 0 0 5px rgba(14, 165, 233, 0.2);
+}
+
+/* Hide native browser 'show password' / reveal controls so only our custom button appears */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-password-toggle-button {
+  display: none !important;
+  -webkit-appearance: none !important;
 }
