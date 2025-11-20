@@ -1,53 +1,61 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
-// Material UI Icons
+import Logo from '../../pages/Logo';
+ 
 import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Assignment as AssignmentIcon,
-  Person as PersonIcon,
-  ExitToApp as LogoutIcon,
-  Add as AddIcon,
-  BarChart as StatsIcon,
-  Close as CloseIcon,
-  Email as EmailIcon,
-  Settings as SettingsIcon,
-  Search as SearchIcon,
-  Psychology as PsychologyIcon,
-  Notifications as NotificationsIcon,
-  Assessment as AssessmentIcon,
-  Description as DescriptionIcon,
-  Grading as GradingIcon,
-  Work as WorkIcon
+  MenuOutlined as MenuIcon,
+  CloseOutlined as CloseIcon,
+  NotificationsOutlined as NotificationsIcon,
+  AddOutlined as AddIcon,
+  PersonOutlined as PersonIcon,
+  LogoutOutlined as LogoutIcon,
+  DashboardOutlined as DashboardIcon,
+  AssignmentOutlined as AssignmentIcon,
+  BarChartOutlined as StatsIcon,
+  AssessmentOutlined as AssessmentIcon,
+  DescriptionOutlined as DescriptionIcon,
+  GradingOutlined as GradingIcon,
+  WorkOutlined as WorkIcon,
+  ChevronLeftOutlined as ChevronLeftIcon,
+  ChevronRightOutlined as ChevronRightIcon
 } from '@mui/icons-material';
-
-/**
- * MainLayout component for the application
- * Includes navigation sidebar and header
- */
-function MainLayout({ children }) {
+ 
+export default function MainLayout({ children }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
+ 
+  const [isSidebarHovered, setSidebarHovered] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true); // Desktop sidebar toggle state
   const [greeting, setGreeting] = useState('Hello');
   const [notificationCount, setNotificationCount] = useState(3);
-
-  // Navigation items
+ 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+     { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon /> },
     { path: '/interviews', label: 'Interviews', icon: <AssignmentIcon /> },
-    // { path: '/interviews/new', label: 'New Interview', icon: <AddIcon /> },
     { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
     { path: '/resume-screening', label: 'Resume Screening', icon: <AssessmentIcon /> },
-    { path: '/job-description-generator', label: 'Job Description Generator', icon: <DescriptionIcon /> },
-    { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon /> },
-    { path: '/candidate-assessment-reports', label: 'Candidate Assessment Reports', icon: <GradingIcon /> },
+    { path: '/job-description-generator', label: 'JD Generator', icon: <DescriptionIcon /> },
+   { path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon /> },
   ];
-
-  // Handle logout
+ 
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 18) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+ 
+    const interval = setInterval(() => {
+      const greetings = ['Hello', 'Welcome', 'Hi there'];
+      setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
+    }, 5000);
+ 
+    return () => clearInterval(interval);
+  }, []);
+ 
   const handleLogout = async () => {
     try {
       await logout();
@@ -56,171 +64,116 @@ function MainLayout({ children }) {
       console.error('Logout failed:', error);
     }
   };
-
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  // Ensure light mode is set
-  useEffect(() => {
-    document.documentElement.classList.remove('dark');
-    
-    // Set greeting based on time of day
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
-    
-    // Animation for greeting text
-    const interval = setInterval(() => {
-      const greetings = ['Hello', 'Welcome', 'Hi there'];
-      setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar for desktop */}
-      <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64">
-          <div className="flex flex-col h-0 flex-1 bg-gradient-to-b from-primary-600 to-primary-700">
-            <div className="flex items-center h-20 flex-shrink-0 px-4 bg-primary-700">
-              <Link to="/dashboard" className="flex items-center">
-                <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center mr-3 shadow-lg relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-700 animate-pulse"></div>
-                  <div className="absolute -inset-1 bg-white opacity-0 group-hover:opacity-10 rounded-full animate-ping"></div>
-                  <PsychologyIcon className="h-6 w-6 text-primary-600 animate-pulse-slow transform group-hover:scale-110 transition-transform duration-300" />
-                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                    <div className="w-1 h-1 bg-primary-400 rounded-full animate-ping absolute"></div>
-                    <div className="w-1 h-1 bg-primary-400 rounded-full animate-ping absolute" style={{ animationDelay: '0.5s', left: '60%', top: '30%' }}></div>
-                    <div className="w-1 h-1 bg-primary-400 rounded-full animate-ping absolute" style={{ animationDelay: '1s', left: '30%', top: '60%' }}></div>
-                  </div>
-                </div>
-                <span className="text-white text-xl font-bold font-display animate-fadeIn animate-sparkle">
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200 relative">
-                    <span className="absolute top-0 left-0 w-full h-full flex items-center justify-center overflow-hidden">
-                      <span className="w-1 h-1 bg-white rounded-full animate-ping absolute" style={{ left: '10%', top: '20%', animationDelay: '0.2s' }}></span>
-                      <span className="w-1 h-1 bg-white rounded-full animate-ping absolute" style={{ left: '80%', top: '50%', animationDelay: '0.7s' }}></span>
-                      <span className="w-1 h-1 bg-white rounded-full animate-ping absolute" style={{ left: '30%', top: '70%', animationDelay: '1.2s' }}></span>
-                    </span>
-                    HireGenix AI
  
-                  </span>
-                </span>
-              </Link>
-            </div>
-            
-            <div className="flex-1 flex flex-col overflow-y-auto">
-              <nav className="flex-1 px-2 py-4 space-y-2">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`sidebar-link group ${
-                      location.pathname === item.path
-                        ? 'sidebar-link-active'
-                        : 'sidebar-link-inactive'
-                    }`}
-                  >
-                    <span className="mr-3 h-6 w-6 group-hover:scale-110 transition-transform">{item.icon}</span>
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="p-4 border-t border-primary-500/50">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center text-white shadow-lg">
-                      <PersonIcon />
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-white">{user?.email?.split('@')[0]}</p>
-                    <button
-                      onClick={handleLogout}
-                      className="text-xs font-medium text-primary-200 hover:text-white flex items-center transition-colors mt-1"
-                    >
-                      <LogoutIcon className="h-4 w-4 mr-1" />
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile sidebar */}
+  // Determine if sidebar should be visible (expanded or hovered)
+  const isSidebarVisible = isSidebarExpanded || isSidebarHovered;
+ 
+  return (
+    <div className="flex h-screen w-full bg-gray-50 relative overflow-hidden" style={{ margin: 0, padding: 0 }}>
+      {/* Hover zone for desktop - only active when sidebar is collapsed */}
+      {!isSidebarExpanded && (
+        <div
+          className="hidden md:block fixed top-0 left-0 h-full w-3 z-50"
+          onMouseEnter={() => setSidebarHovered(true)}
+          onMouseLeave={() => setSidebarHovered(false)}
+        />
+      )}
+ 
+      {/* Sidebar */}
       <div
-        className={`fixed inset-0 flex z-40 md:hidden transition-opacity duration-300 ${
-          sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out overflow-hidden ${
+          isSidebarVisible ? 'w-64' : 'w-16'
+        } bg-gradient-to-b from-primary-700 via-primary-800 to-primary-900 shadow-2xl border-r border-primary-600/50`}
+        style={{ margin: 0, padding: 0 }}
+        onMouseEnter={() => !isSidebarExpanded && setSidebarHovered(true)}
+        onMouseLeave={() => setSidebarHovered(false)}
+      >
+        <div className="flex flex-col w-full h-full">
+          {/* Logo and Toggle Button */}
+<div className="px-4 pt-4">
+  <div className="flex items-center justify-between w-full h-10">
+    {isSidebarVisible ? (
+      <>
+        <Link to="/dashboard" className="flex items-center justify-start flex-1 pl-2">
+          <Logo expanded={isSidebarVisible} />
+        </Link>
+        {/* Professional Toggle Button - Top right of drawer when expanded */}
+        <button
+          onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+          className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-primary-700 shadow-lg border border-white/10"
+          aria-label="Collapse sidebar"
+        >
+          <ChevronLeftIcon className="h-5 w-5" />
+        </button>
+      </>
+    ) : (
+      /* Toggle Button - Top left when collapsed */
+      <button
+        onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+        className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-primary-700 mx-auto shadow-lg border border-white/10"
+        aria-label="Expand sidebar"
+      >
+        <ChevronRightIcon className="h-5 w-5" />
+      </button>
+    )}
+  </div>
+ 
+  {/* Professional Divider */}
+  <div className="mt-3 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+</div>
+ 
+          <nav className="flex-1 px-2 py-4 space-y-2 overflow-hidden">
+  {navItems.map((item) => (
+    <Link
+      key={item.path}
+      to={item.path}
+      className={`flex items-center text-white/90 hover:text-white transition-all duration-200 ${
+        location.pathname === item.path ? 'font-semibold' : 'font-normal'
+      }`}
+    >
+      <div
+        className={`h-11 w-full flex ${
+          isSidebarVisible ? 'justify-start pl-3' : 'justify-center'
+        } items-center rounded-lg transition-all duration-300 ${
+          location.pathname === item.path
+            ? 'bg-white/15 shadow-lg border-l-2 border-primary-400'
+            : 'hover:bg-white/10 hover:shadow-md'
         }`}
       >
-        <div
-          className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity duration-300 ${
-            sidebarOpen ? 'opacity-100' : 'opacity-0'
-          }`}
-          onClick={toggleSidebar}
-        ></div>
-
-        <div
-          className={`relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-primary-600 to-primary-700 transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        <span className="h-6 w-6 flex-shrink-0 flex items-center justify-center">{item.icon}</span>
+        <span
+          className={`ml-3 whitespace-nowrap transition-all duration-300 ${
+            isSidebarVisible
+              ? 'opacity-100 max-w-[200px]'
+              : 'opacity-0 max-w-0 overflow-hidden'
           }`}
         >
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
-            <button
-              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              onClick={toggleSidebar}
-            >
-              <span className="sr-only">Close sidebar</span>
-              <CloseIcon className="h-6 w-6 text-white" />
-            </button>
-          </div>
-
-          <div className="flex-1 h-0 overflow-y-auto">
-            <div className="flex-shrink-0 flex items-center px-4 py-5">
-              <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center mr-3 shadow-lg animate-pulse-slow">
-                <PsychologyIcon className="h-6 w-6 text-primary-600" />
-              </div>
-              <span className="text-white text-xl font-bold font-display">HireGenix AI</span>
-            </div>
-            
-            <nav className="mt-5 px-2 space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`sidebar-link group ${
-                    location.pathname === item.path
-                      ? 'sidebar-link-active'
-                      : 'sidebar-link-inactive'
-                  }`}
-                  onClick={toggleSidebar}
-                >
-                  <span className="mr-4 h-6 w-6 group-hover:scale-110 transition-transform">{item.icon}</span>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          <div className="flex-shrink-0 flex border-t border-primary-500/50 p-4">
+          {item.label}
+        </span>
+      </div>
+    </Link>
+  ))}
+</nav>
+ 
+          {/* User Info */}
+          <div
+            className={`p-4 border-t border-white/10 transition-all duration-300 overflow-hidden ${
+              isSidebarVisible ? 'opacity-100 max-h-32' : 'opacity-0 max-h-0 p-0'
+            }`}
+          >
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center text-white shadow-lg">
-                  <PersonIcon />
-                </div>
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex items-center justify-center text-white shadow-xl flex-shrink-0 ring-2 ring-white/20">
+                <PersonIcon />
               </div>
-              <div className="ml-3">
-                <p className="text-base font-medium text-white">{user?.email?.split('@')[0]}</p>
+              <div className={`ml-3 transition-all duration-300 ${
+                isSidebarVisible
+                  ? 'opacity-100 max-w-[200px]'
+                  : 'opacity-0 max-w-0 overflow-hidden'
+              }`}>
+                <p className="text-sm font-semibold text-white whitespace-nowrap">{user?.email?.split('@')[0]}</p>
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-medium text-primary-200 hover:text-white flex items-center transition-colors mt-1"
+                  className="text-xs font-medium text-white/70 hover:text-white flex items-center transition-colors mt-1 whitespace-nowrap hover:underline"
                 >
                   <LogoutIcon className="h-4 w-4 mr-1" />
                   Logout
@@ -230,70 +183,131 @@ function MainLayout({ children }) {
           </div>
         </div>
       </div>
-
-      {/* Main content */}
-      <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        <div className="sticky top-0 z-10 bg-white shadow-md">
-          {/* Mobile header */}
-          <div className="md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 flex items-center justify-between">
-            <div className="flex items-center">
-              <button
-                className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-                onClick={toggleSidebar}
-              >
-                <span className="sr-only">Open sidebar</span>
-                <MenuIcon className="h-6 w-6" />
-              </button>
-              <h1 className="text-base font-semibold text-gray-700 ml-2 font-serif" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
-                {greeting}, <span className="font-bold text-gray-900">{user?.email?.split('@')[0]}</span>
-              </h1>
-            </div>
+ 
+      {/* Mobile Sidebar */}
+      <div className={`fixed inset-0 flex z-40 md:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div
+          className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+        <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-primary-700 via-primary-800 to-primary-900 shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="absolute top-0 right-0 -mr-12 pt-2">
+            <button
+              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <CloseIcon className="h-6 w-6 text-white" />
+            </button>
           </div>
-          
-          {/* Desktop header */}
-          <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-700 font-serif" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
-                {greeting}, <span className="font-bold text-gray-900">{user?.email?.split('@')[0]}</span>
-              </h1>
+ 
+          <div className="flex-1 h-0 overflow-y-auto">
+            <div className="flex-shrink-0 flex items-center px-4 py-5">
+              <Logo expanded={true} />
             </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* New Interview button */}
-              <Link
-                to="/interviews/new"
-                className="btn btn-primary rounded-full animate-lightning border border-primary-300"
-              >
-                <AddIcon className="-ml-1 mr-2 h-5 w-5 animate-pulse-slow" />
-                New Interview
-              </Link>
-              
-              {/* Notification icon */}
-              <div className="relative">
-                <button className="p-2 rounded-full text-gray-600 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200">
-                  <NotificationsIcon className="h-6 w-6" />
-                  {notificationCount > 0 && (
-                    <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-500 text-xs text-white font-bold flex items-center justify-center transform translate-x-1 -translate-y-1 animate-pulse-slow">
-                      {notificationCount}
-                    </span>
-                  )}
+ 
+            <nav className="mt-5 px-2 space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center text-white hover:text-primary-200 ${
+                    location.pathname === item.path ? 'font-bold' : ''
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span className="h-6 w-6 mr-3">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+ 
+          <div className="flex-shrink-0 flex border-t border-primary-500/50 p-4">
+            <div className="flex items-center">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary-500 to-primary-500 flex items-center justify-center text-white shadow-lg">
+                <PersonIcon />
+              </div>
+              <div className="ml-3">
+                <p className="text-base font-medium text-white">{user?.email?.split('@')[0]}</p>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-primary-200 hover:text-white flex items-center mt-1"
+                >
+                  <LogoutIcon className="h-4 w-4 mr-1" />
+                  Logout
                 </button>
               </div>
-              
             </div>
           </div>
         </div>
+      </div>
+ 
+      {/* Main Content */}
+      <div className={`flex flex-col w-0 flex-1 overflow-hidden transition-all duration-300 ${isSidebarVisible ? 'md:ml-64' : 'md:ml-16'}`}>
+        {/* Header */}
+        <div className="sticky h-[70px] top-0 z-10 bg-gradient-to-r from-primary-700 via-primary-800 to-primary-700 shadow-lg border-b border-primary-600/50 backdrop-blur-sm transition-all duration-300 w-full" style={{ margin: 0, padding: 0 }}>
+          {/* Mobile Header */}
+          <div className="md:hidden pl-6 pt-3 flex items-center justify-between">
+            <button
+              className="h-12 w-12 inline-flex items-center justify-center rounded-md text-white hover:text-primary-200 hover:bg-primary-500/30 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-300 transition-all duration-200"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <MenuIcon className="h-6 w-6" />
+            </button>
+            <h1 className="text-base font-semibold text-white ml-2 font-serif">
+                            {greeting}, <span className="font-bold text-white">{user?.email?.split('@')[0]}</span>
+            </h1>
+          </div>
+ 
+          {/* Desktop Header */}
+         <div
+  className={`hidden md:flex items-center justify-between px-6 py-4 transition-all duration-300`}
+>
+  {/* Greeting fixed at left side */}
+  <div className="absolute left-6">
+    <h1 className="text-xl font-semibold text-white font-serif">
+      {greeting},{" "}
+      <span className="font-bold text-white">
+        {user?.email?.split("@")[0]}
+      </span>
+    </h1>
+  </div>
 
-        <main className="flex-1 relative overflow-y-auto focus:outline-none animate-fadeIn bg-gray-50">
-          <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-              {children}
+            <div className="flex items-center space-x-3">
+              {/* <Link
+                to="/interviews/new"
+                className="btn btn-primary flex items-center"
+              >
+                <AddIcon className="-ml-1 mr-2 h-5 w-5" />
+                New Interview
+              </Link> */}
+              {/* Notification fixed at top right */}
+<div className="fixed top-4 right-4 z-50">
+  <button className="relative btn-icon">
+    <NotificationsIcon className="h-6 w-6 text-white" />
+    {notificationCount > 0 && (
+      <span
+        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 
+                   text-xs text-white font-bold flex items-center justify-center 
+                   animate-pulse-slow"
+      >
+        {notificationCount}
+      </span>
+    )}
+  </button>
+</div>
             </div>
           </div>
-        </main>
+        </div>
+ 
+        {/* Page Content */}
+        {/* <main className="flex-1 relative overflow-y-auto focus:outline-none animate-fadeIn bg-gradient-to-br from-gray-50 via-white to-gray-50 w-full" style={{ margin: 0, padding: 0 }}> */}
+       <main className="flex-1 relative overflow-y-auto focus:outline-none animate-fadeIn bg-[#f4f5f7] w-full" style={{ margin: 0, padding: 0 }}>
+  <div className="py-6 px-4 sm:px-6 md:px-8 w-full">
+    {children}
+  </div>
+</main>
       </div>
     </div>
   );
 }
-
-export default MainLayout;

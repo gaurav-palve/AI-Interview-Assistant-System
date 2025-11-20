@@ -80,7 +80,7 @@ const StatusDropdown = ({ jobId, currentStatus, onStatusChange }) => {
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-      }, 3000);
+      }, 1000);
       
       // Call the callback to update the parent component
       if (onStatusChange) {
