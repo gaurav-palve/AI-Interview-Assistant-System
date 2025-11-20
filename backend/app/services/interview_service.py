@@ -35,6 +35,7 @@ class InterviewService:
                 "candidate_email": interview_data.candidate_email,
                 "job_role": interview_data.job_role,
                 "scheduled_datetime": interview_data.scheduled_datetime,
+                "timezone": interview_data.timezone,  # Store the timezone
                 "status": interview_data.status,
                 "resume_uploaded": interview_data.resume_uploaded,
                 "jd_uploaded": interview_data.jd_uploaded,
@@ -228,6 +229,9 @@ class InterviewService:
                 if scheduled_dt <= datetime.now(timezone.utc):
                     raise ValueError("Interview must be scheduled for a future date and time")
                 update_fields["scheduled_datetime"] = scheduled_dt
+            
+            if update_data.timezone is not None:
+                update_fields["timezone"] = update_data.timezone
             
             if update_data.status is not None:
                 update_fields["status"] = update_data.status

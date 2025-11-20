@@ -115,15 +115,31 @@ function InterviewDetail() {
    * @param {string} dateString - ISO date string
    * @returns {string} - Formatted date string
    */
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDate = (dateString, timezone = 'UTC') => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    } catch (error) {
+      console.error('Error formatting date with timezone:', error);
+      // Fallback to browser's timezone if there's an error
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    }
   };
 
   return (
@@ -198,7 +214,7 @@ function InterviewDetail() {
                   <div className="flex items-center">
                     <EventIcon className="h-5 w-5 text-white mr-2" />
                     <span className="text-white/90 font-medium">
-                      Scheduled for: {formatDate(interview.scheduled_datetime)}
+                      Scheduled for: {formatDate(interview.scheduled_datetime, interview.timezone)}
                     </span>
                   </div>
                 </div>
