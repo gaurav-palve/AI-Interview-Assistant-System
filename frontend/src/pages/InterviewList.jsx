@@ -126,12 +126,31 @@ function InterviewList() {
   };
 
   // Date formatting
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
+  const formatDate = (dateString, timezone = 'UTC') => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    } catch (error) {
+      console.error('Error formatting date with timezone:', error);
+      // Fallback to browser's timezone if there's an error
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    }
   };
 
   // Filter interviews
@@ -245,6 +264,7 @@ function InterviewList() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Candidate</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Job Role</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Scheduled Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Timezone</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase">Actions</th>
                 </tr>
@@ -257,7 +277,8 @@ function InterviewList() {
                       <div className="text-gray-500 text-sm">{interview.candidate_email}</div>
                     </td>
                     <td className="px-6 py-4 text-gray-700">{interview.job_role}</td>
-                    <td className="px-6 py-4 text-gray-700">{formatDate(interview.scheduled_datetime)}</td>
+                    <td className="px-6 py-4 text-gray-700">{formatDate(interview.scheduled_datetime, interview.timezone)}</td>
+                    <td className="px-6 py-4 text-gray-700">{interview.timezone || 'UTC'}</td>
                     <td className="px-6 py-4">{getStatusBadge(interview.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <Link to={`/interviews/${interview.id}/edit`} className="text-secondary-600 hover:text-secondary-800 mr-3">

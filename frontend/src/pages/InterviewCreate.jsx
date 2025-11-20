@@ -40,6 +40,7 @@ function InterviewCreate() {
       candidate_email: '',
       job_role: '',
       scheduled_datetime: format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"), // Default to tomorrow
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Default to browser timezone
       status: 'scheduled'
     }
   });
@@ -49,6 +50,7 @@ function InterviewCreate() {
   const candidateEmail = watch('candidate_email');
   const jobRole = watch('job_role');
   const scheduledDateTime = watch('scheduled_datetime');
+  const selectedTimezone = watch('timezone');
   
   // Update email body when form values change
   useEffect(() => {
@@ -58,7 +60,7 @@ Your interview for the ${jobRole || 'Job Position'} position has been successful
 
 Interview Details:
 - Position: ${jobRole || 'Job Position'}
-- Date & Time: ${scheduledDateTime ? format(new Date(scheduledDateTime), 'PPpp') : 'Scheduled Date and Time'}
+- Date & Time: ${scheduledDateTime ? format(new Date(scheduledDateTime), 'PPpp') : 'Scheduled Date and Time'} (${selectedTimezone})
 - Interview Link: ${window.location.origin}/candidate/interview/[Interview ID will be generated]
 
 Please click on the interview link at the scheduled time. You will see instructions and a start button. When you're ready, click the start button to begin the interview.
@@ -67,7 +69,7 @@ Best regards,
 Interview System Team`;
     
     setEmailBody(updatedEmailBody);
-  }, [candidateName, candidateEmail, jobRole, scheduledDateTime]);
+  }, [candidateName, candidateEmail, jobRole, scheduledDateTime, selectedTimezone]);
 
   /**
    * Handle resume file selection
@@ -173,7 +175,8 @@ Interview System Team`;
         format(new Date(interviewData.scheduled_datetime), 'PPpp'),
         interviewData.id,
         customEmailBody,
-        emailAttachments
+        emailAttachments,
+        interviewData.timezone || 'UTC'
       );
       setSuccess('Interview created and confirmation email sent successfully!');
     } catch (err) {
@@ -206,9 +209,23 @@ Interview System Team`;
         setIsLoading(false);
         return;
       }
+      // Create a date object from the input (in local timezone)
+      const localDate = new Date(data.scheduled_datetime);
       
-      // Convert the datetime string to a Date object and then to ISO string
-      const scheduledDate = new Date(data.scheduled_datetime);
+      // Calculate the offset between local timezone and selected timezone
+      const selectedTimezoneOffset = getTimezoneOffset(data.timezone);
+      const localTimezoneOffset = new Date().getTimezoneOffset() * -1;
+      const offsetDiff = selectedTimezoneOffset - localTimezoneOffset;
+      
+      // Adjust the date by the offset difference
+      const scheduledDate = new Date(localDate.getTime() - offsetDiff * 60000);
+      
+      console.log('Local date:', localDate);
+      console.log('Selected timezone:', data.timezone);
+      console.log('Selected timezone offset:', selectedTimezoneOffset);
+      console.log('Local timezone offset:', localTimezoneOffset);
+      console.log('Offset difference:', offsetDiff);
+      console.log('Adjusted date:', scheduledDate);
       
       // Create the interview data object
       const interviewData = {
@@ -216,6 +233,7 @@ Interview System Team`;
         candidate_email: data.candidate_email,
         job_role: data.job_role,
         scheduled_datetime: scheduledDate.toISOString(), // Convert to ISO string
+        timezone: data.timezone, // Include the timezone
         status: data.status,
         resume_uploaded: false,
         jd_uploaded: false
@@ -239,7 +257,8 @@ Interview System Team`;
         candidate_email: data.candidate_email,
         candidate_name: data.candidate_name,
         job_role: data.job_role,
-        scheduled_datetime: data.scheduled_datetime
+        scheduled_datetime: data.scheduled_datetime,
+        timezone: data.timezone
       });
       
       // Send confirmation email
@@ -249,7 +268,8 @@ Interview System Team`;
         candidate_email: data.candidate_email,
         candidate_name: data.candidate_name,
         job_role: data.job_role,
-        scheduled_datetime: data.scheduled_datetime
+        scheduled_datetime: data.scheduled_datetime,
+        timezone: data.timezone
       });
       
       setSuccess('Interview created successfully!');
@@ -260,6 +280,47 @@ Interview System Team`;
       setIsLoading(false);
     }
   };
+
+  /**
+   * Get timezone offset in minutes
+   * @param {string} timezone - Timezone identifier
+   * @returns {number} - Timezone offset in minutes
+   */
+  function getTimezoneOffset(timezone) {
+    try {
+      const date = new Date();
+      const options = { timeZone: timezone, timeZoneName: 'short' };
+      const formatter = new Intl.DateTimeFormat('en-US', options);
+      const timeZonePart = formatter.formatToParts(date)
+        .find(part => part.type === 'timeZoneName');
+      
+      if (!timeZonePart) return 0;
+      
+      const timeZoneName = timeZonePart.value;
+      
+      // Parse the timezone offset from the name (e.g., "GMT+11")
+      const match = timeZoneName.match(/GMT([+-])(\d+)(?::(\d+))?/);
+      if (match) {
+        const sign = match[1] === '+' ? 1 : -1;
+        const hours = parseInt(match[2], 10);
+        const minutes = match[3] ? parseInt(match[3], 10) : 0;
+        return sign * (hours * 60 + minutes);
+      }
+      
+      // Handle special cases
+      if (timeZoneName === 'UTC') return 0;
+      if (timeZoneName === 'EST') return -5 * 60;
+      if (timeZoneName === 'CST') return -6 * 60;
+      if (timeZoneName === 'MST') return -7 * 60;
+      if (timeZoneName === 'PST') return -8 * 60;
+      
+      // Default to UTC if parsing fails
+      return 0;
+    } catch (error) {
+      console.error('Error getting timezone offset:', error);
+      return 0;
+    }
+  }
 
   /**
    * Navigate to interviews list
@@ -382,6 +443,35 @@ Interview System Team`;
               />
               {errors.scheduled_datetime && (
                 <p className="mt-1 text-sm text-red-600">{errors.scheduled_datetime.message}</p>
+              )}
+            </div>
+
+            {/* Timezone */}
+            <div className="sm:col-span-3">
+              <label htmlFor="timezone" className="form-label">
+                Timezone
+              </label>
+              <select
+                id="timezone"
+                {...register('timezone', { required: 'Timezone is required' })}
+                className={`form-input ${errors.timezone ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="UTC">UTC</option>
+                <option value="America/New_York">Eastern Time (ET)</option>
+                <option value="America/Chicago">Central Time (CT)</option>
+                <option value="America/Denver">Mountain Time (MT)</option>
+                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                <option value="America/Anchorage">Alaska Time</option>
+                <option value="America/Adak">Hawaii-Aleutian Time</option>
+                <option value="Europe/London">London (GMT)</option>
+                <option value="Europe/Paris">Central European Time (CET)</option>
+                <option value="Asia/Kolkata">India (IST)</option>
+                <option value="Asia/Tokyo">Japan (JST)</option>
+                <option value="Asia/Shanghai">China (CST)</option>
+                <option value="Australia/Sydney">Australia Eastern Time</option>
+              </select>
+              {errors.timezone && (
+                <p className="mt-1 text-sm text-red-600">{errors.timezone.message}</p>
               )}
             </div>
 
