@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { 
+import {
   Description as DescriptionIcon,
   Lightbulb as AIIcon,
   Business as CompanyIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  CheckCircle as CheckIcon,
+  Error as AlertIcon,
+  Info as InfoIcon,
+  AutoAwesome as SparklesIcon
 } from '@mui/icons-material';
 import jobPostingService from '../../services/jobPostingService';
 
@@ -16,6 +20,7 @@ function JobDescription({ formData, handleChange }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [aiContext, setAiContext] = useState('');
+  const [showAISuccess, setShowAISuccess] = useState(false);
 
   // Toggle AI generation
   const handleToggleAI = () => {
@@ -42,39 +47,38 @@ function JobDescription({ formData, handleChange }) {
     try {
       setLoading(true);
       setError(null);
-      
-      // Extract experience from requirements
+      setShowAISuccess(false);
+
       const extractExperienceFromRequirements = () => {
         if (!Array.isArray(formData.requirements) || formData.requirements.length === 0) {
           return '';
         }
-        
-        // Join all requirements that might contain experience information
         return formData.requirements.join(', ');
       };
-      
-      // Prepare data for AI generation - match exactly what the backend expects
+
       const jobData = {
         job_title: formData.job_title,
         company: formData.company,
         job_type: formData.job_type,
         work_location: formData.work_location,
-        // Convert required_skills array to string as expected by backend
-        required_skills: Array.isArray(formData.required_skills) ? formData.required_skills.join(', ') : '',
-        // Use requirements for experience information
+        required_skills: Array.isArray(formData.required_skills)
+          ? formData.required_skills.join(', ')
+          : '',
         experience_level: extractExperienceFromRequirements(),
-        responsibilities: typeof formData.responsibilities === 'string' ? formData.responsibilities :
-                         (Array.isArray(formData.responsibilities) ? formData.responsibilities.join('\n') : ''),
+        responsibilities:
+          typeof formData.responsibilities === 'string'
+            ? formData.responsibilities
+            : Array.isArray(formData.responsibilities)
+            ? formData.responsibilities.join('\n')
+            : '',
         qualifications: formData.qualifications || '',
         job_description: formData.job_description || '',
         additional_context: aiContext
       };
-      console.log('Generating job description with data:', jobData);
-      // Call the API to generate job description
+
       const response = await jobPostingService.generateJobDescription(jobData);
-      
-      // Update the job description in the form
       handleChange('job_description', response.job_description);
+      setShowAISuccess(true);
     } catch (err) {
       console.error('Error generating job description:', err);
       setError('Failed to generate job description. Please try again.');
@@ -85,8 +89,12 @@ function JobDescription({ formData, handleChange }) {
 
   // Auto-generate job description when component mounts if AI generation is enabled
   useEffect(() => {
-    if (formData.use_ai_generation && !formData.job_description && 
-        formData.job_title && formData.company) {
+    if (
+      formData.use_ai_generation &&
+      !formData.job_description &&
+      formData.job_title &&
+      formData.company
+    ) {
       generateJobDescription();
     }
   }, []);
@@ -98,89 +106,91 @@ function JobDescription({ formData, handleChange }) {
         <span className="text-gray-800 font-serif">Job Description</span>
       </h2>
 
-      {/* AI Generation Toggle */}
-      <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <div className="flex items-center">
-          <AIIcon className="h-6 w-6 text-primary-600 mr-2" />
-          <span className="text-gray-800 font-medium">Use AI to generate description</span>
-        </div>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input 
-            type="checkbox" 
-            checked={formData.use_ai_generation}
-            onChange={handleToggleAI}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-        </label>
-      </div>
+      {/* Toggle Switch */}
+      <button
+        onClick={handleToggleAI}
+        className={`relative w-14 h-8 rounded-full transition-all duration-300 ${
+          formData.use_ai_generation ? 'bg-white shadow-lg' : 'bg-white/30'
+        }`}
+      >
+        <div
+          className={`absolute top-1 left-1 w-6 h-6 rounded-full transition-all duration-300 ${
+            formData.use_ai_generation
+              ? 'translate-x-6 bg-gradient-to-r from-indigo-500 to-purple-600'
+              : 'translate-x-0 bg-white'
+          }`}
+        ></div>
+      </button>
 
-      {formData.use_ai_generation && (
-        <div className="card bg-primary-50 border border-primary-200 p-4 rounded-lg animate-fadeIn">
-          <h3 className="text-lg font-semibold text-primary-800 flex items-center mb-3">
-            <AIIcon className="h-5 w-5 mr-2 text-primary-600" />
-            AI-Powered Job Description Generator
-          </h3>
-          <p className="text-sm text-primary-700 mb-4">
-            Provide additional context about the company or role, and our AI will generate a comprehensive job description based on the information you've already provided.
-          </p>
-          
-          {/* Additional Context for AI */}
-          <div className="form-control mb-4">
-            <label className="label">
-              <span className="label-text font-medium text-primary-700">Additional Context (Optional)</span>
+      {/* AI Controls - Expandable */}
+      <div
+        className={`transition-all duration-500 ease-in-out ${
+          formData.use_ai_generation
+            ? 'max-h-96 opacity-100'
+            : 'max-h-0 opacity-0 overflow-hidden'
+        }`}
+      >
+        <div className="p-6 space-y-4 bg-gradient-to-br from-indigo-50 to-purple-50">
+          <div className="flex items-start gap-2 text-sm text-indigo-900 bg-white/60 backdrop-blur-sm rounded-lg p-3">
+            <InfoIcon className="w-4 h-4 mt-0.5 text-indigo-600 flex-shrink-0" />
+            <p>
+              Provide additional context to help AI generate a tailored job description based on your
+              requirements.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Additional Context (Optional)
             </label>
             <textarea
               value={aiContext}
               onChange={handleAiContextChange}
-              placeholder="Add any additional details about the company, team, or specific requirements for this role..."
-              className="textarea textarea-bordered border-primary-200 bg-white h-24"
-            ></textarea>
+              placeholder="e.g., We're a fast-growing startup focusing on AI solutions..."
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none"
+              rows="3"
+            />
           </div>
-          
+
           <button
-            type="button"
             onClick={generateJobDescription}
             disabled={loading}
-            className="btn btn-primary w-full"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
-                <span className="loading loading-spinner loading-sm mr-2"></span>
-                Generating...
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Generating with AI...
               </>
             ) : (
               <>
-                <RefreshIcon className="h-5 w-5 mr-2" />
-                Generate with AI
+                <SparklesIcon className="w-5 h-5" />
+                Generate Description
               </>
             )}
           </button>
-          
+
+          {showAISuccess && (
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3 ">
+              <CheckIcon className="w-2 h-4" />
+              Description generated successfully!
+            </div>
+          )}
+
           {error && (
-            <div className="mt-3 text-sm text-error">
+            <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+              <AlertIcon className="w-4 h-4" />
               {error}
             </div>
           )}
         </div>
-      )}
+      </div>
 
       <div className="grid grid-cols-1 gap-6">
         {/* Company Description */}
         <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium text-gray-700 flex items-center">
-              <CompanyIcon className="h-5 w-5 mr-1 text-gray-500" />
-              Company Description
-            </span>
-          </label>
-          <textarea
-            name="company_description"
-            value={formData.company_description}
-            onChange={handleCompanyDescriptionChange}
-            placeholder="Describe your company, culture, and values..."
-            className="textarea textarea-bordered h-32"
-          ></textarea>
+         
+          
         </div>
 
         {/* Job Description */}
@@ -201,18 +211,9 @@ function JobDescription({ formData, handleChange }) {
                 <option>Heading 3</option>
               </select>
               <div className="border-r h-6 mx-1"></div>
-              <button className="btn btn-sm btn-ghost btn-square">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-                </svg>
-              </button>
-              <button className="btn btn-sm btn-ghost btn-square">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-              </button>
+              <button className="btn btn-sm btn-ghost btn-square">•••</button>
+              <button className="btn btn-sm btn-ghost btn-square">♥</button>
             </div>
-            
             {/* Text Area for Job Description */}
             <textarea
               name="job_description"

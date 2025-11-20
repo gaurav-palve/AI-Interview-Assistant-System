@@ -5,6 +5,11 @@
   text-align: center;
 }
 
+.texborderedtarea{
+
+  color: gray;
+
+}
 .logo {
   height: 6em;
   padding: 1.5em;
