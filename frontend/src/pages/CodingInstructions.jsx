@@ -158,5 +158,3 @@ function CodingInstructions() {
 }
 
 export default CodingInstructions;
-
- 
