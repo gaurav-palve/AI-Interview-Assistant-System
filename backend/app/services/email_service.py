@@ -160,7 +160,6 @@ Interview System Team
                 # Get server info
                 try:
                     server_info = server.ehlo()
-                    logger.info(f"Server info: {server_info}")
                 except Exception as e:
                     logger.error(f"Error getting server info: {e}")
                 
@@ -285,7 +284,6 @@ Interview System Team
                 # Get server info
                 try:
                     server_info = server.ehlo()
-                    logger.info(f"Server info: {server_info}")
                 except Exception as e:
                     logger.error(f"Error getting server info: {e}")
                 
@@ -404,7 +402,6 @@ Interview System Team
                 # Get server info
                 try:
                     server_info = server.ehlo()
-                    logger.info(f"Server info: {server_info}")
                 except Exception as e:
                     logger.error(f"Error getting server info: {e}")
                 
