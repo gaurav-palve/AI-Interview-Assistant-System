@@ -73,13 +73,9 @@ function CandidateInterview() {
         logger.info('Interview data retrieved successfully', data);
         setInterview(data);
         
-        // Check if MCQs are already ready based on the mcqs_status field
-        if (data.mcqs_status === 'ready') {
-          logger.info('MCQs are already ready according to interview data');
-          // We'll still call generateMcqsInBackground to fetch the actual MCQs,
-          // but we know they're ready
-          setMcqsGenerated(true);
-        }
+        // Always generate new MCQs in the background
+        logger.info('Starting MCQ generation in background');
+        generateMcqsInBackground();
         
         setError(null);
       } catch (err) {
@@ -94,10 +90,9 @@ function CandidateInterview() {
       fetchInterview();
       // Start instruction timer automatically when component mounts
       setTimerActive(true);
-      // Start MCQ generation in the background
-      generateMcqsInBackground();
       // Start camera
       startCamera();
+      // Note: MCQ generation/fetching is now handled in fetchInterview based on mcqs_status
     }
   }, [interviewId]);
 
@@ -138,7 +133,13 @@ function CandidateInterview() {
     debounce(async (id) => {
       try {
         logger.info('Debounced MCQ generation called', { interviewId: id });
-        const response = await interviewService.generateCandidateMCQs(id);
+        
+        // First, generate new MCQs (this will override any existing ones)
+        await interviewService.generateCandidateMCQs(id);
+        logger.info('MCQs generation completed, now fetching them');
+        
+        // Then make a separate GET request to fetch the MCQs
+        const response = await interviewService.getCandidateMCQs(id);
         
         if (response && response.length > 0) {
           logger.info('MCQs fetched successfully', { responseLength: response.length });
@@ -157,7 +158,7 @@ function CandidateInterview() {
           setMcqTimerActive(true);
         }
       } catch (err) {
-        logger.error('Error generating MCQs', err);
+        logger.error('Error generating or fetching MCQs', err);
         // Don't set error state here to avoid disrupting the UI
       }
     }, 500), // 500ms debounce time
