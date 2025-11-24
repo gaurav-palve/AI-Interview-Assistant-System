@@ -9,6 +9,7 @@ import {
   Delete as DeleteIcon,
   Schedule as ScheduleIcon,
   CheckCircle as CompletedIcon,
+  Drafts as DraftIcon,
   Cancel as CancelledIcon,
   Person as PersonIcon,
   Work as JobIcon,
@@ -103,7 +104,8 @@ function InterviewDetail() {
         );
       default:
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <DraftIcon className= "h-3 w-3 mr-1" />
             Draft
           </span>
         );
