@@ -6,48 +6,12 @@ import logging
 from ..config import settings
 import os
 import asyncio
-import hashlib
 import time
-from functools import lru_cache
-from typing import Dict, Any, Optional
+import random
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
-# LRU cache for MCQ results
-mcq_cache: Dict[str, Dict[str, Any]] = {}
-CACHE_EXPIRY = 3600  # 1 hour in seconds
-
-def get_cache_key(jd_text: str, resume_text: str) -> str:
-    """Generate a cache key based on the input texts"""
-    # Create a hash of the combined texts to use as a cache key
-    combined = f"{jd_text}|{resume_text}"
-    return hashlib.md5(combined.encode()).hexdigest()
-
-def get_cached_mcqs(cache_key: str) -> Optional[str]:
-    """Get MCQs from cache if available and not expired"""
-    current_time = time.time()
-    if cache_key in mcq_cache:
-        cache_entry = mcq_cache[cache_key]
-        if current_time - cache_entry["timestamp"] < CACHE_EXPIRY:
-            logger.info(f"Cache hit for key {cache_key[:8]}...")
-            return cache_entry["data"]
-    return None
-
-def cache_mcqs(cache_key: str, content: str) -> None:
-    """Cache MCQs for future use"""
-    mcq_cache[cache_key] = {
-        "data": content,
-        "timestamp": time.time()
-    }
-    logger.info(f"Cached MCQs with key {cache_key[:8]}...")
-    
-    # Cleanup old cache entries if cache gets too large
-    if len(mcq_cache) > 100:
-        # Remove oldest entries
-        oldest_keys = sorted(mcq_cache.keys(), 
-                            key=lambda k: mcq_cache[k]["timestamp"])[:20]
-        for key in oldest_keys:
-            del mcq_cache[key]
 
 async def generate_mcqs(jd_text: str, resume_text: str) -> str:
     """
@@ -56,84 +20,88 @@ async def generate_mcqs(jd_text: str, resume_text: str) -> str:
     Returns: String of formatted MCQs
     
     Features:
-    - Caching to prevent duplicate generation
+    - Generates new MCQs each time
     - Timeout protection to prevent hanging requests
     - Improved error handling
     """
-    # Generate cache key
-    cache_key = get_cache_key(jd_text, resume_text)
-    
-    # Check cache first
-    cached_result = get_cached_mcqs(cache_key)
-    if cached_result:
-        return cached_result
-    
     try:
         # Escape braces inside JSON example
         template = """
-You are an expert interviewer.
-Your task is to create exactly 10 medium-level multiple-choice questions:
-- 5 mathematical aptitude questions (questions 1-5)
-- 5 technical questions based on the job description and resume (questions 6-10)
-
-Rules for Mathematical Aptitude Questions (1-5):
-1. Create one question on each of these topics:
-   - Boats and streams
-   - Finding the next number in a sequence
-   - Time and distance
-   - Probability
-   - work and time
-   - Any other mathematical topic
-2. Difficulty level should be medium (7/10) - challenging but solvable
-3. Each question should be unique and test different skills
-4. Questions should be practical and applicable
-
-Rules for Technical Questions (6-10):
-1. Questions must be technical and based ONLY on:
-   - Skills explicitly mentioned in the job description
-   - Skills explicitly mentioned in the candidate's resume
-2. Do NOT mention "resume", "job description", or the candidate's name in the question text.
-3. Focus on practical, applied knowledge, not definitions.
-
-General Rules:
-1. Each question should be short, precise, and answerable in less than 20 seconds.
-2. Format strictly as:
-<question_number>. <question text>
-a) <option 1>
-b) <option 2>
-c) <option 3>
-d) <option 4>
-Answer: <correct option letter>) <correct option text>
-
-Job Description:
-{jd}
-
-Resume:
-{resume}
-
-Example Mathematical Question:
-1. A boat travels 24 km upstream in 6 hours and the same distance downstream in 4 hours. What is the speed of the boat in still water?
-a) 3 km/h
-b) 4 km/h
-c) 5 km/h
-d) 6 km/h
-Answer: d) 6 km/h
-
-Example Technical Question:
-6. Which HTTP method is idempotent and used for updating existing resources in a REST API?
-a) POST
-b) PUT
-c) PATCH
-d) DELETE
-Answer: b) PUT
-"""
+        You are an expert interviewer.
+        Your task is to create exactly 10 medium-level multiple-choice questions:
+        - 5 mathematical aptitude questions (questions 1-5)
+        - 5 technical questions based on the job description and resume (questions 6-10)
+        
+        Rules for Mathematical Aptitude Questions (1-5):
+        1. Create questions on any 5 DIFFERENT *mathematical aptitude* topics.
+        2. IMPORTANT: Each time this prompt is run, select a DIFFERENT set of 5 topics from the list above
+        3. Difficulty level should be medium (7/10) - challenging but solvable
+        4. Each question should be unique and test different skills
+        5. Questions should be practical and applicable
+        6. Vary the question formats, numbers, and scenarios to ensure diversity
+        
+        Rules for Technical Questions (6-10):
+        1. Questions must be technical and based ONLY on:
+           - Skills explicitly mentioned in the job description
+           - Skills explicitly mentioned in the candidate's resume
+        2. IMPORTANT: Each time this prompt is run, focus on DIFFERENT technical skills or aspects
+        3. Do NOT mention "resume", "job description", or the candidate's name in the question text.
+        4. Focus on practical, applied knowledge, not definitions.
+        5. Vary the question formats, scenarios, and technical concepts to ensure diversity
+        6. Cover different aspects of each technical skill (e.g., for programming: syntax, algorithms, debugging, etc.)
+        
+        Rules for Options:
+        1. Each question MUST have exactly 4 options (a, b, c, d)
+        2. Only ONE option should be correct
+        3. The incorrect options should be plausible and related to the correct answer
+        4. Make the incorrect options challenging by using common misconceptions or close-but-wrong answers
+        5. Do NOT use placeholder options like "Option A" or "None of the above"
+        6. All options should be of similar length and detail
+        
+        General Rules:
+        1. Each question should be short, precise, and answerable in less than 20 seconds.
+        2. Format strictly as:
+        <question_number>. <question text>
+        a) <option 1 - plausible but incorrect>
+        b) <option 2 - plausible but incorrect>
+        c) <option 3 - correct answer>
+        d) <option 4 - plausible but incorrect>
+        Answer: c) <correct option text>
+        
+        Job Description:
+        {jd}
+        
+        Resume:
+        {resume}
+        **Note**: Below are just sample example. Genarete the questions on random topics.
+        Example Mathematical Question:
+        1. A boat travels 24 km upstream in 6 hours and the same distance downstream in 4 hours. What is the speed of the boat in still water?
+        a) 3 km/h (incorrect but plausible - if you only divide total distance by total time)
+        b) 4 km/h (incorrect but plausible - if you calculate using wrong formula)
+        c) 6 km/h (correct answer)
+        d) 8 km/h (incorrect but plausible - if you add instead of average)
+        Answer: c) 6 km/h
+        
+        Example Technical Question:
+        6. Which HTTP method is idempotent and used for updating existing resources in a REST API?
+        a) POST (incorrect but plausible - commonly used but not idempotent)
+        b) PUT (correct answer)
+        c) PATCH (incorrect but plausible - used for partial updates but not always idempotent)
+        d) GET (incorrect but plausible - idempotent but not for updates)
+        Answer: b) PUT
+        
+        IMPORTANT: Do not include any explanations in parentheses in your actual output. The examples above include explanations only to show you how to create plausible incorrect options.
+        """
 
         prompt = PromptTemplate(
             input_variables=["jd", "resume"],
             template=template
         )
 
+        # Add timestamp to ensure different questions each time
+        current_timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         formatted_prompt = prompt.format(jd=jd_text, resume=resume_text)
+        formatted_prompt += f"\n\nGeneration timestamp: {current_timestamp}"
         
         # Add timeout protection
         try:
@@ -146,11 +114,10 @@ Answer: b) PUT
                 timeout=45.0  # 45 second timeout
             )
             
-            # Cache the successful result
+            # Return the result
             result = response.content
             if result:
-                cache_mcqs(cache_key, result)
-                logger.info("MCQ generation successful with Gemini.")
+                logger.info("MCQ generation successful.")
                 return result
             else:
                 raise ValueError("Empty response from LLM")

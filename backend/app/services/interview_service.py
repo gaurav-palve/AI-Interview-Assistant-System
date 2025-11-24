@@ -323,7 +323,6 @@ class InterviewService:
         try:
             # Try to update by ObjectId first
             if ObjectId.is_valid(interview_id):
-                logger.info(f"Trying to update interview by ObjectId: {interview_id}")
                 
                 # Get current interview status for logging
                 current_interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one(
@@ -349,7 +348,6 @@ class InterviewService:
                         return True
             
             # Try to update by custom "id" field in scheduled_interviews collection
-            logger.info(f"Trying to update interview by custom id in scheduled_interviews: {interview_id}")
             current_interview = await self.db[SCHEDULED_INTERVIEWS_COLLECTION].find_one(
                 {"id": interview_id},
                 {"status": 1}
@@ -372,7 +370,6 @@ class InterviewService:
                     return True
             
             # Try to update in interviews collection
-            logger.info(f"Trying to update interview by custom id in interviews collection: {interview_id}")
             current_interview = await self.db.interviews.find_one(
                 {"id": interview_id},
                 {"status": 1}

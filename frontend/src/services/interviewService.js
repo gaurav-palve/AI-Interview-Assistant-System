@@ -232,6 +232,21 @@ const interviewService = {
   },
   
   /**
+   * Get MCQs for candidate interview (public endpoint)
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the MCQs
+   */
+  getCandidateMCQs: async (interviewId) => {
+    try {
+      console.log(`Fetching MCQs for interview ID: ${interviewId}`);
+      const response = await api.get(`/candidate/get-mcqs/${interviewId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching MCQs' };
+    }
+  },
+  
+  /**
    * Submit candidate answers for an interview (public endpoint)
    * @param {string} interviewId - Interview ID
    * @param {string} candidateEmail - Candidate email
