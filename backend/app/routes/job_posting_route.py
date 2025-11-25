@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.params import Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from app.database import get_database, JOB_POSTINGS_COLLECTION
@@ -6,6 +7,8 @@ from app.services.generate_jd_service import generate_jd
 from bson import ObjectId
 from datetime import datetime, timezone
 from app.utils.logger import get_logger
+from app.utils.auth_dependency import require_auth
+
 
 logger = get_logger(__name__)
 
@@ -113,7 +116,8 @@ def job_posting_dict(job_posting: JobPostingCreate) -> Dict[str, Any]:
     }
 
 @router.post("")
-async def create_job_posting(job_posting: JobPostingCreate):
+async def create_job_posting(job_posting: JobPostingCreate,
+                              current_user: dict = Depends(require_auth)):
     """
     Create a new job posting
     """
@@ -121,8 +125,11 @@ async def create_job_posting(job_posting: JobPostingCreate):
         db = get_database()
         
         # Create job posting document
+        # job_doc = job_posting_dict(job_posting)
         job_doc = job_posting_dict(job_posting)
-        
+
+        job_doc["created_by"] = current_user["admin_id"]
+
         # Insert into database
         result = await db[JOB_POSTINGS_COLLECTION].insert_one(job_doc)
         
@@ -161,7 +168,8 @@ async def get_job_postings(
     search: Optional[str] = None,
     sort: Optional[str] = "newest",
     limit: int = Query(20, ge=1, le=100),
-    skip: int = Query(0, ge=0)
+    skip: int = Query(0, ge=0),
+    current_user: dict = Depends(require_auth)
 ):
     """
     Get all job postings with optional filters
@@ -185,7 +193,7 @@ async def get_job_postings(
                     {"job_description": {"$regex": search, "$options": "i"}}
                 ]
             }
-            query.update(search_query)
+            query["$or"] = [search_query]
         
         # Determine sort order
         sort_options = {
@@ -224,7 +232,7 @@ async def get_job_postings(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{job_id}")
-async def get_job_posting(job_id: str):
+async def get_job_posting(job_id: str, current_user: dict = Depends(require_auth)):
     """
     Get a specific job posting by ID
     """
@@ -249,7 +257,11 @@ async def get_job_posting(job_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{job_id}")
-async def update_job_posting(job_id: str, job_posting: JobPostingUpdate):
+async def update_job_posting(
+    job_id: str,
+    job_posting: JobPostingUpdate,
+    current_user: dict = Depends(require_auth)
+):
     """
     Update a job posting
     """
@@ -288,7 +300,7 @@ async def update_job_posting(job_id: str, job_posting: JobPostingUpdate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{job_id}")
-async def delete_job_posting(job_id: str):
+async def delete_job_posting(job_id: str, current_user: dict = Depends(require_auth)):
     """
     Delete a job posting
     """
@@ -312,7 +324,11 @@ async def delete_job_posting(job_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.patch("/update-job-posting-status/{job_id}")
-async def update_job_posting_status(job_id: str, status_update: JobPostingStatusUpdate):
+async def update_job_posting_status(
+    job_id: str,
+    status_update: JobPostingStatusUpdate,
+    current_user: dict = Depends(require_auth)
+):
     """
     Update the status of a job posting
     """
@@ -350,7 +366,10 @@ async def update_job_posting_status(job_id: str, status_update: JobPostingStatus
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/generate-description")
-async def generate_job_description(request: JobDescriptionGenerate):
+async def generate_job_description(
+    request: JobDescriptionGenerate,
+    current_user: dict = Depends(require_auth)
+):
     """
     Generate a job description based on the provided requirements
     """
