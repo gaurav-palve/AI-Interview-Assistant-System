@@ -272,7 +272,7 @@ export default function MainLayout({ children }) {
       </span>
     </h1>
   </div>
-
+ 
             <div className="flex items-center space-x-3">
               {/* <Link
                 to="/interviews/new"
@@ -287,8 +287,8 @@ export default function MainLayout({ children }) {
     <NotificationsIcon className="h-6 w-6 text-white" />
     {notificationCount > 0 && (
       <span
-        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 
-                   text-xs text-white font-bold flex items-center justify-center 
+        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500
+                   text-xs text-white font-bold flex items-center justify-center
                    animate-pulse-slow"
       >
         {notificationCount}

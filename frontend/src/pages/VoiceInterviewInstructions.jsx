@@ -123,116 +123,110 @@ function VoiceInterviewInstructions() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-500/5 rounded-full blur-2xl animate-pulse delay-2000"></div>
+return (
+  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+
+    {/* HEADER */}
+    <header className="w-full px-10 py-6 flex justify-between items-center backdrop-blur-xl bg-white/5 border-b border-white/10 relative z-20">
+      <h1 className="text-3xl text-purple-300 font-bold">Voice Interview Instructions</h1>
+
+      {/* Timer */}
+      <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+        <Clock className="w-5 h-5 text-yellow-400" />
+        <span className="font-mono font-bold">{formatTime(instructionTimer)}</span>
+      </div>
+    </header>
+
+    
+
+    {/* MAIN CONTENT AREA */}
+    <div className="w-full h-[calc(100vh-100px)] px-10 py-6 flex gap-10 relative z-10">
+
+      {/* LEFT PANEL - Main Instructions */}
+      <div className="w-1/2 bg-white/10 border border-white/10 rounded-2xl p-7 backdrop-blur-md overflow-hidden">
+
+        <h2 className="text-2xl font-bold mb-6">Ready for Your Voice Interview?</h2>
+
+        <div className="space-y-6 overflow-auto h-[calc(100%-80px)] pr-2">
+
+          <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+            <h3 className="text-lg font-semibold text-purple-300 flex items-center mb-2">
+              <Brain className="mr-2 h-5 w-5" /> What to Expect
+            </h3>
+            <p className="text-white/80">
+              You're about to begin an AI-powered voice interview. You'll interact with an AI
+              interviewer who will ask you technical questions. Speak clearly and confidently.
+            </p>
+          </div>
+
+          <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+            <h3 className="text-lg font-semibold text-purple-300 flex items-center mb-2">
+              <Mic className="mr-2 h-5 w-5" /> How It Works
+            </h3>
+            <ul className="text-white/80 space-y-2 ml-5 list-disc">
+              <li>The AI will ask you a series of technical questions</li>
+              <li>Answer each question confidently and clearly</li>
+              <li>Your responses are transcribed and analyzed</li>
+              <li>Camera proctoring stays active throughout</li>
+              <li>Total interview time: 15–20 mins</li>
+            </ul>
+          </div>
+
+          <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+            <h3 className="text-lg font-semibold text-purple-300 flex items-center mb-2">
+              <ArrowRight className="mr-2 h-5 w-5" /> Tips for Success
+            </h3>
+            <ul className="text-white/80 space-y-2 ml-5 list-disc">
+              <li>Speak clearly and at normal pace</li>
+              <li>Take a moment before answering</li>
+              <li>Give examples when possible</li>
+              <li>If unsure, answer honestly</li>
+              <li>Stay calm and confident</li>
+            </ul>
+          </div>
+
+        </div>
+
       </div>
 
-      {/* Glassmorphism Header */}
-      <header className="relative z-10 backdrop-blur-xl bg-white/10 border-b border-white/20 sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                  Voice Interview Preparation
-                </h1>
-                {interview && (
-                  <p className="text-white/60 mt-1">{interview.job_role || "Technical Interview"}</p>
-                )}
-              </div>
-            </div>
+      {/* RIGHT PANEL */}
+      <div className="w-1/2 flex flex-col gap-6">
 
-            <div className="flex items-center space-x-6">
-              {/* Timer */}
-              <div className="flex items-center space-x-2 bg-white/10 rounded-full px-4 py-2 backdrop-blur-sm">
-                <Clock className="w-5 h-5 text-yellow-400 animate-pulse" />
-                <span className="font-mono text-sm font-bold">
-                  {formatTime(instructionTimer)}
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* CAMERA FIXED TOP RIGHT (Just Below Timer) */}
+        <div className="absolute right-10 top-[60px] w-56 h-56 rounded-lg overflow-hidden z-30">
+          <CameraProctor detectionEnabled={false} />
         </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Instructions */}
-          <div className="lg:col-span-2">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-xl">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <Volume2 className="mr-3 h-6 w-6 text-purple-400" />
-                Voice Interview Instructions
-              </h2>
-              
-              <div className="space-y-6">
-                <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                  <h3 className="text-lg font-semibold text-purple-300 mb-2 flex items-center">
-                    <Brain className="mr-2 h-5 w-5" />
-                    What to Expect
-                  </h3>
-                  <p className="text-white/80 leading-relaxed">
-                    You're about to begin an AI-powered voice interview. You'll interact with an AI interviewer that will ask you technical questions related to the position. Speak clearly and concisely when answering questions.
-                  </p>
-                </div>
-                
-                <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                  <h3 className="text-lg font-semibold text-purple-300 mb-2 flex items-center">
-                    <Mic className="mr-2 h-5 w-5" />
-                    How It Works
-                  </h3>
-                  <ul className="text-white/80 space-y-2 ml-5 list-disc">
-                    <li>The AI will ask you a series of technical questions</li>
-                    <li>Answer each question to the best of your ability</li>
-                    <li>Your responses will be transcribed and analyzed</li>
-                    <li>Camera proctoring will continue throughout the interview</li>
-                    <li>The interview will last approximately 15-20 minutes</li>
-                  </ul>
-                </div>
-                
-                <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-                  <h3 className="text-lg font-semibold text-purple-300 mb-2 flex items-center">
-                    <ArrowRight className="mr-2 h-5 w-5" />
-                    Tips for Success
-                  </h3>
-                  <ul className="text-white/80 space-y-2 ml-5 list-disc">
-                    <li>Speak clearly and at a moderate pace</li>
-                    <li>Take a moment to gather your thoughts before answering</li>
-                    <li>Provide examples when possible to illustrate your points</li>
-                    <li>If you don't know an answer, it's okay to say so</li>
-                    <li>Stay relaxed and approach each question thoughtfully</li>
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="mt-8 bg-blue-500/20 rounded-xl p-5 border border-blue-400/30">
-                <p className="text-white text-center">
-                  Your voice interview will begin automatically in <span className="font-bold">{formatTime(instructionTimer)}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-          {/* Camera Preview */}
-          
-          <div className="relative aspect-video overflow-hidden bg-black/30 mb-4 rounded-lg shadow-inner">
-                <div className="w-full h-full">
-                  <CameraProctor
-                    detectionEnabled={false} // Disable detection on instructions page
-                  />
-                </div>
-              </div>
-          
-          {/* Removed duplicate camera component */}
+        {/* Guidelines Box */}
+        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
+          <h3 className="font-semibold text-purple-300 mb-3">Key Guidelines</h3>
+          <ul className="text-white/80 space-y-2 ml-5 list-disc">
+            <li>Ensure stable internet connection</li>
+            <li>Keep your face clearly visible</li>
+            <li>Avoid background noise</li>
+            <li>Stay focused and avoid moving away</li>
+          </ul>
         </div>
+
+        {/* Footer Timer */}
+        <div className="bg-purple-900 py-4 text-center border border-blue-400/20 rounded-xl text-white font-medium">
+          🎤 Interview begins automatically in <b>{formatTime(instructionTimer)}</b>
+        </div>
+
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 export default VoiceInterviewInstructions;
+
+
+
+
+
+
+
+
+ 

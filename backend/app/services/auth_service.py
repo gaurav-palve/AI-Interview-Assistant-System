@@ -51,9 +51,13 @@ async def create_admin_account(email: str, password: str):
 
 async def verify_session(session_token: str = Query(None)):
     """
-    Verify if a session token is valid.
-    This is a compatibility function that uses JWT tokens instead of the old session storage.
+    DEPRECATED: Use verify_token_from_header instead with Authorization header.
+    
+    This is a compatibility function that will be removed in future versions.
+    Only used for backward compatibility with old code.
     """
+    logger.warning("verify_session is deprecated and will be removed. Use get_current_user dependency instead.")
+    
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
@@ -78,7 +82,7 @@ async def verify_session(session_token: str = Query(None)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in verify_session: {e}")
+        logger.error(f"Error in deprecated verify_session: {e}")
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 async def authenticate_admin(
@@ -135,22 +139,18 @@ async def authenticate_admin(
         logger.error(f"Error authenticating admin: {e}")
         raise
 
-async def verify_token_from_query_or_header(request: Request):
+async def verify_token_from_header(request: Request):
     """
-    Extract and verify JWT token from query param or Authorization header.
+    Extract and verify JWT token from Authorization header only.
     Returns admin data if token is valid.
     """
-    # First try from Authorization header
+    # Get token from Authorization header
     access_token = get_access_token_from_request(request)
-    
-    # If not in header, try from query parameter
-    if not access_token:
-        access_token = request.query_params.get("session_token")
     
     if not access_token:
         raise HTTPException(
             status_code=401,
-            detail="Missing authentication token"
+            detail="Missing Authorization header with Bearer token"
         )
     
     try:
@@ -179,14 +179,21 @@ async def verify_token_from_query_or_header(request: Request):
             detail="Invalid authentication token"
         )
 
+# For backward compatibility, redirect to header-only function
+async def verify_token_from_query_or_header(request: Request):
+    """
+    Legacy function - now only extracts token from Authorization header.
+    """
+    logger.warning("verify_token_from_query_or_header is deprecated. Use verify_token_from_header instead.")
+    return await verify_token_from_header(request)
+
 async def get_token_from_request(request: Request):
-    """Extract token from request (either from header or query param)"""
-    # First try from Authorization header
+    """Extract token from request's Authorization header only"""
+    # Only extract from Authorization header
     token = get_access_token_from_request(request)
     
-    # If not found, try from query parameter
     if not token:
-        token = request.query_params.get("session_token")
+        logger.warning("Authentication attempt without Authorization header")
     
     return token
 
