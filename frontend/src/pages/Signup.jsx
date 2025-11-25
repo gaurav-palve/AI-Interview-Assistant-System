@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Email as EmailIcon, Lock as LockIcon, LockReset as LockResetIcon, Visibility, VisibilityOff } from '@mui/icons-material';
+import {
+  Email as EmailIcon,
+  Lock as LockIcon,
+  LockReset as LockResetIcon,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material';
 import { useFormValidation } from '../hooks/useFormValidation';
 import { validateConfirmPassword } from '../utils/validation';
- 
-/**
- * Signup page component
- */
+import Nts_logo from '../assets/Nts_logo/NTSLOGO.png'; // Fixed path
+
 function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -16,8 +20,7 @@ function Signup() {
   const [success, setSuccess] = useState('');
   const { signUp } = useAuth();
   const navigate = useNavigate();
- 
-  // Form validation
+
   const {
     values,
     errors,
@@ -25,247 +28,222 @@ function Signup() {
     handleChange,
     handleBlur,
     validate,
-    setError: setFieldError
+    setError: setFieldError,
   } = useFormValidation(
     { email: '', password: '', confirmPassword: '' },
     {
-      email: {
-        required: true,
-        email: true,
-        fieldName: 'Email'
-      },
-      password: {
-        required: true,
-        password: true,
-        minLength: 8,
-        fieldName: 'Password'
-      },
-      confirmPassword: {
-        required: true,
-        fieldName: 'Confirm Password'
-      }
+      email: { required: true, email: true, fieldName: 'Email' },
+      password: { required: true, password: true, minLength: 8, fieldName: 'Password' },
+      confirmPassword: { required: true, fieldName: 'Confirm Password' },
     }
   );
- 
-  /**
-   * Handle form submission
-   * @param {Event} e - Form submit event
-   */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
- 
-    // Validate form
-    if (!validate()) {
+
+    if (!validate()) return;
+
+    const confirmError = validateConfirmPassword(values.password, values.confirmPassword);
+    if (confirmError) {
+      setFieldError('confirmPassword', confirmError);
       return;
     }
- 
-    // Validate password match
-    const confirmPasswordError = validateConfirmPassword(values.password, values.confirmPassword);
-    if (confirmPasswordError) {
-      setFieldError('confirmPassword', confirmPasswordError);
-      return;
-    }
- 
+
     setIsLoading(true);
- 
+
     try {
       await signUp(values.email, values.password);
-      setSuccess('Account created successfully! You can now sign in.');
-     
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      setSuccess('Account created successfully! Redirecting to login...');
+      setTimeout(() => navigate('/login'), 2500);
     } catch (err) {
       setError(err.detail || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
- 
+
   return (
-    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition relative overflow-hidden">
-      {/* Simple Animated Background - Only Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-primary-100/50 to-secondary-50 animate-gradient-shift"></div>
-     
-      {/* Content */}
-      <div className="relative z-10 max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-        <h2 className="text-center text-3xl font-bold mb-6 text-gray-900">Signup</h2>
-       
-        {/* Tab Navigation */}
-        <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
-          <Link to="/login" className="flex-1 text-center py-2 px-4 rounded-md font-medium text-gray-700 hover:text-gray-900 transition-colors">
-            Login
-          </Link>
-          <Link to="/signup" className="flex-1 text-center py-2 px-4 rounded-md font-medium text-white bg-gradient-to-r from-primary-500 to-primary-600 shadow-sm transition-all">
-            Signup
-          </Link>
-        </div>
- 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r-md">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
- 
-        {success && (
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r-md">
-            <p className="text-sm text-green-700">{success}</p>
-          </div>
-        )}
- 
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <EmailIcon className="h-5 w-5 text-gray-400" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-900 p-4">
+      {/* Main Card */}
+      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-3xl shadow-2xl overflow-hidden">
+
+        {/* Left Side - Branding Panel */}
+        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 p-12 text-white relative overflow-hidden">
+          {/* Background Effects */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `repeating-linear-gradient(135deg, transparent, transparent 40px, rgba(255,255,255,.08) 40px, rgba(255,255,255,.08) 80px)`,
+            }}
+          />
+          <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-400 rounded-full blur-3xl opacity-30" />
+          <div className="absolute top-20 -left-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20" />
+
+          {/* Logo */}
+          <div className="relative z-10">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-2xl flex items-center justify-center ring-4 ring-white/20 overflow-hidden">
+                <img
+                  src={Nts_logo}
+                  alt="HireGenix Logo"
+                  className="h-12 w-12 object-contain scale-110"
+                />
               </div>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={values.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.email && touched.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your email"
-              />
-            </div>
-            {errors.email && touched.email && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <span className="mr-1">⚠</span>
-                {errors.email}
-              </p>
-            )}
-          </div>
-         
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockIcon className="h-5 w-5 text-gray-400" />
+              <div>
+                <div className="text-3xl font-bold">HireGenix</div>
+                <div className="text-sm tracking-widest text-white/70">Interview.AI</div>
               </div>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                value={values.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.password && touched.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <VisibilityOff className="h-5 w-5" />
-                ) : (
-                  <Visibility className="h-5 w-5" />
-                )}
-              </button>
             </div>
-            {errors.password && touched.password && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <span className="mr-1">⚠</span>
-                {errors.password}
-              </p>
-            )}
-            {!errors.password && values.password && (
-              <p className="mt-1 text-xs text-gray-500">
-                Password must be at least 8 characters with uppercase, lowercase, number, and special character
-              </p>
-            )}
           </div>
-         
-          <div>
-            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockResetIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="confirm-password"
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                autoComplete="new-password"
-                value={values.confirmPassword}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.confirmPassword && touched.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Confirm your password"
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? (
-                  <VisibilityOff className="h-5 w-5" />
-                ) : (
-                  <Visibility className="h-5 w-5" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && touched.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
-                <span className="mr-1">⚠</span>
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
- 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-lg hover:from-primary-600 hover:to-primary-700 shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating account...
-                </span>
-              ) : (
-                "Signup"
-              )}
-            </button>
-          </div>
- 
-          <div className="text-center pt-2">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
-                Login now
-              </Link>
+
+          {/* Hero Text */}
+          <div className="relative z-10 mt-16">
+            <h1 className="text-6xl lg:text-6xl  leading-tight text-white drop-shadow-2xl">
+              Join<br />HireGenix
+            </h1>
+            <p className="mt-6 text-blue-100 text-lg max-w-md leading-relaxed">
+              Create your account and start streamlining your hiring with AI-powered interviews today.
             </p>
+            
           </div>
-        </form>
+        </div>
+
+        {/* Right Side - Signup Form */}
+        <div className="flex items-center justify-center p-8 lg:p-16 bg-gray-50">
+          <div className="w-full max-w-md">
+
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Create Your Account</h2>
+              <p className="mt-2 text-gray-600">Start your journey with HireGenix today</p>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            {/* Success */}
+            {success && (
+              <div className="mb-6 p-6 bg-green-50 border border-green-200 rounded-xl text-center">
+                <div className="text-green-800 font-bold text-lg mb-2">Welcome to HireGenix!</div>
+                <p className="text-green-700">{success}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <EmailIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={values.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    placeholder="name@company.com"
+                    className={`w-full pl-12 pr-4 py-4 bg-white border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition ${
+                      errors.email && touched.email ? 'border-red-400' : 'border-gray-200'
+                    }`}
+                  />
+                </div>
+                {errors.email && touched.email && (
+                  <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                )}
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <div className="relative">
+                  <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={values.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    minLength={8}
+                    placeholder="••••••••"
+                    className={`w-full pl-12 pr-12 py-4 bg-white border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition ${
+                      errors.password && touched.password ? 'border-red-400' : 'border-gray-200'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <VisibilityOff className="h-5 w-5" /> : <Visibility className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.password && touched.password && (
+                  <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
+                <div className="relative">
+                  <LockResetIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={values.confirmPassword}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    placeholder="••••••••"
+                    className={`w-full pl-12 pr-12 py-4 bg-white border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition ${
+                      errors.confirmPassword && touched.confirmPassword ? 'border-red-400' : 'border-gray-200'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? <VisibilityOff className="h-5 w-5" /> : <Visibility className="h-5 w-5" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && touched.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-60"
+              >
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </button>
+            </form>
+
+            {/* Login Link */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                  Sign in here
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
- 
+
 export default Signup;

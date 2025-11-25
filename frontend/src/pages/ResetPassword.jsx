@@ -1,29 +1,39 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Email as EmailIcon, Lock as LockIcon, VpnKey as PinIcon, Visibility, VisibilityOff } from '@mui/icons-material';
+import {
+  Email as EmailIcon,
+  Lock as LockIcon,
+  VpnKey as PinIcon,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material';
 import authService from '../services/authService';
+import Nts_logo from '../assets/Nts_logo/NTSLOGO.png'; // Fixed path
 
 export default function ResetPassword() {
-  const loc = useLocation();
-  const prefilledEmail = loc.state?.email || '';
+  const { state } = useLocation();
+  const prefilledEmail = state?.email || '';
   const [email, setEmail] = useState(prefilledEmail);
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (newPassword !== confirmPassword) {
       setStatus('Passwords do not match');
       return;
     }
-    setStatus('submitting');
+
     setIsLoading(true);
+    setStatus('');
+
     try {
       await authService.resetPassword({
         email,
@@ -31,167 +41,201 @@ export default function ResetPassword() {
         new_password: newPassword,
         confirm_password: confirmPassword,
       });
+
       setStatus('success');
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setStatus(err?.detail || 'Failed to reset password');
+      setStatus(err?.detail || 'Failed to reset password. Please check OTP.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="h-screen w-full grid place-items-center py-12 px-4 sm:px-6 lg:px-8 page-transition" style={{ background: 'linear-gradient(135deg, #d7d8f6, #f8dce5)' }}>
-      <div className="max-w-sm w-full bg-white/90 backdrop-blur-sm border-2 border-gray-300 rounded-lg shadow-[0_10px_25px_-5px_rgba(75,85,99,0.3)] p-6">
-        <h2 className="text-center text-2xl font-bold mb-4 text-gray-800 animate-fadeIn">Reset Password</h2>
-        
-        {/* Tab Navigation */}
-        <div className="tab-nav mb-5 bg-gray-100 border border-gray-300">
-          <Link to="/login" className="tab-item tab-item-inactive text-gray-700 hover:text-gray-900 animate-slideInLeft" style={{ animationDelay: '0.1s' }}>
-            Login
-          </Link>
-          <Link to="/reset-password" className="tab-item tab-item-active animate-slideInRight" style={{ animationDelay: '0.2s' }}>
-            Reset Password
-          </Link>
-        </div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-900 p-4">
+      {/* Main Card */}
+      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-        {status && status !== 'submitting' && status !== 'success' && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r-md">
-            <p className="text-sm text-red-700">{String(status)}</p>
-          </div>
-        )}
-        
-        {status === 'success' && (
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r-md">
-            <p className="text-sm text-green-700">Password reset successful! Redirecting to login...</p>
-          </div>
-        )}
+        {/* Left Side - Branding Panel */}
+        <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 p-12 text-white relative overflow-hidden">
+          {/* Background Pattern */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `repeating-linear-gradient(135deg, transparent, transparent 40px, rgba(255,255,255,.08) 40px, rgba(255,255,255,.08) 80px)`,
+            }}
+          />
+          <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-400 rounded-full blur-3xl opacity-30" />
+          <div className="absolute top-20 -left-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20" />
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <EmailIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 w-full"
-              style={{ animationDelay: '0.3s' }}
-              placeholder="Email Address"
-            />
-          </div>
-          
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <PinIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="otp"
-              name="otp"
-              type="text"
-              required
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 w-full"
-              style={{ animationDelay: '0.4s' }}
-              placeholder="OTP Code"
-            />
-          </div>
-          
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LockIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="new-password"
-              name="new-password"
-              type={showPassword ? "text" : "password"}
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 w-full pr-10"
-              style={{ animationDelay: '0.5s' }}
-              placeholder="New Password"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <button
-                type="button"
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <VisibilityOff className="h-5 w-5" />
-                ) : (
-                  <Visibility className="h-5 w-5" />
-                )}
-              </button>
-            </div>
-          </div>
-          
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LockIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              id="confirm-password"
-              name="confirm-password"
-              type={showConfirmPassword ? "text" : "password"}
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="form-input bg-white border-gray-300 text-gray-800 animate-slideIn pl-10 w-full pr-10"
-              style={{ animationDelay: '0.6s' }}
-              placeholder="Confirm Password"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <button
-                type="button"
-                className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? (
-                  <VisibilityOff className="h-5 w-5" />
-                ) : (
-                  <Visibility className="h-5 w-5" />
-                )}
-              </button>
+          {/* Logo */}
+          <div className="relative z-10">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-2xl flex items-center justify-center ring-4 ring-white/20 overflow-hidden">
+                <img
+                  src={Nts_logo}
+                  alt="HireGenix Logo"
+                  className="h-12 w-12 object-contain scale-110"
+                />
+              </div>
+              <div>
+                <div className="text-3xl font-bold">HireGenix</div>
+                <div className="text-sm tracking-widest text-white/70">Interview.AI</div>
+              </div>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn w-full py-2 animate-slideIn bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-full hover:from-blue-600 hover:to-cyan-500 shadow-md"
-              style={{ animationDelay: '0.7s' }}
-            >
-              {isLoading ? (
-                <svg className="animate-spin h-5 w-5 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                "Reset Password"
-              )}
-            </button>
-          </div>
-          
-          <div className="text-center animate-fadeIn" style={{ animationDelay: '0.8s' }}>
-            <p className="text-sm text-gray-600">
-              No OTP received?{' '}
-              <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-700 hover:underline">
-                Request again
-              </Link>
+          {/* Hero Text */}
+          <div className="relative z-10 mt-16">
+            <h1 className="text-6xl lg:text-7xl font-extrabold leading-tight text-white drop-shadow-2xl">
+              Create New<br />Password
+            </h1>
+            <p className="mt-6 text-blue-100 text-lg max-w-md leading-relaxed">
+              Your new password must be different from previously used passwords.
             </p>
           </div>
-        </form>
+        </div>
+
+        {/* Right Side - Reset Form */}
+        <div className="flex items-center justify-center p-8 lg:p-16 bg-gray-50">
+          <div className="w-full max-w-md">
+
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Reset Your Password</h2>
+              <p className="mt-2 text-gray-600">Enter the OTP and set a new secure password</p>
+            </div>
+
+            {/* Error Message */}
+            {status && !status.includes('success') && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                {status}
+              </div>
+            )}
+
+            {/* Success Message */}
+            {status === 'success' && (
+              <div className="mb-6 p-6 bg-green-50 border border-green-200 rounded-xl text-center">
+                <div className="text-green-800 font-bold text-lg mb-2">
+                  Password Changed Successfully!
+                </div>
+                <p className="text-green-700">
+                  You can now log in with your new password.
+                </p>
+                <p className="text-sm text-green-600 mt-3">
+                  Redirecting to login...
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <EmailIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="name@company.com"
+                    className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition"
+                  />
+                </div>
+              </div>
+
+              {/* OTP */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">OTP Code</label>
+                <div className="relative">
+                  <PinIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    required
+                    maxLength={6}
+                    placeholder="123456"
+                    className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition font-mono text-lg tracking-widest text-center"
+                  />
+                </div>
+              </div>
+
+              {/* New Password */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+                <div className="relative">
+                  <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    placeholder="••••••••"
+                    className="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <VisibilityOff className="h-5 w-5" /> : <Visibility className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+                <div className="relative">
+                  <LockIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    placeholder="••••••••"
+                    className="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? <VisibilityOff className="h-5 w-5" /> : <Visibility className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isLoading || !otp || !newPassword || !confirmPassword}
+                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Updating Password...' : 'Reset Password'}
+              </button>
+            </form>
+
+            {/* Back Links */}
+            <div className="mt-8 text-center text-sm text-gray-600 space-y-2">
+              <p>
+                Didn’t receive OTP?{' '}
+                <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                  Resend OTP
+                </Link>
+              </p>
+              <p>
+                <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                  ← Back to Login
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
