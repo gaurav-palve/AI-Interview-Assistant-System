@@ -285,8 +285,7 @@ function JobPostingsList() {
           <p className="text-gray-500 animate-pulse">Loading job postings...</p>
         </div>
       ) : jobPostings.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobPostings.map((job, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">          {jobPostings.map((job, index) => (
             <Link
               key={job.id}
               to={`/job-postings/${job.id}`}
@@ -331,15 +330,15 @@ function JobPostingsList() {
                         <div className="h-11 w-11 flex items-center">
                           <img
                             src={Nts_logo}
-                            alt="NTSLOGO"
+                            alt="NTSLOGO"f
                             className="h-11 w-11 object-contain"
                           />
                         </div>
                       </div>
                      
                    
-                    <div className="ml-4 flex-grow">
-                      <h3 className="text-2xl font-bold text-blue-600 group-hover:text-primary-700 transition-colors duration-300">
+                    <div className="ml-2  flex-grow">
+                      <h3 className="text-2xl font-bold text-blue-600 group-hover:text-primary-700 transition-colors duration-300 -mt-1.5">
                         {job.job_title}
                       </h3>
                       <p className="text-sm text-gray-600 flex items-center">
@@ -350,7 +349,7 @@ function JobPostingsList() {
                   </div>
                   
                   {/* Job details with icons */}
-                  <div className="space-y-3 mb-4">
+                  <div className="space-y-1 mb-4">
                     <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
                       <WorkIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
                       <span className="font-medium">{job.job_type || 'Full-time'}</span>

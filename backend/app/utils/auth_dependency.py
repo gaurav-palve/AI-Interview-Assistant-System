@@ -2,26 +2,26 @@
 Authentication dependency utilities for FastAPI routes.
 
 This module provides convenience functions to easily add authentication
-with support for both Authorization header and query parameter tokens.
+using JWT tokens in Authorization headers.
 """
 
 import logging
 from fastapi import Depends, Request, HTTPException
 from typing import Callable, Dict, Any, Optional
-from ..services.auth_service import verify_token_from_query_or_header
+from ..services.auth_service import verify_token_from_header
 
 logger = logging.getLogger(__name__)
 
 async def get_current_user(request: Request) -> Dict[str, Any]:
     """
-    Dependency to get current authenticated user from header or query param.
+    Dependency to get current authenticated user from Authorization header.
     
-    This is a drop-in replacement for the original verify_session dependency.
+    Extracts and validates JWT token from the request.
     """
     try:
-        current_user = await verify_token_from_query_or_header(request)
+        current_user = await verify_token_from_header(request)
         if not current_user:
-            raise HTTPException(status_code=401, detail="Invalid or expired session")
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
         return current_user
     except HTTPException:
         raise
