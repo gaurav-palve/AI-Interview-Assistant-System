@@ -146,8 +146,9 @@ const jobPostingService = {
       
       const response = await api.post('/screening/resume-screening', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
+        withCredentials: true
       });
       return response.data;
     } catch (error) {
