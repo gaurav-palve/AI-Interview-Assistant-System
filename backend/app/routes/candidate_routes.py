@@ -8,6 +8,7 @@ from ..database import save_generated_mcqs
 from typing import Dict, Any, List, Set
 from pydantic import BaseModel
 import time
+import re
 from app.database import get_and_save_interview_report_data
 from app.database import fetch_interview_report_data
 from app.database import save_report_pdf_to_db
@@ -148,34 +149,13 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
                 logger.warning(f"MCQ generation for interview {interview_id} has been running for {time_elapsed:.1f}s. Restarting.")
                 in_progress_mcq_generations.pop(interview_id, None)
         
-        # Check if MCQs already exist for this interview
+        # Always proceed with generation of new MCQs
         db = get_database()
-        existing_mcqs = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
         
-        # If MCQs already exist, return them instead of generating new ones
-        if existing_mcqs:
-            logger.info(f"MCQs already exist for interview {interview_id}, returning existing MCQs")
-            
-            # If MCQs are stored in structured format, convert to text format
-            if isinstance(existing_mcqs["mcqs_text"], list):
-                # Structured format - convert to text
-                mcqs_list = existing_mcqs["mcqs_text"]
-                mcqs_text = ""
-                
-                for mcq in mcqs_list:
-                    question_text = mcq["question"]
-                    answer_text = mcq["answer"]
-                    
-                    # Extract options from question text if needed
-                    mcqs_text += f"{question_text}\n"
-                    mcqs_text += f"Answer: {answer_text}\n\n"
-                    
-                return mcqs_text.strip()
-            else:
-                # Already in text format
-                return existing_mcqs["mcqs_text"]
-            
-        # If MCQs don't exist, proceed with generation
+        # Log the request for debugging
+        logger.info(f"Generating new MCQs for interview ID: {interview_id}")
+        
+        # Proceed with generation (MongoDB's $set will override existing data)
         interview_service = InterviewService()
         interview = await interview_service.get_interview(interview_id)
         
@@ -237,7 +217,6 @@ async def generate_candidate_mcqs(interview_id: str) -> str:
             in_progress_mcq_generations.pop(interview_id, None)
                 
             logger.info(f"Successfully generated MCQs for candidate: {candidate_email} (length: {len(response)} chars)")
-            logger.info(f"MCQs preview: {response[:200]}...")
             
             # Update interview status to in-progress
             logger.info(f"Updating interview status to in_progress for interview ID: {interview_id}")
@@ -330,6 +309,89 @@ Answer: b) To test individual components or functions
     
     logger.info(f"Generated default MCQs (length: {len(default_mcqs)} chars)")
     return default_mcqs.strip()
+
+@router.get("/get-mcqs/{interview_id}", response_model=str)
+async def get_candidate_mcqs(interview_id: str) -> str:
+    try:
+        logger.info(f"Request to get MCQs for interview ID: {interview_id}")
+        # Verify database connection
+        from ..database import verify_database_connection, get_database, MCQS_COLLECTION
+        db_ok = await verify_database_connection()
+        if not db_ok:
+            logger.error("Database connection verification failed in get_candidate_mcqs")
+            raise HTTPException(status_code=503, detail="Database service unavailable")
+        
+        # Check if MCQs exist for this interview
+        db = get_database()
+        existing_mcqs = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
+        
+        if not existing_mcqs:
+            logger.warning(f"No MCQs found for interview {interview_id}")
+            raise HTTPException(status_code=404, detail="MCQs not found for this interview")
+        
+        # Format MCQs for frontend consumption
+        if isinstance(existing_mcqs["mcqs_text"], list):
+            # Structured format - convert to text with options
+            mcqs_list = existing_mcqs["mcqs_text"]
+            mcqs_text = ""
+            
+            # Filter out any invalid MCQs (like introductions or section headers)
+            valid_mcqs = [mcq for mcq in mcqs_list if mcq.get("question") and not mcq["question"].startswith("Here are")]
+            
+            logger.info(f"Found {len(valid_mcqs)} valid MCQs out of {len(mcqs_list)} total")
+            
+            for idx, mcq in enumerate(valid_mcqs, start=1):
+                question_text = mcq["question"]
+                answer_text = mcq["answer"]
+                
+                # Clean up the answer text
+                answer_text = answer_text.replace("**", "").strip()
+                
+                # Format the question
+                mcqs_text += f"{idx}. {question_text}\n"
+                
+                # Use the options from the database if available
+                if "options" in mcq and mcq["options"]:
+                    options = mcq["options"]
+                    for option in options:
+                        mcqs_text += f"{option}\n"
+                else:
+                    # Fallback to generating options if not available
+                    logger.warning(f"No options found for question {idx}, generating dummy options")
+                    option_letters = ['a', 'b', 'c', 'd']
+                    
+                    # If the answer contains an option letter, extract it
+                    option_letter = None
+                    if answer_text and len(answer_text) > 1:
+                        match = re.match(r'^([a-d])\)', answer_text)
+                        if match:
+                            option_letter = match.group(1)
+                    
+                    # Create options
+                    for i in range(4):
+                        letter = option_letters[i]
+                        if option_letter and letter == option_letter:
+                            # This is the correct answer
+                            mcqs_text += f"{letter}) {answer_text.replace(f'{letter})', '').strip()}\n"
+                        else:
+                            # Generate a dummy option
+                            mcqs_text += f"{letter}) Option {letter.upper()}\n"
+                
+                # Add the answer
+                mcqs_text += f"Answer: {answer_text}\n\n"
+            
+            return mcqs_text.strip()
+        else:
+            # Already in text format
+            return existing_mcqs["mcqs_text"]
+            
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        logger.error(f"Error getting MCQs: {e}")
+        logger.exception("Full exception details:")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/submit-answers/{interview_id}")
 async def submit_candidate_answers(interview_id: str, submission: MCQSubmission):

@@ -120,7 +120,7 @@ const interviewService = {
       formData.append('resume', resumeFile);
 
       // Get the token from localStorage
-      const token = localStorage.getItem('session_token');
+      const token = localStorage.getItem('access_token');
       
       const response = await api.post('/interviews/resume/upload-resume', formData, {
         headers: {
@@ -232,6 +232,21 @@ const interviewService = {
   },
   
   /**
+   * Get MCQs for candidate interview (public endpoint)
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the MCQs
+   */
+  getCandidateMCQs: async (interviewId) => {
+    try {
+      console.log(`Fetching MCQs for interview ID: ${interviewId}`);
+      const response = await api.get(`/candidate/get-mcqs/${interviewId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching MCQs' };
+    }
+  },
+  
+  /**
    * Submit candidate answers for an interview (public endpoint)
    * @param {string} interviewId - Interview ID
    * @param {string} candidateEmail - Candidate email
@@ -330,8 +345,9 @@ const interviewService = {
 
       const response = await api.post('/screening/resume-screening', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
+        withCredentials: true
       });
       return response.data;
     } catch (error) {
@@ -370,6 +386,7 @@ const interviewService = {
     try {
       const response = await api.get(`/reports/download-report-pdf?interview_id=${interviewId}`, {
         responseType: 'blob'
+        
       });
       
       // Create a blob URL and trigger download

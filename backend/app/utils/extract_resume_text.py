@@ -29,7 +29,6 @@ async def extract_text_from_resume(candidate_email:str):
                 text += page.extract_text() + "\n"
             
             extracted_text = text.strip()
-            logger.info(f"Successfully extracted text from resume (length: {len(extracted_text)} chars)")
             return extracted_text
         except Exception as e:
             logger.error(f"Error processing resume PDF: {e}")

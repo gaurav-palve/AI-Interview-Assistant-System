@@ -10,6 +10,7 @@ import {
   BarChart as StatsIcon,
   Schedule as ScheduleIcon,
   CheckCircle as CompletedIcon,
+  Drafts as DraftIcon,
   Cancel as CancelledIcon,
   Visibility as ViewIcon,
   Edit as EditIcon,
@@ -78,8 +79,8 @@ function Dashboard() {
         );
       case 'completed':
         return (
-          <span className="badge badge-accent">
-            <CompletedIcon className="h-3 w-3 mr-1" />
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <CompletedIcon className="h-3 w-3 mr-1" /> 
             Completed
           </span>
         );
@@ -99,9 +100,15 @@ function Dashboard() {
         );
       default:
         return (
-          <span className="badge bg-gray-100 text-gray-800">
+          // <span className="badge bg-gray-100 text-gray-800">
+          //   Draft
+          // </span>
+
+<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <DraftIcon className= "h-3 w-3 mr-1" />
             Draft
           </span>
+
         );
     }
   };

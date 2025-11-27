@@ -1,9 +1,10 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from app.database import get_database, OTP_COLLECTION, AUTH_COLLECTION
 from app.database import update_admin_password
 from app.utils.validate_password_strength import validate_password_strength
+from app.utils.auth_dependency import require_auth
 
 router = APIRouter()
 class ResetPasswordRequest(BaseModel):
@@ -13,7 +14,8 @@ class ResetPasswordRequest(BaseModel):
     confirm_password: str
 
 @router.post("/reset-password")
-async def reset_password(request: ResetPasswordRequest):
+async def reset_password(request: ResetPasswordRequest,
+                         current_user: dict = Depends(require_auth)):
     db = get_database()
     if request.new_password != request.confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")

@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Body, HTTPException
+from fastapi.params import Depends
 from pydantic import BaseModel, Field
 import logging
 from app.utils import skills_suggestions
-
+from app.utils.auth_dependency import require_auth
 class SkillsSuggestionRequest(BaseModel):
     job_role: str = Field(..., description="The job role for which to suggest skills")
     
 router = APIRouter()
 logger = logging.getLogger(__name__)
 @router.post("/skills-suggestion")
-async def skills_suggestion(request: SkillsSuggestionRequest  = Body(...) ):
+async def skills_suggestion(request: SkillsSuggestionRequest  = Body(...),
+                            current_user: dict = Depends(require_auth)):
     """
     Generate a list of technical skills strongly related to the given job role.
     
