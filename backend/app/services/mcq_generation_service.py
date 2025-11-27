@@ -1,6 +1,6 @@
 from ..llm_models.openai_llm import get_openai_llm
 from ..llm_models.gemini_llm import get_gemini_llm
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import HumanMessage
 import logging
 from ..config import settings
