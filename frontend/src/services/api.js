@@ -84,7 +84,7 @@ const isTokenExpired = () => {
 const updateStoredToken = (token) => {
   if (token) {
     // Store in localStorage
-    localStorage.setItem('session_token', token);
+    localStorage.setItem('access_token', token);
     
     // Parse and store expiration time
     tokenExpiryTime = parseTokenExpiry(token);
@@ -124,7 +124,7 @@ const refreshAccessToken = async () => {
   } catch (error) {
     // If refresh fails, clear tokens and redirect to login
     console.error('Token refresh failed:', error);
-    localStorage.removeItem('session_token');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('user_email');
     tokenExpiryTime = null;
     window.location.href = '/login';
@@ -150,11 +150,11 @@ const api = axios.create({
   maxContentLength: 10 * 1024 * 1024, // 10MB
 });
 
-// Add a request interceptor to include the session token in requests and log requests
+// Add a request interceptor to include the access token in the Authorization header and log requests
 api.interceptors.request.use(
   async (config) => {
     // First, initialize token expiry if we have a token but no expiry time
-    const token = localStorage.getItem('session_token');
+    const token = localStorage.getItem('access_token');
     if (token && !tokenExpiryTime) {
       tokenExpiryTime = parseTokenExpiry(token);
     }
@@ -171,30 +171,41 @@ api.interceptors.request.use(
         // Update the token in the current request
         if (newToken) {
           config.headers.Authorization = `Bearer ${newToken}`;
-          if (config.params) {
-            config.params.session_token = newToken;
-          } else {
-            config.params = { session_token: newToken };
-          }
+          
         }
-      } catch (error) {
-        console.error('Failed to refresh token before request:', error);
+      
       } finally {
         isRefreshing = false;
       }
     }
     // Add the current token to the request
     else if (token) {
-      // Add token to Authorization header (preferred method)
+      // Add token to Authorization header
       config.headers.Authorization = `Bearer ${token}`;
-      
-      // Also add as query parameter for backward compatibility
-      // This ensures the token is available in both places
-      if (!config.params) {
-        config.params = {};
-      }
-      config.params.session_token = token;
     }
+    // Check if this is a sensitive request (auth related)
+    const isSensitiveRequest = (url) => {
+      const sensitiveEndpoints = [
+        '/auth/signin',
+        '/auth/signup',
+        '/forgot-password',
+        '/reset-password',
+        '/auth/refresh'
+      ];
+      return sensitiveEndpoints.some(endpoint => url.includes(endpoint));
+    };
+    
+    // Sanitize sensitive data for logging
+    const sanitizeDataForLogging = (url, data) => {
+      if (!data || !isSensitiveRequest(url)) return data;
+      
+      // For sensitive endpoints, don't log the data at all
+      if (isSensitiveRequest(url)) {
+        return "[Sensitive auth data omitted]";
+      }
+      
+      return data;
+    };
     
     // Log request details for debugging
     console.group('API Request');
@@ -202,20 +213,16 @@ api.interceptors.request.use(
     console.log('Method:', config.method.toUpperCase());
     console.log('Params:', config.params);
     
-    // Log data differently based on content type
+    // Log data differently based on content type, sanitizing if needed
     if (config.data) {
       if (config.data instanceof FormData) {
         console.log('Data: [FormData]');
-        // Log FormData entries
-        for (let pair of config.data.entries()) {
-          if (pair[1] instanceof File) {
-            console.log(`  ${pair[0]}: File (${pair[1].name}, ${pair[1].size} bytes)`);
-          } else {
-            console.log(`  ${pair[0]}: ${pair[1]}`);
-          }
-        }
+        // For FormData, we'll just indicate it contains form data without logging contents
+        console.log('  Form data content omitted for security');
       } else {
-        console.log('Data:', config.data);
+        // For regular JSON data, sanitize sensitive data completely
+        const sanitizedData = sanitizeDataForLogging(config.url, config.data);
+        console.log('Data:', sanitizedData);
       }
     }
     console.log('Headers:', config.headers);
@@ -232,11 +239,35 @@ api.interceptors.request.use(
 // Add a response interceptor to handle common errors and log responses
 api.interceptors.response.use(
   (response) => {
+    // Check if this is a sensitive response
+    const isSensitiveResponse = (url) => {
+      const sensitiveEndpoints = [
+        '/auth/signin',
+        '/auth/signup',
+        '/auth/refresh',
+        '/forgot-password',
+        '/reset-password'
+      ];
+      return sensitiveEndpoints.some(endpoint => url.includes(endpoint));
+    };
+
+    // Sanitize sensitive response data
+    const sanitizeResponseData = (url, data) => {
+      if (!data) return data;
+      
+      // For sensitive endpoints, don't log the actual data
+      if (isSensitiveResponse(url)) {
+        return "[Sensitive auth response omitted]";
+      }
+      
+      return data;
+    };
+    
     // Log successful response
     console.group('API Response');
     console.log('URL:', response.config.url);
     console.log('Status:', response.status);
-    console.log('Data:', response.data);
+    console.log('Data:', sanitizeResponseData(response.config.url, response.data));
     console.groupEnd();
     
     return response;
@@ -244,11 +275,54 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // Log error response
+    // Create sanitizing function for error responses
+    const sanitizeErrorResponseData = (url, data) => {
+      if (!data) return data;
+      
+      // Reuse the same sensitive endpoints pattern
+      const sensitiveEndpoints = [
+        '/auth/signin',
+        '/auth/signup',
+        '/auth/refresh',
+        '/forgot-password',
+        '/reset-password'
+      ];
+      
+      const isSensitive = sensitiveEndpoints.some(endpoint =>
+        url && url.includes(endpoint)
+      );
+      
+      // Completely remove sensitive data from logs
+      if (isSensitive) {
+        return "[Sensitive auth error omitted]";
+      }
+      
+      return data;
+    };
+    
+    // Log error response with sanitized data
     console.group('API Error');
     console.error('Request URL:', originalRequest?.url);
     console.error('Status:', error.response?.status);
-    console.error('Data:', error.response?.data);
+    
+    // Don't log sensitive error data at all
+    const isSensitiveRequest = (url) => {
+      const sensitiveEndpoints = [
+        '/auth/signin',
+        '/auth/signup',
+        '/auth/refresh',
+        '/forgot-password',
+        '/reset-password'
+      ];
+      return url && sensitiveEndpoints.some(endpoint => url.includes(endpoint));
+    };
+    
+    if (isSensitiveRequest(originalRequest?.url)) {
+      console.error('Data:', "[Sensitive auth error data omitted]");
+    } else {
+      console.error('Data:', error.response?.data);
+    }
+    
     console.error('Error:', error.message);
     console.groupEnd();
     
@@ -266,15 +340,10 @@ api.interceptors.response.use(
           
           if (newToken) {
             // Update token in local storage
-            localStorage.setItem('session_token', newToken);
+            localStorage.setItem('access_token', newToken);
             
             // Update token in axios headers
             originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-            
-            // Also update as query parameter if it was there
-            if (originalRequest.params?.session_token) {
-              originalRequest.params.session_token = newToken;
-            }
             
             // Notify all waiting requests that token is refreshed
             onTokenRefreshed(newToken);
@@ -296,9 +365,6 @@ api.interceptors.response.use(
           addRefreshSubscriber((token) => {
             // Replace the token in the original request
             originalRequest.headers['Authorization'] = `Bearer ${token}`;
-            if (originalRequest.params?.session_token) {
-              originalRequest.params.session_token = token;
-            }
             // Retry the original request
             resolve(api(originalRequest));
           });
@@ -310,7 +376,7 @@ api.interceptors.response.use(
              (error.response.status === 401 && originalRequest._retry))) {
       console.log('Authentication error - redirecting to login');
       // Clear the token and redirect to login
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('user_email');
       window.location.href = '/login';
     }

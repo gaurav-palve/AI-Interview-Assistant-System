@@ -5,6 +5,7 @@ import interviewService from '../services/interviewService';
 import {
   BarChart as ChartIcon,
   PieChart as PieChartIcon,
+  Drafts as DraftIcon,
   Schedule as ScheduleIcon,
   CheckCircle as CompletedIcon,
   Cancel as CancelledIcon,
@@ -95,9 +96,9 @@ function Statistics() {
       case 'in_progress':
         return <ScheduleIcon className="h-5 w-5 text-yellow-500" />;
       case 'draft':
-        return <PieChartIcon className="h-5 w-5 text-gray-500" />;
+        return <DraftIcon className="h-5 w-5 text-gray-500" />;
       default:
-        return <PieChartIcon className="h-5 w-5 text-gray-400" />;
+        return <DraftIcon className="h-5 w-5 text-gray-400" />;
     }
   };
 
@@ -185,7 +186,7 @@ function Statistics() {
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full p-3 shadow-md">
-                    <PieChartIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
+                    <DraftIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Drafts</p>
@@ -284,7 +285,7 @@ function Statistics() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center">
-                    <PieChartIcon className="h-5 w-5 text-gray-500 mr-2" />
+                    <DraftIcon className="h-5 w-5 text-gray-500 mr-2" />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Draft</span>
                   </div>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">

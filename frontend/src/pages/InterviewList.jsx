@@ -9,6 +9,7 @@ import {
   Add as AddIcon,
   Schedule as ScheduleIcon,
   CheckCircle as CompletedIcon,
+  Drafts as DraftIcon,
   Cancel as CancelledIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -121,7 +122,7 @@ function InterviewList() {
       case 'in_progress':
         return <span className={`${common} bg-yellow-100 text-yellow-800`}><ScheduleIcon className="h-3 w-3 mr-1" />In Progress</span>;
       default:
-        return <span className={`${common} bg-gray-100 text-gray-800`}>Draft</span>;
+        return <span className={`${common} bg-gray-100 text-gray-800`}><DraftIcon className="h-3 w-3 mr-1" />Draft</span>;
     }
   };
 

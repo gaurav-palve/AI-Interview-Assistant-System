@@ -1,16 +1,18 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timedelta
 import random
 from pydantic import BaseModel, EmailStr
 from app.database import AUTH_COLLECTION, OTP_COLLECTION, get_database
 from app.services.email_service import EmailService
+from app.utils.auth_dependency import require_auth
 router = APIRouter()
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 @router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
+async def forgot_password(request: ForgotPasswordRequest,
+                          current_user: dict = Depends(require_auth)):
     db = get_database()
     user = await db[AUTH_COLLECTION].find_one({"email": request.email})
     if not user:

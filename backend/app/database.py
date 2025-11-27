@@ -259,17 +259,23 @@ def save_generated_mcqs(interview_id: str, candidate_email: str, mcqs_text: str)
             structured_mcqs.append({
                 "question_id": idx,  # unique identifier
                 "question": mcq["question"],
+                "options": mcq.get("options", []),  # Store the options
                 "answer": mcq["answer"],
                 "candidate_answer": None,
                 "created_at": datetime.utcnow()
             })
 
-        db[MCQS_COLLECTION].insert_one({
-            "interview_id": interview_id,
-            "candidate_email": candidate_email,
-            "mcqs_text": structured_mcqs,
-            "created_at": datetime.utcnow()
-        })
+        # Use update_one with upsert=True to override existing MCQs
+        db[MCQS_COLLECTION].update_one(
+            {"interview_id": interview_id},
+            {"$set": {
+                "candidate_email": candidate_email,
+                "mcqs_text": structured_mcqs,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }},
+            upsert=True
+        )
         return True
     except Exception as e:
         logger.error(f"Error saving generated MCQs: {e}")
