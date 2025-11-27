@@ -39,6 +39,8 @@ function JobPostingsList() {
   const [showFilters, setShowFilters] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
 
   // Fetch job postings on component mount and when filters change
   useEffect(() => {
@@ -100,6 +102,33 @@ function JobPostingsList() {
     } catch (err) {
       console.error('Error in handleStatusChange:', err);
       // Even on error, keep the local state updated for better UX
+    }
+  };
+  
+  // Handle delete button click
+  const handleDeleteClick = (e, jobId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setJobToDelete(jobId);
+    setShowDeleteConfirm(true);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!jobToDelete) return;
+    
+    try {
+      await jobPostingService.deleteJobPosting(jobToDelete);
+      // Update UI by removing the deleted job
+      setJobPostings(prevPostings =>
+        prevPostings.filter(job => job.id !== jobToDelete)
+      );
+      setShowDeleteConfirm(false);
+      setJobToDelete(null);
+    } catch (err) {
+      console.error('Error deleting job posting:', err);
+      setError('Failed to delete job posting. Please try again later.');
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -403,6 +432,19 @@ function JobPostingsList() {
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Delete button at bottom right */}
+                  <div
+                    className="absolute bottom-4 right-4 z-10"
+                    onClick={(e) => handleDeleteClick(e, job.id)}
+                  >
+                    <button
+                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors duration-300"
+                      aria-label="Delete job posting"
+                    >
+                      <DeleteIcon className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </Link>
@@ -424,6 +466,30 @@ function JobPostingsList() {
             <AddIcon className="-ml-1 mr-2 h-5 w-5" />
             Create Your First Job
           </Link>
+        </div>
+      )}
+      
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
+            <h3 className="text-xl font-bold mb-4">Confirm Delete</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this job posting? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="btn btn-outline"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="btn bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
