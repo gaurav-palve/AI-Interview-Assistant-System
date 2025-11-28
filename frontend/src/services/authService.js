@@ -90,7 +90,7 @@ const authService = {
       });
       
       // Clear local storage tokens
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('user_email');
       localStorage.removeItem('token_expiry'); // Clear expiration time if stored
       
@@ -98,7 +98,7 @@ const authService = {
       return { success: true, message: 'Logged out successfully' };
     } catch (error) {
       // If the request fails, still remove local tokens as a fallback
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('user_email');
       localStorage.removeItem('token_expiry');
       
@@ -113,7 +113,7 @@ const authService = {
    * @returns {boolean} - True if the user is authenticated
    */
   isAuthenticated: () => {
-    const token = localStorage.getItem('session_token');
+    const token = localStorage.getItem('access_token');
     if (!token) return false;
     
     // Check if token is expired
@@ -137,14 +137,14 @@ const authService = {
    */
   getToken: () => {
     // Check if token exists and is valid before returning
-    const token = localStorage.getItem('session_token');
+    const token = localStorage.getItem('access_token');
     if (!token) return null;
     
     // Check if token is expired
     const expiry = parseTokenExpiry(token);
     if (!expiry || Date.now() >= expiry) {
       // Token is expired, clear it
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       return null;
     }
     
