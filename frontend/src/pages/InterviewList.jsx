@@ -87,7 +87,8 @@ function InterviewList() {
         Candidate: interview.candidate_name,
         Email: interview.candidate_email,
         "Job Role": interview.job_role,
-        "Scheduled Date": formatDate(interview.scheduled_datetime),
+        "Scheduled time (IST)": formatDate(interview.scheduled_datetime),
+        "Candidate's Local Time": formatDateInCandidateTimezone(interview.scheduled_datetime, interview.timezone),
         Status: interview.status.charAt(0).toUpperCase() + interview.status.slice(1),
       }));
 
@@ -126,31 +127,59 @@ function InterviewList() {
     }
   };
 
-  // Date formatting
-  const formatDate = (dateString, timezone = 'UTC') => {
+  // Date formatting - Always convert to IST for admin view
+  const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleString('en-US', {
-        timeZone: timezone,
+        timeZone: 'Asia/Kolkata', // Always use IST
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
         timeZoneName: 'short'
-      });
+      }) + ' (IST)';
     } catch (error) {
-      console.error('Error formatting date with timezone:', error);
-      // Fallback to browser's timezone if there's an error
+      console.error('Error formatting date with IST timezone:', error);
+      // Fallback without timezone specification
       const date = new Date(dateString);
       return date.toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  };
+
+  // Date formatting for candidate's local timezone
+  const formatDateInCandidateTimezone = (dateString, timezone) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone || 'UTC', // Use candidate's timezone or UTC as fallback
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
         minute: '2-digit',
         timeZoneName: 'short'
-      });
+      }) + ` (${timezone || 'UTC'})`;
+    } catch (error) {
+      console.error(`Error formatting date with timezone ${timezone}:`, error);
+      // Fallback to UTC
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }) + ' (UTC)';
     }
   };
 
@@ -264,8 +293,8 @@ function InterviewList() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Candidate</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Job Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Scheduled Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Timezone</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Scheduled Time (IST)</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Candidate's  Local Time</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase">Actions</th>
                 </tr>
@@ -278,8 +307,8 @@ function InterviewList() {
                       <div className="text-gray-500 text-sm">{interview.candidate_email}</div>
                     </td>
                     <td className="px-6 py-4 text-gray-700">{interview.job_role}</td>
-                    <td className="px-6 py-4 text-gray-700">{formatDate(interview.scheduled_datetime, interview.timezone)}</td>
-                    <td className="px-6 py-4 text-gray-700">{interview.timezone || 'UTC'}</td>
+                    <td className="px-6 py-4 text-gray-700">{formatDate(interview.scheduled_datetime)}</td>
+                    <td className="px-6 py-4 text-gray-700">{formatDateInCandidateTimezone(interview.scheduled_datetime, interview.timezone)}</td>
                     <td className="px-6 py-4">{getStatusBadge(interview.status)}</td>
                     <td className="px-6 py-4 text-right">
                       <Link to={`/interviews/${interview.id}/edit`} className="text-secondary-600 hover:text-secondary-800 mr-3">
