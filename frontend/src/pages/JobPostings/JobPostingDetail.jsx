@@ -295,16 +295,13 @@ function JobPostingDetail() {
         interviewData.attachments = await Promise.all(attachmentPromises);
       }
       
+      const token = localStorage.getItem("access_token");
       // Call API to schedule interviews
-      const url = new URL('http://localhost:8000/api/bulk-interviews/bulk-schedule');
-      if (sessionToken) {
-        url.searchParams.append('session_token', sessionToken);
-      }
-      
-      const response = await fetch(url.toString(), {
+      const response = await fetch('http://localhost:8000/api/bulk-interviews/bulk-schedule', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(interviewData),
       });
