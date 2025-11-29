@@ -10,6 +10,7 @@ from ..utils.logger import get_logger
 from ..database import get_database, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION, save_candidate_data
 from ..utils.auth_dependency import require_auth, get_current_user
 from ..services.email_service import EmailService
+from fastapi import Depends
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -37,50 +38,15 @@ class BulkInterviewScheduleRequest(BaseModel):
 @router.post("/bulk-schedule")
 async def schedule_interviews_bulk(
     request: BulkInterviewScheduleRequest = Body(...),
-    session_token: str = Query(None)
+    current_user: dict = Depends(require_auth)
+
 ):
     """
     Schedule interviews for multiple candidates at once
     """
     
     try:
-        # Verify session
-        # Generate a default ObjectId if no session token is provided
-        default_admin_id = str(ObjectId())
-        logger.info(f"Generated default admin ID: {default_admin_id}")
-        
-        admin_id = None  # Initialize admin_id as None
-        try:
-            # Try to get the user from the JWT token
-            if session_token:
-                # Create a mock request object with the token in the query parameters
-                from fastapi import Request
-                from starlette.datastructures import QueryParams, URL
-                
-                # Create mock request with the token in query params
-                mock_request = Request({"type": "http", "query_string": f"session_token={session_token}".encode()})
-                mock_request._query_params = QueryParams(f"session_token={session_token}")
-                mock_request._url = URL(f"/mock-endpoint?session_token={session_token}")
-                
-                # Get user from token
-                user_data = await get_current_user(mock_request)
-                
-                # Get admin_id from user data
-                admin_id_str = user_data.get("admin_id")
-                
-                # Convert to ObjectId if valid
-                if admin_id_str and ObjectId.is_valid(admin_id_str):
-                    admin_id = ObjectId(admin_id_str)
-                    logger.info(f"Admin {admin_id} is scheduling interviews")
-                else:
-                    admin_id = ObjectId(default_admin_id)
-                    logger.info(f"Using default admin ID: {admin_id} (invalid admin_id in token)")
-            else:
-                logger.warning("No session token provided, using default admin ID")
-                admin_id = ObjectId(default_admin_id)
-        except Exception as e:
-            logger.warning(f"Error validating token, using default admin ID: {e}")
-            admin_id = ObjectId(default_admin_id)
+        admin_id = current_user["admin_id"]
         
         # Verify database connection before insert
         from ..database import verify_database_connection
@@ -293,7 +259,6 @@ async def schedule_interviews_bulk(
                         "resume_size_bytes": len(resume_content) if resume_content else 0,  # Store the size of the resume
                         "admin_id_type": "ObjectId",  # Always an ObjectId now
                         "scheduled_by": str(admin_id),  # Store the admin ID as a string for reference
-                        "is_default_admin": session_token is None  # Track if this was scheduled with a default admin ID
                     }
                 }
             except Exception as e:
@@ -375,6 +340,8 @@ async def schedule_interviews_bulk(
     except Exception as e:
         logger.error(f"Error scheduling interviews: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to schedule interviews: {str(e)}")
+
+
 
 @router.get("/get-interviews-by-job-posting/{job_posting_id}")
 async def get_interviews_by_job_posting(job_posting_id: str):
