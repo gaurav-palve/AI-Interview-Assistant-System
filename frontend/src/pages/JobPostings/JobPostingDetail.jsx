@@ -1537,7 +1537,7 @@ const downloadJobDescription = () => {
 
         {activeTab === 'assessments' && (
           <div className="space-y-8">
-            <CandidateAssessmentReports />
+            <CandidateAssessmentReports jobPostingId={id} />
           </div>
         )}
       </div>
