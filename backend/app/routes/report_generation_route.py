@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response, Query
-from bson import Binary
-from app.database import fetch_interview_report_data, get_database
+from bson import Binary, ObjectId
+from app.database import fetch_interview_report_data, get_database, CANDIDATES_REPORTS_COLLECTION
 from typing import List, Optional
 import base64
 from app.utils.logger import get_logger
@@ -137,6 +137,35 @@ async def list_candidate_reports(
                 "page_size": page_size,
                 "total_pages": total_pages
             }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching candidate reports: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching candidate reports: {e}")
+    
+
+##single candidate report
+@router.get("/candidate_report/{interview_id}")
+async def candidate_report(
+    interview_id: str,
+    current_user: dict = Depends(require_auth)
+):
+    """
+    Fetch all candidate reports with pagination and filtering options.
+    Returns a list of reports without the PDF binary data.
+    """
+    try:
+        db = get_database()
+        
+        report_data = await db[CANDIDATES_REPORTS_COLLECTION].find_one(
+            {"interview_id": str(interview_id)},
+            {"report_pdf": 0, "_id":0}  # Exclude the PDF binary data
+        )
+        print(report_data)
+        logger.info(f"Fetched candidate reports data for interview ID: {interview_id}")
+        
+        return {
+            "reports": report_data,
         }
         
     except Exception as e:
