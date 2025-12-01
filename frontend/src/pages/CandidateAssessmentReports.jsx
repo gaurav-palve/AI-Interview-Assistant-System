@@ -15,7 +15,7 @@ import {
 } from '@mui/icons-material';
 import interviewService from '../services/interviewService';
 
-function CandidateAssessmentReports() {
+function CandidateAssessmentReports({ jobPostingId = null }) {
   // State for real data from API
   const [candidateReports, setCandidateReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,14 +42,18 @@ function CandidateAssessmentReports() {
       setLoading(true);
       setError(null);
       
-      const response = await interviewService.getCandidateReports(
-        page,
-        pageSize,
-        // Only include non-empty filters
-        Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value !== '')
-        )
+      // Prepare filters (only include non-empty values)
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== '')
       );
+
+      let response;
+      if (jobPostingId) {
+        // Use job-posting specific endpoint when jobPostingId provided
+        response = await interviewService.getJobPostingCandidateReports(jobPostingId, page, pageSize, cleanedFilters);
+      } else {
+        response = await interviewService.getCandidateReports(page, pageSize, cleanedFilters);
+      }
       
       // Process the reports data
       const processedReports = response.reports.map(report => {
@@ -108,8 +112,9 @@ function CandidateAssessmentReports() {
       });
       
       setCandidateReports(processedReports);
-      setTotalPages(response.pagination.total_pages);
-      setTotalReports(response.pagination.total);
+      const pagination = response.pagination || {};
+      setTotalPages(pagination.total_pages ?? Math.max(1, Math.ceil((pagination.total ?? processedReports.length) / pageSize)));
+      setTotalReports(pagination.total ?? processedReports.length);
     } catch (err) {
       console.error("Error fetching reports:", err);
       setError(err.detail || "Failed to load candidate reports");

@@ -376,6 +376,28 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while fetching candidate reports' };
     }
   },
+
+  /**
+   * Get candidate reports for a specific job posting
+   * @param {string} jobPostingId - Job posting id
+   * @param {number} page - Page number
+   * @param {number} pageSize - Page size
+   * @param {Object} filters - Optional filters
+   */
+  getJobPostingCandidateReports: async (jobPostingId, page = 1, pageSize = 10, filters = {}) => {
+    try {
+      const params = {
+        job_posting_id: jobPostingId,
+        page,
+        page_size: pageSize,
+        ...filters
+      };
+      const response = await api.get('/reports/job_posting_candidate_reports', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching job posting candidate reports' };
+    }
+  },
   
   /**
    * Get candidate report by interview ID

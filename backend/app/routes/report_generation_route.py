@@ -144,6 +144,56 @@ async def list_candidate_reports(
         raise HTTPException(status_code=500, detail=f"Error fetching candidate reports: {e}")
     
 
+
+@router.get("/job_posting_candidate_reports")
+async def job_posting_candidate_reports(
+    job_posting_id: str,
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    candidate_name: Optional[str] = None,
+    candidate_email: Optional[str] = None,
+    job_role: Optional[str] = None,
+    interview_id: Optional[str] = None,
+    current_user: dict = Depends(require_auth)
+):
+    """
+    Fetch all candidate reports with pagination and filtering options.
+    Returns a list of reports without the PDF binary data.
+    """
+    try:
+        db = get_database()
+        
+        
+        # Fetch reports with pagination
+        cursor = db["candidates_reports"].find(
+            {"job_posting_id": str(job_posting_id)},
+            # Exclude the PDF binary data to reduce response size
+            {"report_pdf": 0}
+        )
+        
+        # Convert cursor to list
+        reports = await cursor.to_list(length=page_size)
+        
+        # Convert ObjectId to string for JSON serialization
+        for report in reports:
+            if "_id" in report:
+                report["_id"] = str(report["_id"])
+        
+        
+        return {
+            "reports": reports,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in job_posting_candidate_reports: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in job_posting_candidate_reports: {e}")
+
+
+
 ##single candidate report
 @router.get("/candidate_report/{interview_id}")
 async def candidate_report(
@@ -161,7 +211,6 @@ async def candidate_report(
             {"interview_id": str(interview_id)},
             {"report_pdf": 0, "_id":0}  # Exclude the PDF binary data
         )
-        print(report_data)
         logger.info(f"Fetched candidate reports data for interview ID: {interview_id}")
         
         return {
