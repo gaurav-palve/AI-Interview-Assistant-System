@@ -258,8 +258,8 @@ async def schedule_interviews_bulk(
                         "scheduling_method": "resume_screening",  # Indicate how this interview was scheduled
                         "resume_size_bytes": len(resume_content) if resume_content else 0,  # Store the size of the resume
                         "admin_id_type": "ObjectId",  # Always an ObjectId now
-                        "scheduled_by": str(admin_id),  # Store the admin ID as a string for reference
-                    }
+                        "scheduled_by": str(admin_id),  # Store the admin ID as a string for reference                                             
+                            }
                 }
             except Exception as e:
                 logger.error(f"Error saving files for candidate {candidate.email}: {e}")

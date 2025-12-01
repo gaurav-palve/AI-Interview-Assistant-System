@@ -45,7 +45,8 @@ from app.routes import (
     forgot_password_routes,
     reset_password_routes,
     report_generation_route,
-    skills_suggestion_routes
+    skills_suggestion_routes,
+    job_posting_statistics_route
 )
 
 # Initialize logger
@@ -152,6 +153,7 @@ app.include_router(code.router, prefix="/api/code", tags=["code"])
 app.include_router(questions.router, prefix="/api/questions", tags=["questions"])
 app.include_router(forgot_password_routes.router, prefix="/api")
 app.include_router(reset_password_routes.router, prefix="/api")
+app.include_router(job_posting_statistics_route.router, prefix="/api/job-postings-stats")
 
 logger.info("All routes registered successfully.")
 
