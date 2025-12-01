@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
+import interviewService from '../../services/interviewService';
+import CandidateAssessmentReports from '../../pages/CandidateAssessmentReports';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
 // Material UI Icons
 import {
-  Work as WorkIcon, 
+  Work as WorkIcon,
   Business as BusinessIcon,
   LocationOn as LocationIcon,
   School as ExperienceIcon,
@@ -20,6 +22,8 @@ import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
   Star as StarIcon,
+  StarHalf as StarHalfIcon,
+  StarBorder as StarBorderIcon,
   Warning as WarningIcon,
   Edit as EditIcon,
   Publish as PublishIcon,
@@ -34,7 +38,10 @@ import {
   Close as CloseIcon,
   FileUpload as FileUploadIcon,
   Visibility as ViewIcon,
-  FileDownload as FileDownloadIcon
+  FileDownload as FileDownloadIcon,
+  Mic as MicIcon,
+  Code as CodeIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import html2pdf from 'html2pdf.js';
 
@@ -64,6 +71,10 @@ function JobPostingDetail() {
   const [schedulingError, setSchedulingError] = useState(null);
   const [schedulingSuccess, setSchedulingSuccess] = useState(false);
   const [scheduledInterviews, setScheduledInterviews] = useState([]);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [currentReportData, setCurrentReportData] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState(null);
   const [emailAttachments, setEmailAttachments] = useState([]);
 
   // Fetch job posting on component mount
@@ -141,6 +152,60 @@ function JobPostingDetail() {
       setScheduledInterviews(data.interviews || []);
     } catch (err) {
       console.error('Error fetching scheduled interviews:', err);
+    }
+  };
+
+  // Function to fetch report data for a specific interview
+  const fetchReportData = async (interviewId) => {
+    try {
+      setReportLoading(true);
+      setReportError(null);
+      
+      // Fetch the report data using the interview ID
+      const response = await interviewService.getCandidateReportById(interviewId);
+
+      // Normalize backend wrapper / keys to the shape the modal expects
+      const normalizeReport = (r) => {
+        if (!r) return null;
+        return {
+          id: r.interview_id ?? r.id ?? r._id ?? null,
+          name: r.candidate_name ?? r.name ?? null,
+          email: r.candidate_email ?? r.email ?? null,
+          position: r.job_role ?? r.position ?? null,
+          mcq: r.mcq ?? r.MCQ_data ?? r.MCQ ?? null,
+          voice: r.voice ?? r.Voice_data ?? r.Voice ?? null,
+          coding: r.coding ?? r.Coding_data ?? r.Coding ?? null,
+          overall: r.overall ?? r.Overall ?? r.overall_score ?? null,
+          // keep original data for reference
+          raw: r
+        };
+      };
+
+      const reportObj = response?.reports ?? response;
+      setCurrentReportData(normalizeReport(reportObj));
+      
+      // Open the modal after data is loaded
+      setIsReportModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching report data:', err);
+      setReportError(err.detail || 'Failed to load report data. Please try again later.');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  // Function to handle opening the report modal
+  const handleViewReport = (interviewId) => {
+    fetchReportData(interviewId);
+  };
+
+  // Function to handle downloading the report PDF
+  const handleDownloadReport = async (interviewId) => {
+    try {
+      await interviewService.downloadReportPdf(interviewId);
+    } catch (err) {
+      console.error('Error downloading report:', err);
+      setReportError(err.detail || 'Failed to download report. Please try again later.');
     }
   };
 
@@ -686,6 +751,7 @@ const downloadJobDescription = () => {
             { id: 'details', label: 'Details', icon: DescriptionIcon },
             { id: 'screening', label: 'Resume Screening', icon: AssessmentIcon },
             { id: 'interviews', label: 'Interviews', icon: GroupIcon },
+            { id: 'assessments', label: 'Assessment Reports', icon: AssessmentIcon },
           ].map(tab => (
             <button
               key={tab.id}
@@ -1193,6 +1259,198 @@ const downloadJobDescription = () => {
                 )}
               </div>
             </div>
+            
+            {/* Report Modal */}
+            {isReportModalOpen && (
+              <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                  {/* Background overlay */}
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setIsReportModalOpen(false)}></div>
+                  
+                  {/* Modal panel */}
+                  <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-2xl leading-6 font-bold text-gray-900" id="modal-title">
+                              Candidate Assessment Report
+                            </h3>
+                            <button
+                              onClick={() => setIsReportModalOpen(false)}
+                              className="text-gray-400 hover:text-gray-500"
+                            >
+                              <CloseIcon className="h-6 w-6" />
+                            </button>
+                          </div>
+                          
+                          {reportLoading ? (
+                            <div className="flex justify-center py-8">
+                              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+                            </div>
+                          ) : reportError ? (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                              <div className="flex">
+                                <div className="ml-3">
+                                  <p className="text-sm text-red-700">{reportError}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : currentReportData ? (
+                            <div className="space-y-6">
+                              {/* Candidate Info */}
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                                    <PersonIcon className="h-6 w-6" />
+                                  </div>
+                                  <div className="ml-4">
+                                    <h4 className="text-lg font-medium text-gray-900">{currentReportData.name || "Unknown Candidate"}</h4>
+                                    <p className="text-sm text-gray-500">{currentReportData.email || "No email"}</p>
+                                    <p className="text-sm text-gray-500">{currentReportData.position || "Unknown Position"}</p>
+                                  </div>
+                                  <div className="ml-auto">
+                                    <div className="text-right">
+                                      <div className="text-sm text-gray-500">Overall Score</div>
+                                      <div className="text-2xl font-bold text-primary-600">{currentReportData.overall?.score || 0}%</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Assessment Scores */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* MCQ Score */}
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                  <h5 className="text-blue-800 font-medium flex items-center mb-2">
+                                    <AssessmentIcon className="mr-2 text-blue-600" />
+                                    MCQ Assessment
+                                  </h5>
+                                  <div className="mb-2">
+                                    <div className="w-full bg-blue-200 rounded-full h-2.5 mb-1">
+                                      <div
+                                        className="bg-blue-600 h-2.5 rounded-full"
+                                        style={{ width: `${currentReportData.mcq?.score || 0}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-blue-800">
+                                      <span>0%</span>
+                                      <span>50%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-gray-700 mt-2">
+                                    <p><span className="font-medium">Score:</span> {currentReportData.mcq?.score || 0}%</p>
+                                    <p><span className="font-medium">Details:</span> {currentReportData.mcq?.details || "No details available"}</p>
+                                  </div>
+                                </div>
+                                
+                                {/* Voice Score */}
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                  <h5 className="text-purple-800 font-medium flex items-center mb-2">
+                                    <MicIcon className="mr-2 text-purple-600" />
+                                    Voice Interview
+                                  </h5>
+                                  <div className="mb-2">
+                                    <div className="w-full bg-purple-200 rounded-full h-2.5 mb-1">
+                                      <div
+                                        className="bg-purple-600 h-2.5 rounded-full"
+                                        style={{ width: `${currentReportData.voice?.score || 0}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-purple-800">
+                                      <span>0%</span>
+                                      <span>50%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-gray-700 mt-2">
+                                    <p><span className="font-medium">Score:</span> {currentReportData.voice?.score || 0}%</p>
+                                    <p><span className="font-medium">Details:</span> {currentReportData.voice?.details || "No details available"}</p>
+                                  </div>
+                                </div>
+                                
+                                {/* Coding Score */}
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                  <h5 className="text-green-800 font-medium flex items-center mb-2">
+                                    <CodeIcon className="mr-2 text-green-600" />
+                                    Coding Challenge
+                                  </h5>
+                                  <div className="mb-2">
+                                    <div className="w-full bg-green-200 rounded-full h-2.5 mb-1">
+                                      <div
+                                        className="bg-green-600 h-2.5 rounded-full"
+                                        style={{ width: `${currentReportData.coding?.score || 0}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-green-800">
+                                      <span>0%</span>
+                                      <span>50%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-gray-700 mt-2">
+                                    <p><span className="font-medium">Score:</span> {currentReportData.coding?.score || 0}%</p>
+                                    <p><span className="font-medium">Details:</span> {currentReportData.coding?.details || "No details available"}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Overall Assessment */}
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <h5 className="text-gray-800 font-medium mb-2">Overall Assessment</h5>
+                                <div className="flex items-center mb-2">
+                                  <div className="flex text-yellow-400">
+                                    {[1, 2, 3, 4, 5].map((star) => {
+                                      const rating = (currentReportData.overall?.score || 0) / 20; // Convert to 5-star scale
+                                      return star <= Math.floor(rating) ? (
+                                        <StarIcon key={star} className="h-5 w-5" />
+                                      ) : star === Math.ceil(rating) && !Number.isInteger(rating) ? (
+                                        <StarHalfIcon key={star} className="h-5 w-5" />
+                                      ) : (
+                                        <StarBorderIcon key={star} className="h-5 w-5" />
+                                      );
+                                    })}
+                                  </div>
+                                  <span className="ml-2 text-sm font-medium text-gray-900">{currentReportData.overall?.score || 0}%</span>
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                  <p><span className="font-medium">Rating:</span> {currentReportData.overall?.rating || "Not Rated"}</p>
+                                  <p><span className="font-medium">Recommendation:</span> {currentReportData.overall?.recommendation || "No recommendation"}</p>
+                                  <p className="mt-2"><span className="font-medium">Feedback:</span> {currentReportData.overall?.feedback || "No feedback available"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              No report data available
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                      <button
+                        type="button"
+                        onClick={() => currentReportData && handleDownloadReport(currentReportData.id)}
+                        disabled={!currentReportData || reportLoading}
+                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
+                      >
+                        <DownloadIcon className="h-5 w-5 mr-2" />
+                        Download PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsReportModalOpen(false)}
+                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
@@ -1203,7 +1461,7 @@ const downloadJobDescription = () => {
                 <PersonIcon className="h-6 w-6 mr-2 text-primary-600" />
                 <span className="text-gray-800 font-serif">Scheduled Interviews</span>
               </h2>
-              
+
               {scheduledInterviews.length === 0 ? (
                 <p className="text-gray-700">
                   No interviews scheduled yet. Select candidates from the Resume Screening tab to schedule interviews.
@@ -1226,7 +1484,7 @@ const downloadJobDescription = () => {
                           Status
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Interview Link
+                          Reports
                         </th>
                       </tr>
                     </thead>
@@ -1245,14 +1503,27 @@ const downloadJobDescription = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              interview.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              interview.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                              interview.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
                               {interview.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500">
-                            <a href={interview.interview_link} target="_blank" rel="noopener noreferrer">
-                              Open Interview
-                            </a>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {interview.status === 'completed' ? (
+                              <button
+                                onClick={() => handleViewReport(interview.id)}
+                                className="text-blue-500 hover:text-blue-700 font-medium flex items-center"
+                              >
+                                <AssessmentIcon className="h-4 w-4 mr-1" />
+                                Report
+                              </button>
+                            ) : (
+                              <span className="text-gray-400">NA</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -1261,6 +1532,12 @@ const downloadJobDescription = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'assessments' && (
+          <div className="space-y-8">
+            <CandidateAssessmentReports />
           </div>
         )}
       </div>

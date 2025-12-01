@@ -376,6 +376,22 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while fetching candidate reports' };
     }
   },
+  
+  /**
+   * Get candidate report by interview ID
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the report data
+   */
+  getCandidateReportById: async (interviewId) => {
+    try {
+      const response = await api.get(`/reports/candidate_report/${interviewId}`);
+      // Backend returns { reports: <reportObject> }.
+      // Return the inner report object for convenience to callers.
+      return response.data?.reports ?? response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching the candidate report' };
+    }
+  },
 
   /**
    * Download a candidate report PDF
