@@ -239,7 +239,7 @@ async def schedule_interviews_bulk(
                 interview_data = {
                     "candidate_name": candidate.name,
                     "candidate_email": candidate.email,
-                    "job_role": f"Position from Job Posting {request.job_posting_id}",
+                    "job_role": job_posting.get('job_title',""),
                     "scheduled_datetime": scheduled_dt,
                     "status": "scheduled",
                     "resume_uploaded": True,  # Set to true since we've uploaded the resume
@@ -315,7 +315,7 @@ async def schedule_interviews_bulk(
                     result = await email_service.send_interview_confirmation(
                         candidate_email=candidate.email,
                         candidate_name=candidate.name,
-                        job_role=f"Position from Job Posting {request.job_posting_id}",
+                        job_role=job_posting.get('job_title',""),
                         scheduled_datetime=request.interview_datetime,
                         interview_id=interview_id,
                         attachments=request.attachments if hasattr(request, 'attachments') else []  # Add attachments
@@ -344,7 +344,9 @@ async def schedule_interviews_bulk(
 
 
 @router.get("/get-interviews-by-job-posting/{job_posting_id}")
-async def get_interviews_by_job_posting(job_posting_id: str):
+async def get_interviews_by_job_posting(job_posting_id: str,
+                                        current_user: dict = Depends(require_auth)
+                                        ):
     """
     Get all interviews for a specific job posting
     """
@@ -363,7 +365,7 @@ async def get_interviews_by_job_posting(job_posting_id: str):
             
         db = get_database()
         interviews = await db[SCHEDULED_INTERVIEWS_COLLECTION].find(
-            {"job_posting_id": job_posting_id}
+            {"job_posting_id": job_posting_id, "created_by": str(current_user["admin_id"])}
         ).to_list(length=100)
         
         # Convert ObjectId to string for each interview and ensure id field is set
