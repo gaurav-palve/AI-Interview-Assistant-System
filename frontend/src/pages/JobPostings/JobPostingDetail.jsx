@@ -6,6 +6,8 @@ import CandidateAssessmentReports from '../../pages/CandidateAssessmentReports';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
+import JobPostingStatistics from '../../components/JobPostings/JobPostingStatistics';
+
 // Material UI Icons
 import {
   Work as WorkIcon,
@@ -752,6 +754,8 @@ const downloadJobDescription = () => {
             { id: 'screening', label: 'Resume Screening', icon: AssessmentIcon },
             { id: 'interviews', label: 'Interviews', icon: GroupIcon },
             { id: 'assessments', label: 'Assessment Reports', icon: AssessmentIcon },
+            { id: 'statistics', label: 'Statistics', icon: AssessmentIcon }
+
           ].map(tab => (
             <button
               key={tab.id}
@@ -1538,6 +1542,19 @@ const downloadJobDescription = () => {
         {activeTab === 'assessments' && (
           <div className="space-y-8">
             <CandidateAssessmentReports jobPostingId={id} />
+          </div>
+        )}
+
+        {activeTab === 'statistics' && (
+          <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
+                <AssessmentIcon className="h-6 w-6 mr-2 text-primary-600" />
+                <span className="text-gray-800 font-serif">Job Posting Statistics</span>
+              </h2>
+              
+                <JobPostingStatistics jobPostingId={id} />
+            </div>
           </div>
         )}
       </div>

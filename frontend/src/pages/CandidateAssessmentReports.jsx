@@ -41,15 +41,13 @@ function CandidateAssessmentReports({ jobPostingId = null }) {
     try {
       setLoading(true);
       setError(null);
-      
-      // Prepare filters (only include non-empty values)
+      // Prepare cleaned filters
       const cleanedFilters = Object.fromEntries(
         Object.entries(filters).filter(([_, value]) => value !== '')
       );
 
       let response;
       if (jobPostingId) {
-        // Use job-posting specific endpoint when jobPostingId provided
         response = await interviewService.getJobPostingCandidateReports(jobPostingId, page, pageSize, cleanedFilters);
       } else {
         response = await interviewService.getCandidateReports(page, pageSize, cleanedFilters);
@@ -211,7 +209,8 @@ function CandidateAssessmentReports({ jobPostingId = null }) {
   // Fetch reports when component mounts or when page/pageSize changes
   useEffect(() => {
     fetchReports();
-  }, [page, pageSize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, jobPostingId, filters]);
 
   return (
     <div className="space-y-6">
@@ -235,118 +234,6 @@ function CandidateAssessmentReports({ jobPostingId = null }) {
           </div>
         )}
         
-      
-        
-        {/* Assessment summary cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {/* MCQ Assessment Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow p-4 border border-blue-200">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-blue-800 font-medium flex items-center">
-                <AssessmentIcon className="mr-2 text-blue-600" />
-                MCQ Assessment
-              </h3>
-              <span className="bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                {loading ? 'Loading...' : `Avg: ${calculateAverageMcqScore()}%`}
-              </span>
-            </div>
-            <div className="mb-2">
-              <div className="w-full bg-blue-200 rounded-full h-2.5 mb-1">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: loading ? '0%' : `${calculateAverageMcqScore()}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs text-blue-800">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
-            <div className="flex justify-between text-xs text-blue-800 mt-2">
-              {loading ? (
-                <span>Loading candidate data...</span>
-              ) : (
-                <>
-                  <span>{candidateReports.length} candidates completed</span>
-                  <span>{totalReports - candidateReports.length} pending</span>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Voice Interview Card */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow p-4 border border-purple-200">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-purple-800 font-medium flex items-center">
-                <MicIcon className="mr-2 text-purple-600" />
-                Voice Interview
-              </h3>
-              <span className="bg-purple-200 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                {loading ? 'Loading...' : `Avg: ${calculateAverageVoiceScore()}%`}
-              </span>
-            </div>
-            <div className="mb-2">
-              <div className="w-full bg-purple-200 rounded-full h-2.5 mb-1">
-                <div
-                  className="bg-purple-600 h-2.5 rounded-full"
-                  style={{ width: loading ? '0%' : `${calculateAverageVoiceScore()}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs text-purple-800">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
-            <div className="flex justify-between text-xs text-purple-800 mt-2">
-              {loading ? (
-                <span>Loading candidate data...</span>
-              ) : (
-                <>
-                  <span>{candidateReports.length} candidates completed</span>
-                  <span>{totalReports - candidateReports.length} pending</span>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Coding Challenge Card */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow p-4 border border-green-200">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-green-800 font-medium flex items-center">
-                <CodeIcon className="mr-2 text-green-600" />
-                Coding Challenge
-              </h3>
-              <span className="bg-green-200 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                {loading ? 'Loading...' : `Avg: ${calculateAverageCodingScore()}%`}
-              </span>
-            </div>
-            <div className="mb-2">
-              <div className="w-full bg-green-200 rounded-full h-2.5 mb-1">
-                <div
-                  className="bg-green-600 h-2.5 rounded-full"
-                  style={{ width: loading ? '0%' : `${calculateAverageCodingScore()}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs text-green-800">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
-            </div>
-            <div className="flex justify-between text-xs text-green-800 mt-2">
-              {loading ? (
-                <span>Loading candidate data...</span>
-              ) : (
-                <>
-                  <span>{candidateReports.length} candidates completed</span>
-                  <span>{totalReports - candidateReports.length} pending</span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
           {/* Filter form */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
           <h2 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
