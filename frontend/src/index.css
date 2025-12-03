@@ -498,6 +498,103 @@
   50% { transform: scale(1.05); }
 }
 
+/* Donut chart animation */
+@keyframes donutSegmentAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+    stroke-dashoffset: 100;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Hover effects for donut chart segments */
+@keyframes segmentHover {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.05); filter: brightness(1.2); }
+  100% { transform: scale(1.03); filter: brightness(1.15); }
+}
+
+.segment-hover {
+  animation: segmentHover 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.5));
+}
+
+/* Professional rotation animation for donut chart */
+@keyframes rotateDonut {
+  0% { transform: rotate(-90deg); }
+  25% { transform: rotate(-87deg); }
+  75% { transform: rotate(-93deg); }
+  100% { transform: rotate(-90deg); }
+}
+
+/* Spinning animations for the chart */
+@keyframes spinDonut {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes reverseSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+.animate-rotate-donut {
+  animation: rotateDonut 20s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-spin-donut {
+  animation: spinDonut 10s linear infinite;
+}
+
+.animate-reverse-spin {
+  animation: reverseSpin 25s linear infinite;
+}
+
+/* Professional entrance animation for donut segments */
+@keyframes segmentEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotate(-20deg);
+    filter: saturate(0.5) brightness(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08) rotate(5deg);
+    filter: saturate(1.2) brightness(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: saturate(1) brightness(1);
+  }
+}
+
+.animate-segment-entrance {
+  animation: segmentEntrance 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: center;
+}
+
+/* Continuous subtle pulse for chart */
+@keyframes subtlePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 5s ease-in-out infinite;
+}
+
+.animate-donut-segment {
+  animation: donutSegmentAppear 0.6s ease-out forwards;
+  transform-origin: center;
+}
+
 .animate-scale-bounce {
   animation: scale-bounce 0.6s ease-in-out;
 }
