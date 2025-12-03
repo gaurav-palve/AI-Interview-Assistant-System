@@ -84,33 +84,11 @@ const jobPostingService = {
   changeJobPostingStatus: async (id, status) => {
     try {
       console.log(`Changing job posting ${id} status to ${status}`);
-      
-      try {
-        // Attempt to make the actual API call
-        
-        const response = await api.patch(`/job-postings/update-job-posting-status/${id}`, { status });
-        return response.data;
-      } catch (apiError) {
-        console.error('API call failed, using mock implementation:', apiError);
-        
-        // If the API call fails (due to CORS or any other reason), return a mock response
-        // This allows the UI to still work even if the backend is not accessible
-        return {
-          id: id,
-          status: status,
-          updated_at: new Date().toISOString(),
-          mock: true
-        };
-      }
+      const response = await api.patch(`/job-postings/update-job-posting-status/${id}`, { status });
+      return response.data;
     } catch (error) {
       console.error('Error in changeJobPostingStatus:', error);
-      // Return mock data even on complete failure to allow the UI to work
-      return {
-        id: id,
-        status: status,
-        updated_at: new Date().toISOString(),
-        mock: true
-      };
+      return { id, status, updated_at: new Date().toISOString(), mock: true };
     }
   },
 
@@ -138,23 +116,36 @@ const jobPostingService = {
     try {
       const formData = new FormData();
       formData.append('zip_file', resumesZipFile);
-      
-      // Get the job description file from the job posting
+
+      // Get job description file from job posting
       const jobPosting = await jobPostingService.getJobPosting(id);
       const jdFile = new Blob([jobPosting.job_description], { type: 'application/pdf' });
       formData.append('jd_file', jdFile, 'job_description.pdf');
-      
+
       const response = await api.post('/screening/resume-screening', formData, {
-        headers: {
-           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        withCredentials: true
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+        withCredentials: true,
       });
+
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred during resume screening' };
     }
-  }
+  },
+
+  /**
+   * ✅ Get statistics for a specific job posting
+   * @param {string} id - Job posting ID
+   * @returns {Promise} - Promise with the job posting statistics
+   */
+  getJobPostingStatistics: async (id) => {
+    try {
+      const response = await api.get(`/job-postings-stats/stats/job-posting/${id}`);
+      return response.data.data; // Backend stats object
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching job posting statistics' };
+    }
+  },
 };
 
 export default jobPostingService;
