@@ -19,7 +19,7 @@ const jobPostingService = {
   },
 
   /**
-   * Update an existing job posting
+   * Update an existing job posting (full update)
    * @param {string} id - Job posting ID
    * @param {Object} jobPostingData - Updated job posting data
    * @returns {Promise} - Promise with the updated job posting
@@ -30,6 +30,23 @@ const jobPostingService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while updating job posting' };
+    }
+  },
+
+  /**
+   * Update ONLY the job description safely
+   * @param {string} id - Job posting ID
+   * @param {string} jobDescription - New job description text
+   * @returns {Promise} - Promise with the updated job posting
+   */
+  updateJobDescription: async (id, jobDescription) => {
+    try {
+      const response = await api.patch(`/job-postings/job-description/${id}`, {
+        job_description: jobDescription
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while updating job description' };
     }
   },
 
