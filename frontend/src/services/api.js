@@ -133,6 +133,7 @@ const refreshAccessToken = async () => {
 };
 
 // Get the API base URL from environment variable or use default
+// The backend routes already include '/api' in the prefix, so we don't need to include it here
 const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Create an axios instance with default config

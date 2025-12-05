@@ -126,7 +126,7 @@ function Login() {
 
               {/* EMAIL */}
               <div>
-                <label className="block text-xs font-semibold mb-1">Email</label>
+                <label className="block text-base font-semibold mb-1">Email</label>
                 <div className="relative">
                   <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -149,7 +149,7 @@ function Login() {
 
               {/* PASSWORD */}
               <div>
-                <label className="block text-xs font-semibold mb-1">Password</label>
+                <label className="block text-base font-semibold mb-1">Password</label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -178,7 +178,7 @@ function Login() {
               </div>
 
               {/* REMEMBER + FORGOT */}
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-1">
                   <input
                     type="checkbox"
@@ -189,7 +189,7 @@ function Login() {
                   <span>Remember me</span>
                 </label>
                 <Link to="/forgot-password" className="text-blue-600">
-                  Forgot?
+                  Forgot Password
                 </Link>
               </div>
 

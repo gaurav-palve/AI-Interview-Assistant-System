@@ -12,7 +12,7 @@ class ForgotPasswordRequest(BaseModel):
 
 @router.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest,
-                          current_user: dict = Depends(require_auth)):
+                          ):
     db = get_database()
     user = await db[AUTH_COLLECTION].find_one({"email": request.email})
     if not user:
@@ -23,10 +23,10 @@ async def forgot_password(request: ForgotPasswordRequest,
 
     db[OTP_COLLECTION].update_one(
         {"email": request.email},
-        {"$set": {"otp": int(otp), "expires_at": expiry}},
+        {"$set": {"type":"forget_password","otp": int(otp), "expires_at": expiry}},
         upsert=True
     )
 
     emailobject = EmailService()
-    await emailobject.send_otp_email(request.email, otp)
+    await emailobject.send_forget_password_otp_email(request.email, otp)
     return {"message": "OTP sent successfully to your email"}

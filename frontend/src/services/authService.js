@@ -32,17 +32,64 @@ const authService = {
   },
 
   /**
-   * Sign up a new admin user
-   * @param {string} email - Admin email
-   * @param {string} password - Admin password
-   * @returns {Promise} - Promise with the signup result
+   * Send OTP for signup (Step 1)
+   * @param {string} email - Email to send OTP to
+   * @returns {Promise} - Promise with the OTP sending result
    */
-  signUp: async (email, password) => {
+  sendSignupOTP: async (email) => {
     try {
-      const response = await api.post('/auth/signup', { email, password });
-      return response.data;
+      const response = await api.post('/auth/signup/send-otp', { email });
+      return {
+        success: true,
+        message: response.data.message
+      };
     } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred during sign up' };
+      throw error.response?.data || { detail: 'Failed to send OTP' };
+    }
+  },
+
+  /**
+   * Verify OTP for signup (Step 2)
+   * @param {string} email - Email address
+   * @param {string|number} otp - OTP received via email
+   * @returns {Promise} - Promise with the OTP verification result
+   */
+  verifySignupOTP: async (email, otp) => {
+    try {
+      const response = await api.post('/auth/verify-otp', {
+        email,
+        otp: parseInt(otp, 10)
+      });
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (error) {
+      throw error.response?.data || { detail: 'Failed to verify OTP' };
+    }
+  },
+
+  /**
+   * Create account with password (Step 3)
+   * @param {string} email - Email address
+   * @param {string} password - Password
+   * @param {string} confirm_password - Password confirmation
+   * @returns {Promise} - Promise with account creation result
+   */
+  createAccount: async (email, password, confirm_password) => {
+    try {
+      const response = await api.post('/auth/create-account', {
+        email,
+        password,
+        confirm_password
+      });
+      return {
+        success: true,
+        message: 'Account created successfully',
+        admin_id: response.data.admin_id
+      };
+    } catch (error) {
+      throw error.response?.data || { detail: 'Failed to create account' };
     }
   },
 
