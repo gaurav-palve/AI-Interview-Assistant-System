@@ -115,11 +115,10 @@ export default function ResetPassword() {
         <div className="flex items-center justify-center p-8 bg-white animate-rightFade overflow-visible">
           <div className="w-full max-w-[280px]">
 
-            <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="text-xl font-semibold text-gray-800 mb-5">
               Create New Password
             </h2>
-
-            <p className="text-xs text-gray-500 mb-4">Enter OTP & new password</p>
+            
 
             {/* ERROR */}
             {status && status !== "success" && (
@@ -141,7 +140,7 @@ export default function ResetPassword() {
 
               {/* EMAIL */}
               <div>
-                <label className="block text-[11px] font-semibold mb-1">Email</label>
+                <label className="block text-base font-semibold mb-1">Email</label>
                 <div className="relative">
                   <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
                   <input
@@ -149,15 +148,15 @@ export default function ResetPassword() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-3 py-2 bg-gray-50 border rounded-lg text-[12px]
-                               focus:ring-2 focus:ring-violet-400/50 outline-none"
+                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base
+                               focus:ring-2 focus:ring-blue-400/40 outline-none"
                   />
                 </div>
               </div>
 
               {/* OTP */}
               <div>
-                <label className="block text-[11px] font-semibold mb-1">OTP Code</label>
+                <label className="block text-base font-semibold mb-1">OTP Code</label>
                 <div className="relative">
                   <PinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
                   <input
@@ -166,16 +165,15 @@ export default function ResetPassword() {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     required
                     maxLength={6}
-                    className="w-full pl-10 pr-3 py-2 bg-gray-50 border rounded-lg 
-                               text-center tracking-widest font-mono text-[12px]
-                               focus:ring-2 focus:ring-violet-400/50"
+                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg 
+                                tracking-widest font-mono text-base focus:ring-2 focus:ring-blue-400/40"
                   />
                 </div>
               </div>
 
               {/* NEW PASSWORD */}
               <div>
-                <label className="block text-[11px] font-semibold mb-1">New Password</label>
+                <label className="block text-base font-semibold mb-1">New Password</label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
                   <input
@@ -198,7 +196,7 @@ export default function ResetPassword() {
 
               {/* CONFIRM PASSWORD */}
               <div>
-                <label className="block text-[11px] font-semibold mb-1">Confirm Password</label>
+                <label className="block text-base font-semibold mb-1">Confirm Password</label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
                   <input
@@ -223,16 +221,15 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 
-                           text-white text-[12px] rounded-lg font-medium shadow-md 
-                           hover:shadow-lg transition disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base 
+                           rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-50"
               >
                 {isLoading ? "Updating..." : "Reset Password"}
               </button>
             </form>
 
-            {/* BOTTOM LINKS */}
-            <div className="text-center mt-5 text-[11px]">
+            {/* LINKS */}
+            <div className="text-center mt-5 text-sm">
               <span className="text-gray-500">Didn't get OTP?</span>
               <Link to="/forgot-password" className="text-violet-600 ml-1 font-medium">
                 Resend
