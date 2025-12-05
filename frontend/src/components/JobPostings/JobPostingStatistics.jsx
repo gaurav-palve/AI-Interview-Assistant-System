@@ -269,7 +269,7 @@ export default function JobPostingStatistics({ jobPostingId }) {
                   chartAnimated ? 'animate-slideIn' : 'opacity-0'
                 } ${hoveredSegment === idx ? 'ring-2 ring-offset-2 animate-pulse-slow shadow-lg' : 'shadow-sm'}`}
                 style={{
-                  animationDelay: `${(idx * 100) + 600}ms`,
+                  animationDelay: `${(idx * 100) + 1200}ms`,
                   borderColor: hoveredSegment === idx ? seg.color : '',
                   transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
                   transform: hoveredSegment === idx ? 'translateX(5px)' : 'none'

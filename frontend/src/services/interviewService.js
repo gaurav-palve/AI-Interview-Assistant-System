@@ -378,6 +378,44 @@ const interviewService = {
   },
 
   /**
+   * Get candidate reports for a specific job posting
+   * @param {string} jobPostingId - Job posting id
+   * @param {number} page - Page number
+   * @param {number} pageSize - Page size
+   * @param {Object} filters - Optional filters
+   */
+  getJobPostingCandidateReports: async (jobPostingId, page = 1, pageSize = 10, filters = {}) => {
+    try {
+      const params = {
+        job_posting_id: jobPostingId,
+        page,
+        page_size: pageSize,
+        ...filters
+      };
+      const response = await api.get('/reports/job_posting_candidate_reports', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching job posting candidate reports' };
+    }
+  },
+  
+  /**
+   * Get candidate report by interview ID
+   * @param {string} interviewId - Interview ID
+   * @returns {Promise} - Promise with the report data
+   */
+  getCandidateReportById: async (interviewId) => {
+    try {
+      const response = await api.get(`/reports/candidate_report/${interviewId}`);
+      // Backend returns { reports: <reportObject> }.
+      // Return the inner report object for convenience to callers.
+      return response.data?.reports ?? response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching the candidate report' };
+    }
+  },
+
+  /**
    * Download a candidate report PDF
    * @param {string} interviewId - Interview ID
    * @returns {Promise} - Promise with the PDF blob
