@@ -5,6 +5,20 @@ from typing import Dict, Optional
 class AdminSignupRequest(BaseModel):
     email: EmailStr
     password: str
+    confirm_password: str
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+class OTPResponse(BaseModel):
+    message: str
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: int
+
+class CreateAccountRequest(BaseModel):
+    email: EmailStr
+    password: str
+    confirm_password: str
 
 class AdminSignupResponse(BaseModel):
     message: str

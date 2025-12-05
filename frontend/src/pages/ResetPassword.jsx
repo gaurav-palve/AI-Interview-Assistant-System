@@ -104,12 +104,10 @@ export default function ResetPassword() {
         <div className="flex items-center justify-center p-8 bg-white">
           <div className="w-full" style={{ maxWidth: "330px" }}>
 
-            <h2 className="text-xl font-semibold text-gray-800 mb-1">
+            <h2 className="text-xl font-semibold text-gray-800 mb-5">
               Create New Password
             </h2>
-            <p className="text-xs text-gray-500 mb-4">
-              Enter OTP and set your new password
-            </p>
+            
 
             {/* ERROR */}
             {status && status !== "success" && (
@@ -130,7 +128,7 @@ export default function ResetPassword() {
 
               {/* EMAIL */}
               <div>
-                <label className="block text-xs font-semibold mb-1">Email</label>
+                <label className="block text-base font-semibold mb-1">Email</label>
                 <div className="relative">
                   <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -138,7 +136,7 @@ export default function ResetPassword() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs 
+                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base
                                focus:ring-2 focus:ring-blue-400/40 outline-none"
                   />
                 </div>
@@ -146,7 +144,7 @@ export default function ResetPassword() {
 
               {/* OTP */}
               <div>
-                <label className="block text-xs font-semibold mb-1">OTP Code</label>
+                <label className="block text-base font-semibold mb-1">OTP Code</label>
                 <div className="relative">
                   <PinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -158,14 +156,14 @@ export default function ResetPassword() {
                     required
                     maxLength={6}
                     className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg 
-                               text-center tracking-widest font-mono text-sm focus:ring-2 focus:ring-blue-400/40"
+                                tracking-widest font-mono text-base focus:ring-2 focus:ring-blue-400/40"
                   />
                 </div>
               </div>
 
               {/* NEW PASSWORD */}
               <div>
-                <label className="block text-xs font-semibold mb-1">New Password</label>
+                <label className="block text-base font-semibold mb-1">New Password</label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -188,7 +186,7 @@ export default function ResetPassword() {
 
               {/* CONFIRM PASSWORD */}
               <div>
-                <label className="block text-xs font-semibold mb-1">Confirm Password</label>
+                <label className="block text-base font-semibold mb-1">Confirm Password</label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <input
@@ -213,7 +211,7 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs 
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base 
                            rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-50"
               >
                 {isLoading ? "Updating..." : "Reset Password"}
@@ -221,7 +219,7 @@ export default function ResetPassword() {
             </form>
 
             {/* LINKS */}
-            <div className="text-center mt-5 text-xs">
+            <div className="text-center mt-5 text-sm">
               <span className="text-gray-500">Didn't get OTP?</span>
               <Link
                 to="/forgot-password"
