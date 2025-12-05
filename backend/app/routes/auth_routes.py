@@ -1,7 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, Request, Response, Cookie, Body
 from typing import Optional, Dict
 import logging
-
+from app.utils.otp_verification import verify_otp
+from app.utils.email_domain_validator import validate_domain
+from app.database import AUTH_COLLECTION, OTP_COLLECTION, get_database
+import random
+from datetime import datetime, timedelta
+from app.services.email_service import EmailService
 from ..schemas.auth_schema import (
     AdminSignupRequest,
     AdminSignupResponse,
@@ -9,7 +14,11 @@ from ..schemas.auth_schema import (
     AdminSigninResponse,
     RefreshRequest,
     RefreshResponse,
-    LogoutRequest
+    LogoutRequest,
+    OTPResponse,
+    EmailRequest,
+    OTPVerifyRequest,
+    CreateAccountRequest
 )
 from ..services.auth_service import (
     REFRESH_TOKEN_COOKIE_SECURE,
@@ -27,12 +36,55 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Authentication"])
 
 # --- Admin Signup ---
-@router.post("/signup", response_model=AdminSignupResponse)
-async def admin_signup(payload: AdminSignupRequest):
-    admin_id = await create_admin_account(payload.email, payload.password)
-    if not admin_id:
+@router.post("/signup/send-otp", response_model=OTPResponse)
+async def admin_signup(payload: EmailRequest):
+    validate_domain(payload.email)
+
+    db = get_database()
+
+    existing_admin = await db[AUTH_COLLECTION].find_one({"email": payload.email})
+    if existing_admin:
         raise HTTPException(status_code=400, detail="Admin already exists")
-    return {"message": "Admin account created successfully", "admin_id": admin_id}
+
+    otp = random.randint(100000, 999999)
+    expiry = datetime.utcnow() + timedelta(minutes=5)
+
+    await db[OTP_COLLECTION].update_one(
+        {"email": payload.email},
+        {"$set": {"otp": otp, "expires_at": expiry}},
+        upsert=True
+    )
+
+    emailobject = EmailService()
+    await emailobject.send_signup_verification_email(payload.email, otp)
+
+    return {"message": "OTP sent to email"}
+
+@router.post("/verify-otp", response_model=OTPResponse)
+async def verify_signup_otp(payload: OTPVerifyRequest):
+    db = get_database()
+
+    is_verified = await verify_otp(db, payload.email, payload.otp, OTP_COLLECTION)
+    if is_verified is False:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    return {"message": "OTP verified successfully"}
+
+@router.post("/create-account", response_model=AdminSignupResponse)
+async def create_account(payload: CreateAccountRequest):
+    db = get_database()
+
+    # This verifies if OTP was verified earlier
+    record = await db[OTP_COLLECTION].find_one({"email": payload.email})
+    if not record:
+        raise HTTPException(status_code=400, detail="Email not verified")
+
+    admin_id = await create_admin_account(payload.email, payload.password)
+
+    # Delete OTP record once done
+    await db[OTP_COLLECTION].delete_one({"email": payload.email})
+
+    return {"message": "Admin account created", "admin_id": str(admin_id)}
 
 
 # --- Admin Signin ---
