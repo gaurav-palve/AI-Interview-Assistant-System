@@ -86,10 +86,10 @@ export default function ForgotPassword() {
         <div className="flex items-center justify-center p-10 bg-white">
           <div className="w-full" style={{ maxWidth: "330px" }}>
 
-            <h2 className="text-2xl font-semibold text-gray-800 mb-1">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
               Forgot Password?
             </h2>
-            <p className="text-sm text-gray-500 mb-6">Enter your registered email</p>
+           
 
             {/* Error */}
             {status && !showSuccess && status !== "sending" && (
@@ -109,8 +109,8 @@ export default function ForgotPassword() {
             {/* FORM */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Email Address
+                <label className="block text-base font-semibold text-gray-700 mb-1">
+                  Enter your registered email
                 </label>
                 <div className="relative">
                   <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 h-4 w-4" />

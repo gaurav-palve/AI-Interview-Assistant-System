@@ -1,66 +1,158 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import {
   Email as EmailIcon,
   Lock as LockIcon,
   LockReset as LockResetIcon,
   Visibility,
   VisibilityOff,
+  Verified as VerifiedIcon,
 } from "@mui/icons-material";
-import { useFormValidation } from "../hooks/useFormValidation";
-import { validateConfirmPassword } from "../utils/validation";
-import Nts_logo from "../assets/Nts_logo/NTSLOGO.png";
+import authService from "../services/authService";
+import HireGenixLogo from "../../public/HireGenix_logo.svg";
 import LoginBg from "../assets/login_bg.png"; // SAME LEFT-SIDE IMAGE AS LOGIN
 
 function Signup() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
+  
+  // Form states
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // UI control states
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [messageTimeout, setMessageTimeout] = useState(null);
+  
+  // Password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Validation
+  const validateEmail = () => {
+    if (!email) return "Email is required";
+    if (!/\S+@\S+\.\S+/.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+  
+  const validateOtp = () => {
+    if (!otp) return "OTP is required";
+    if (!/^\d+$/.test(otp)) return "OTP should contain only numbers";
+    return "";
+  };
 
-  const { signUp } = useAuth();
-  const navigate = useNavigate();
-
-  const {
-    values,
-    errors,
-    touched,
-    handleChange,
-    handleBlur,
-    validate,
-    setError: setFieldError,
-  } = useFormValidation(
-    { email: "", password: "", confirmPassword: "" },
-    {
-      email: { required: true, email: true, fieldName: "Email" },
-      password: { required: true, password: true, minLength: 8, fieldName: "Password" },
-      confirmPassword: { required: true, fieldName: "Confirm Password" },
+  // Function to show messages with auto-dismiss
+  const showMessage = (message, isError = false) => {
+    // Clear any existing timeouts
+    if (messageTimeout) {
+      clearTimeout(messageTimeout);
     }
-  );
+    
+    // Set the appropriate message
+    if (isError) {
+      setError(message);
+      setSuccess("");
+    } else {
+      setSuccess(message);
+      setError("");
+    }
+    
+    // Set a timeout to clear the message after 3 seconds
+    const timeout = setTimeout(() => {
+      if (isError) {
+        setError("");
+      } else {
+        setSuccess("");
+      }
+      setMessageTimeout(null);
+    }, 5000);
+    
+    // Save the timeout ID
+    setMessageTimeout(timeout);
+  };
 
-  const handleSubmit = async (e) => {
+  // Step 1: Send OTP
+  const handleSendOTP = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (!validate()) return;
-
-    const confirmError = validateConfirmPassword(values.password, values.confirmPassword);
-    if (confirmError) {
-      setFieldError("confirmPassword", confirmError);
+    
+    // Validate email
+    const emailError = validateEmail();
+    if (emailError) {
+      showMessage(emailError, true);
       return;
     }
-
+    
     setIsLoading(true);
-
+    
     try {
-      await signUp(values.email, values.password);
-      setSuccess("Account created successfully! Redirecting to login...");
+      const result = await authService.sendSignupOTP(email);
+      showMessage(result.message || "OTP sent successfully!");
+      setOtpSent(true);
+    } catch (err) {
+      showMessage(err.detail || "Failed to send OTP. Please try again.", true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    
+    // Validate OTP
+    const otpError = validateOtp();
+    if (otpError) {
+      showMessage(otpError, true);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const verifyResult = await authService.verifySignupOTP(email, otp);
+      showMessage(verifyResult.message || "OTP verified successfully!");
+      setOtpVerified(true);
+    } catch (err) {
+      showMessage(err.detail || "Failed to verify OTP. Please try again.", true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 3: Create account
+  const handleCreateAccount = async (e) => {
+    e.preventDefault();
+    
+    // Validate password
+    if (!password) {
+      showMessage("Password is required", true);
+      return;
+    }
+    
+    if (password.length < 8) {
+      showMessage("Password must be at least 8 characters", true);
+      return;
+    }
+    
+    // Validate confirm password
+    if (password !== confirmPassword) {
+      showMessage("Passwords do not match", true);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const result = await authService.createAccount(email, password, confirmPassword);
+      showMessage("Account created successfully!");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError(err.detail || "Failed to create account. Please try again.");
+      showMessage(err.detail || "Failed to create account. Please try again.", true);
     } finally {
       setIsLoading(false);
     }
@@ -88,14 +180,14 @@ function Signup() {
           <div className="relative z-10 flex items-center gap-3">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl p-2">
               <img
-                src={Nts_logo}
-                alt="NTS Logo"
+                src={HireGenixLogo}
+                alt="HireGenix Logo"
                 className="h-8 w-8 object-contain rounded-sm"
               />
             </div>
             <div>
-              <div className="text-xl font-bold">Neutrino</div>
-              <div className="text-xs tracking-widest opacity-90">Interview.AI</div>
+              <div className="text-xl font-bold">HireGenix</div>
+              <div className="text-xs tracking-widest opacity-90">AI Interviews</div>
             </div>
           </div>
 
@@ -113,131 +205,189 @@ function Signup() {
         </div>
 
         {/* RIGHT PANEL – FORM */}
-        <div className="flex items-center justify-center p-10 bg-white">
+        <div className="flex items-center justify-center p-10 bg-white overflow-y-auto">
           <div className="w-full" style={{ maxWidth: "330px" }}>
 
-            <h2 className="text-2xl font-semibold text-gray-800 mb-1">
-              Create Your Account
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Start your journey with HireGenix
-            </p>
+            {/* HEADER SECTION WITH SIGN-UP STATUS */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-1">
+                Create Your Account
+              </h2>
+              
+            </div>
+              {/* Error Message - Smaller and more compact */}
+              {error && (
+                <div className="mb-2 py-1.5 px-2 bg-red-50 border-l-2 border-red-400 rounded-base text-xs text-red-600 flex items-center">
+                  <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+                  {error}
+                </div>
+              )}
+  
+              {/* Success Message - Smaller and more compact */}
+              {success && (
+                <div className="mb-2 py-1.5 px-2 bg-green-50 border-l-2 border-green-400 rounded-sm text-xs text-green-600 flex items-center">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>
+                  {success}
+                </div>
+              )}
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-                {error}
-              </div>
+            {/* FORM - STEP 1: EMAIL */}
+            {!otpSent && (
+              <form onSubmit={handleSendOTP} className="space-y-4">
+                <div>
+                  <label className="block text-base font-semibold mb-1">Enter Email</label>
+                  <div className="relative">
+                    <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@company.com"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg
+                        focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                    />
+                  </div>
+                </div>
+
+                {/* SEND OTP BUTTON */}
+                <button
+                  type="submit"
+                  disabled={isLoading || !email}
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white
+                    rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-60"
+                >
+                  {isLoading ? "Sending OTP..." : "Send OTP"}
+                </button>
+              </form>
             )}
 
-            {/* Success Message */}
-            {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 text-center">
-                <div className="font-semibold">Welcome!</div>
-                <p className="text-xs mt-1">{success}</p>
-              </div>
+            {/* FORM - STEP 2: OTP VERIFICATION */}
+            {otpSent && !otpVerified && (
+              <form onSubmit={handleVerifyOTP} className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-base font-semibold">Enter OTP</label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="Enter 6-digit OTP"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg
+                        focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  {/* CHANGE EMAIL BUTTON */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtp('');
+                    }}
+                    disabled={isLoading}
+                    className="flex-1 py-2.5 bg-gray-100 text-gray-700
+                      rounded-base font-medium hover:bg-gray-200 transition disabled:opacity-60"
+                  >
+                    Change Email
+                  </button>
+
+                  {/* VERIFY OTP BUTTON */}
+                  <button
+                    type="submit"
+                    disabled={isLoading || !otp}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white
+                      rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-60"
+                  >
+                    {isLoading ? "Verifying..." : "Verify OTP"}
+                  </button>
+                </div>
+              </form>
             )}
 
-            {/* FORM */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-              {/* EMAIL */}
-              <div>
-                <label className="block text-xs font-semibold mb-1">Email</label>
-                <div className="relative">
-                  <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
-                  <input
-                    type="email"
-                    name="email"
-                    value={values.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="name@company.com"
-                    className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:outline-none 
-                      focus:ring-2 focus:ring-blue-400/40 ${
-                        errors.email && touched.email ? "border-red-400" : "border-gray-200"
-                      }`}
-                  />
+            {/* FORM - STEP 3: CREATE PASSWORD */}
+            {otpVerified && (
+              <form onSubmit={handleCreateAccount} className="space-y-4">
+                {/* PASSWORD */}
+                <div>
+                  <label className="block text-base font-semibold mb-1">Password</label>
+                  <div className="relative">
+                    <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg
+                        focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                    >
+                      {showPassword ? <VisibilityOff className="h-4 w-4" /> : <Visibility className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
-                {errors.email && touched.email && (
-                  <p className="text-xs text-red-600 mt-1">{errors.email}</p>
-                )}
-              </div>
 
-              {/* PASSWORD */}
-              <div>
-                <label className="block text-xs font-semibold mb-1">Password</label>
-                <div className="relative">
-                  <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={values.password}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:outline-none 
-                      focus:ring-2 focus:ring-blue-400/40 ${
-                        errors.password && touched.password ? "border-red-400" : "border-gray-200"
-                      }`}
-                  />
+                {/* CONFIRM PASSWORD */}
+                <div>
+                  <label className="block text-base font-semibold mb-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <LockResetIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg
+                        focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                    >
+                      {showConfirmPassword ? <VisibilityOff className="h-4 w-4" /> : <Visibility className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  {/* BACK BUTTON */}
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    onClick={() => {
+                      setOtpVerified(false);
+                      setPassword('');
+                      setConfirmPassword('');
+                    }}
+                    disabled={isLoading}
+                    className="flex-1 py-2.5 bg-gray-100 text-gray-700
+                      rounded-base font-medium hover:bg-gray-200 transition disabled:opacity-60"
                   >
-                    {showPassword ? <VisibilityOff className="h-4 w-4" /> : <Visibility className="h-4 w-4" />}
+                    Back
                   </button>
-                </div>
-                {errors.password && touched.password && (
-                  <p className="text-xs text-red-600 mt-1">{errors.password}</p>
-                )}
-              </div>
 
-              {/* CONFIRM PASSWORD */}
-              <div>
-                <label className="block text-xs font-semibold mb-1">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <LockResetIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={values.confirmPassword}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:outline-none 
-                      focus:ring-2 focus:ring-blue-400/40 ${
-                        errors.confirmPassword && touched.confirmPassword
-                          ? "border-red-400"
-                          : "border-gray-200"
-                      }`}
-                  />
+                  {/* CREATE ACCOUNT BUTTON */}
                   <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    type="submit"
+                    disabled={isLoading || !password || !confirmPassword}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white
+                      rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-60"
                   >
-                    {showConfirmPassword ? <VisibilityOff className="h-4 w-4" /> : <Visibility className="h-4 w-4" />}
+                    {isLoading ? "Creating..." : "Create Account"}
                   </button>
                 </div>
-                {errors.confirmPassword && touched.confirmPassword && (
-                  <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>
-                )}
-              </div>
-
-              {/* SUBMIT BUTTON */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white 
-                rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-60"
-              >
-                {isLoading ? "Creating Account..." : "Create Account"}
-              </button>
-            </form>
+              </form>
+            )}
 
             {/* Already have account */}
             <div className="text-center mt-6 text-sm">
