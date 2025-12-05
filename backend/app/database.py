@@ -623,6 +623,10 @@ async def get_and_save_interview_report_data(interview_id: str) -> bool:
         candidate_email = interview_record.get("candidate_email", "")
         job_role = interview_record.get("job_role", "")
 
+        #initialize job_post_id by null
+        job_post_id = None
+        job_post_id = interview_record.get("job_post_id", "")
+
         # Step 2: Fetch MCQ data
         mcq_data = []
         mcq_record = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
@@ -680,16 +684,30 @@ async def get_and_save_interview_report_data(interview_id: str) -> bool:
                     "coding_marks": coding_marks
                 })
 
-        # Step 5: Combine report data
-        report_data = {
-            "interview_id": interview_id,
-            "candidate_name": candidate_name,
-            "candidate_email": candidate_email,
-            "job_role": job_role,
-            "MCQ_data": mcq_data,
-            "Voice_data": voice_data,
-            "Coding_data": coding_data
-        }
+
+        if job_post_id is not None:
+            # Step 5: Combine report data
+            report_data = {
+                "interview_id": interview_id,
+                "job_posting_id": job_post_id,
+                "candidate_name": candidate_name,
+                "candidate_email": candidate_email,
+                "job_role": job_role,
+                "MCQ_data": mcq_data,
+                "Voice_data": voice_data,
+                "Coding_data": coding_data
+            }
+        else:
+            # Step 5: Combine report data
+            report_data = {
+                "interview_id": interview_id,
+                "candidate_name": candidate_name,
+                "candidate_email": candidate_email,
+                "job_role": job_role,
+                "MCQ_data": mcq_data,
+                "Voice_data": voice_data,
+                "Coding_data": coding_data
+            }
 
         # Step 6: Save to candidates_reports (upsert)
         await db[CANDIDATES_REPORTS_COLLECTION].update_one(
