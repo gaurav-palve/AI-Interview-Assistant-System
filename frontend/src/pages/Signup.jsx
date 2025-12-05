@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import {
   Email as EmailIcon,
   Lock as LockIcon,
   LockReset as LockResetIcon,
   Visibility,
   VisibilityOff,
+  Verified as VerifiedIcon,
 } from "@mui/icons-material";
 import { useFormValidation } from "../hooks/useFormValidation";
 import { validateConfirmPassword } from "../utils/validation";
@@ -14,53 +14,146 @@ import Nts_logo from "../assets/Nts_logo/NTSLOGO.png";
 import LoginBg from "../assets/login_bg.png";
 
 function Signup() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
+  
+  // Form states
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // UI control states
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [messageTimeout, setMessageTimeout] = useState(null);
+  
+  // Password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Validation
+  const validateEmail = () => {
+    if (!email) return "Email is required";
+    if (!/\S+@\S+\.\S+/.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+  
+  const validateOtp = () => {
+    if (!otp) return "OTP is required";
+    if (!/^\d+$/.test(otp)) return "OTP should contain only numbers";
+    return "";
+  };
 
-  const { signUp } = useAuth();
-  const navigate = useNavigate();
-
-  const {
-    values,
-    errors,
-    touched,
-    handleChange,
-    handleBlur,
-    validate,
-    setError: setFieldError,
-  } = useFormValidation(
-    { email: "", password: "", confirmPassword: "" },
-    {
-      email: { required: true, email: true, fieldName: "Email" },
-      password: { required: true, password: true, minLength: 8, fieldName: "Password" },
-      confirmPassword: { required: true, fieldName: "Confirm Password" },
+  // Function to show messages with auto-dismiss
+  const showMessage = (message, isError = false) => {
+    // Clear any existing timeouts
+    if (messageTimeout) {
+      clearTimeout(messageTimeout);
     }
-  );
+    
+    // Set the appropriate message
+    if (isError) {
+      setError(message);
+      setSuccess("");
+    } else {
+      setSuccess(message);
+      setError("");
+    }
+    
+    // Set a timeout to clear the message after 3 seconds
+    const timeout = setTimeout(() => {
+      if (isError) {
+        setError("");
+      } else {
+        setSuccess("");
+      }
+      setMessageTimeout(null);
+    }, 5000);
+    
+    // Save the timeout ID
+    setMessageTimeout(timeout);
+  };
 
-  const handleSubmit = async (e) => {
+  // Step 1: Send OTP
+  const handleSendOTP = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (!validate()) return;
-
-    const confirmError = validateConfirmPassword(values.password, values.confirmPassword);
-    if (confirmError) {
-      setFieldError("confirmPassword", confirmError);
+    
+    // Validate email
+    const emailError = validateEmail();
+    if (emailError) {
+      showMessage(emailError, true);
       return;
     }
-
+    
     setIsLoading(true);
-
+    
     try {
-      await signUp(values.email, values.password);
-      setSuccess("Account created successfully! Redirecting to login...");
+      const result = await authService.sendSignupOTP(email);
+      showMessage(result.message || "OTP sent successfully!");
+      setOtpSent(true);
+    } catch (err) {
+      showMessage(err.detail || "Failed to send OTP. Please try again.", true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    
+    // Validate OTP
+    const otpError = validateOtp();
+    if (otpError) {
+      showMessage(otpError, true);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const verifyResult = await authService.verifySignupOTP(email, otp);
+      showMessage(verifyResult.message || "OTP verified successfully!");
+      setOtpVerified(true);
+    } catch (err) {
+      showMessage(err.detail || "Failed to verify OTP. Please try again.", true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 3: Create account
+  const handleCreateAccount = async (e) => {
+    e.preventDefault();
+    
+    // Validate password
+    if (!password) {
+      showMessage("Password is required", true);
+      return;
+    }
+    
+    if (password.length < 8) {
+      showMessage("Password must be at least 8 characters", true);
+      return;
+    }
+    
+    // Validate confirm password
+    if (password !== confirmPassword) {
+      showMessage("Passwords do not match", true);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const result = await authService.createAccount(email, password, confirmPassword);
+      showMessage("Account created successfully!");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError(err.detail || "Failed to create account. Please try again.");
+      showMessage(err.detail || "Failed to create account. Please try again.", true);
     } finally {
       setIsLoading(false);
     }
@@ -198,8 +291,14 @@ function Signup() {
 
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    onClick={() => {
+                      setOtpVerified(false);
+                      setPassword('');
+                      setConfirmPassword('');
+                    }}
+                    disabled={isLoading}
+                    className="flex-1 py-2.5 bg-gray-100 text-gray-700
+                      rounded-base font-medium hover:bg-gray-200 transition disabled:opacity-60"
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </button>
@@ -230,9 +329,10 @@ function Signup() {
                   />
 
                   <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                    type="submit"
+                    disabled={isLoading || !password || !confirmPassword}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white
+                      rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-60"
                   >
                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                   </button>
