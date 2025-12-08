@@ -121,11 +121,9 @@ export default function ForgotPassword() {
         <div className="flex items-center justify-center p-10 bg-white animate-rightFade">
           <div className="w-full max-w-xs">
 
-            <h2 className="text-3xl font-bold mb-1 bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
               Forgot Password?
             </h2>
-
-            <p className="text-sm text-gray-500 mb-6">Enter your registered email</p>
 
             {/* ERROR */}
             {status && !showSuccess && status !== "sending" && (
