@@ -40,6 +40,7 @@ class InterviewCreate(BaseModel):
     candidate_email: EmailStr = Field(..., description="Candidate's email address")
     job_role: str = Field(..., min_length=3, description="Job role for the interview")
     scheduled_datetime: datetime = Field(..., description="Scheduled interview date and time")
+    timezone: str = Field(default="UTC", description="Timezone for the scheduled interview")
     status: InterviewStatus = Field(default=InterviewStatus.SCHEDULED, description="Interview status")
     resume_uploaded: Optional[bool] = Field(default=False, description="Whether resume was uploaded")
     jd_uploaded: Optional[bool] = Field(default=False, description="Whether job description was uploaded")
@@ -49,6 +50,7 @@ class InterviewUpdate(BaseModel):
     candidate_email: Optional[EmailStr] = None
     job_role: Optional[str] = Field(None, min_length=3)
     scheduled_datetime: Optional[datetime] = None
+    timezone: Optional[str] = None
     status: Optional[InterviewStatus] = None
     resume_uploaded: Optional[bool] = None
     jd_uploaded: Optional[bool] = None
@@ -80,6 +82,7 @@ class InterviewResponse(BaseModel):
     candidate_email: str
     job_role: str
     scheduled_datetime: datetime
+    timezone: str = "UTC"
     status: InterviewStatus
     resume_uploaded: bool
     jd_uploaded: bool

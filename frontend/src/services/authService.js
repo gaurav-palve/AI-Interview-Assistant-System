@@ -32,17 +32,64 @@ const authService = {
   },
 
   /**
-   * Sign up a new admin user
-   * @param {string} email - Admin email
-   * @param {string} password - Admin password
-   * @returns {Promise} - Promise with the signup result
+   * Send OTP for signup (Step 1)
+   * @param {string} email - Email to send OTP to
+   * @returns {Promise} - Promise with the OTP sending result
    */
-  signUp: async (email, password) => {
+  sendSignupOTP: async (email) => {
     try {
-      const response = await api.post('/auth/signup', { email, password });
-      return response.data;
+      const response = await api.post('/auth/signup/send-otp', { email });
+      return {
+        success: true,
+        message: response.data.message
+      };
     } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred during sign up' };
+      throw error.response?.data || { detail: 'Failed to send OTP' };
+    }
+  },
+
+  /**
+   * Verify OTP for signup (Step 2)
+   * @param {string} email - Email address
+   * @param {string|number} otp - OTP received via email
+   * @returns {Promise} - Promise with the OTP verification result
+   */
+  verifySignupOTP: async (email, otp) => {
+    try {
+      const response = await api.post('/auth/verify-otp', {
+        email,
+        otp: parseInt(otp, 10)
+      });
+      return {
+        success: true,
+        message: response.data.message
+      };
+    } catch (error) {
+      throw error.response?.data || { detail: 'Failed to verify OTP' };
+    }
+  },
+
+  /**
+   * Create account with password (Step 3)
+   * @param {string} email - Email address
+   * @param {string} password - Password
+   * @param {string} confirm_password - Password confirmation
+   * @returns {Promise} - Promise with account creation result
+   */
+  createAccount: async (email, password, confirm_password) => {
+    try {
+      const response = await api.post('/auth/create-account', {
+        email,
+        password,
+        confirm_password
+      });
+      return {
+        success: true,
+        message: 'Account created successfully',
+        admin_id: response.data.admin_id
+      };
+    } catch (error) {
+      throw error.response?.data || { detail: 'Failed to create account' };
     }
   },
 
@@ -90,7 +137,7 @@ const authService = {
       });
       
       // Clear local storage tokens
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('user_email');
       localStorage.removeItem('token_expiry'); // Clear expiration time if stored
       
@@ -98,7 +145,7 @@ const authService = {
       return { success: true, message: 'Logged out successfully' };
     } catch (error) {
       // If the request fails, still remove local tokens as a fallback
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       localStorage.removeItem('user_email');
       localStorage.removeItem('token_expiry');
       
@@ -113,7 +160,7 @@ const authService = {
    * @returns {boolean} - True if the user is authenticated
    */
   isAuthenticated: () => {
-    const token = localStorage.getItem('session_token');
+    const token = localStorage.getItem('access_token');
     if (!token) return false;
     
     // Check if token is expired
@@ -137,14 +184,14 @@ const authService = {
    */
   getToken: () => {
     // Check if token exists and is valid before returning
-    const token = localStorage.getItem('session_token');
+    const token = localStorage.getItem('access_token');
     if (!token) return null;
     
     // Check if token is expired
     const expiry = parseTokenExpiry(token);
     if (!expiry || Date.now() >= expiry) {
       // Token is expired, clear it
-      localStorage.removeItem('session_token');
+      localStorage.removeItem('access_token');
       return null;
     }
     

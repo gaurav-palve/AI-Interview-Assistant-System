@@ -118,16 +118,59 @@ function InterviewDetail() {
    * @returns {string} - Formatted date string
    */
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: 'Asia/Kolkata', // Always use IST
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }) + ' (IST)';
+    } catch (error) {
+      console.error('Error formatting date with IST timezone:', error);
+      // Fallback without timezone specification
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
   };
 
+  // Date formatting for candidate's local timezone
+  const formatDateInCandidateTimezone = (dateString, timezone) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone || 'UTC', // Use candidate's timezone or UTC as fallback
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }) + ` (${timezone || 'UTC'})`;
+    } catch (error) {
+      console.error(`Error formatting date with timezone ${timezone}:`, error);
+      // Fallback to UTC
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      }) + ' (UTC)';
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -200,7 +243,13 @@ function InterviewDetail() {
                   <div className="flex items-center">
                     <EventIcon className="h-5 w-5 text-white mr-2" />
                     <span className="text-white/90 font-medium">
-                      Scheduled for: {formatDate(interview.scheduled_datetime)}
+                      Admin Time: {formatDate(interview.scheduled_datetime)}
+                    </span>
+                  </div>
+                  <div className="flex items-center mt-2">
+                    <EventIcon className="h-5 w-5 text-white mr-2" />
+                    <span className="text-white/90 font-medium">
+                      Candidate's Local Time: {formatDateInCandidateTimezone(interview.scheduled_datetime, interview.timezone)}
                     </span>
                   </div>
                 </div>
@@ -299,11 +348,11 @@ function InterviewDetail() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Created At:</span>
-                  <span className="text-gray-900 dark:text-white">{formatDate(interview.created_at)}</span>
+                  <span className="text-gray-900 dark:text-white">{formatDate(interview.created_at)} (IST)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Last Updated:</span>
-                  <span className="text-gray-900 dark:text-white">{formatDate(interview.updated_at)}</span>
+                  <span className="text-gray-900 dark:text-white">{formatDate(interview.updated_at)} (IST)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Interview ID:</span>
