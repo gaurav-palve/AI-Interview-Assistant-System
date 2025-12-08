@@ -524,15 +524,31 @@ function CandidateInterview() {
    * @param {string} dateString - ISO date string
    * @returns {string} - Formatted date string
    */
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDate = (dateString, timezone = 'UTC') => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    } catch (error) {
+      console.error('Error formatting date with timezone:', error);
+      // Fallback to browser's timezone if there's an error
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    }
   };
 
   // Format time for display (MM:SS)
@@ -730,7 +746,8 @@ function CandidateInterview() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 font-medium">Scheduled Time</p>
-                      <p className="text-sm text-gray-200">{formatDate(interview.scheduled_datetime)}</p>
+                      <p className="text-sm text-gray-200">{formatDate(interview.scheduled_datetime, interview.timezone)}</p>
+                      <p className="text-xs text-gray-400">{interview.timezone || 'UTC'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 font-medium">Interview ID</p>

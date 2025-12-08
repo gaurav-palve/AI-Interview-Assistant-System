@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
+import interviewService from '../../services/interviewService';
+import CandidateAssessmentReports from '../../pages/CandidateAssessmentReports';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
+import JobPostingStatistics from '../../components/JobPostings/JobPostingStatistics';
+
 // Material UI Icons
 import {
-  Work as WorkIcon, 
+  Work as WorkIcon,
   Business as BusinessIcon,
   LocationOn as LocationIcon,
   School as ExperienceIcon,
@@ -20,6 +24,8 @@ import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
   Star as StarIcon,
+  StarHalf as StarHalfIcon,
+  StarBorder as StarBorderIcon,
   Warning as WarningIcon,
   Edit as EditIcon,
   Publish as PublishIcon,
@@ -34,9 +40,15 @@ import {
   Close as CloseIcon,
   FileUpload as FileUploadIcon,
   Visibility as ViewIcon,
-  FileDownload as FileDownloadIcon
+  FileDownload as FileDownloadIcon,
+  Mic as MicIcon,
+  Code as CodeIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import html2pdf from 'html2pdf.js';
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+pdfMake.vfs = pdfFonts.vfs;
 
 /**
  * JobPostingDetail component
@@ -64,11 +76,21 @@ function JobPostingDetail() {
   const [schedulingError, setSchedulingError] = useState(null);
   const [schedulingSuccess, setSchedulingSuccess] = useState(false);
   const [scheduledInterviews, setScheduledInterviews] = useState([]);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [currentReportData, setCurrentReportData] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState(null);
   const [emailAttachments, setEmailAttachments] = useState([]);
 
-  // Fetch job posting on component mount
+  // Job Description Editing
+  const [isEditingJD, setIsEditingJD] = useState(false);
+  const [jdText, setJdText] = useState("");
+  const [initialJdLoaded, setInitialJdLoaded] = useState(false); // ensure JD is initialized only once
+
+  // Fetch job posting on component mount or id change
   useEffect(() => {
     fetchJobPosting();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Fetch job posting data
@@ -78,6 +100,11 @@ function JobPostingDetail() {
       const response = await jobPostingService.getJobPosting(id);
       // The backend returns the job posting directly, not wrapped in a job_posting field
       setJobPosting(response || {});
+      // Initialize jdText only if it's not already initialized (so we don't overwrite while editing)
+      if (!initialJdLoaded) {
+        setJdText(response?.job_description || "");
+        setInitialJdLoaded(true);
+      }
       setError(null);
     } catch (err) {
       console.error('Error fetching job posting:', err);
@@ -86,7 +113,36 @@ function JobPostingDetail() {
       setLoading(false);
     }
   };
-  
+
+  // Save updated JD — sends only the JD to backend and updates local state safely
+  const saveUpdatedJD = async () => {
+    try {
+      const updated = { job_description: jdText ?? "" };
+
+      // Call backend update. This function should only update the one field on server.
+      // If your API returns the entire object, we will merge it safely below.
+      // const res = await jobPostingService.updateJobPosting(id, updated);
+
+      const res = await jobPostingService.updateJobDescription(id, jdText);
+
+      // Safely update local jobPosting state without overwriting other fields
+      setJobPosting(prev => {
+        if (!prev) return { job_description: jdText };
+        return {
+          ...prev,
+          job_description: jdText
+        };
+      });
+
+      console.log("JD updated");
+      return res;
+    } catch (err) {
+      console.error("Failed to update JD:", err);
+      // We keep local jdText even if backend fails; you may show error UI if desired
+      return null;
+    }
+  };
+
   // Handle job posting status change
   const handleStatusChange = async (newStatus) => {
     console.log(`Updating job ${id} status to ${newStatus} in detail view`);
@@ -101,7 +157,7 @@ function JobPostingDetail() {
       // Make the API call - if this fails, we've already updated the UI
       const response = await jobPostingService.changeJobPostingStatus(id, newStatus);
       
-      if (response.mock) {
+      if (response && response.mock) {
         console.log('Using mock implementation for status change in detail view');
       }
     } catch (err) {
@@ -113,19 +169,17 @@ function JobPostingDetail() {
 
   // Fetch scheduled interviews if on interviews tab
   useEffect(() => {
-    
-    // Fetch scheduled interviews if on interviews tab
     if (activeTab === 'interviews') {
       fetchScheduledInterviews();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, activeTab]);
   
   // Fetch scheduled interviews
   const fetchScheduledInterviews = async () => {
     try {
       const token = localStorage.getItem("access_token"); 
-      const response = await fetch(`http://localhost:8000/api/bulk-interviews/get-interviews-by-job-posting/${id}`,
-      {
+      const response = await fetch(`http://localhost:8000/api/bulk-interviews/get-interviews-by-job-posting/${id}`, {
          headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
@@ -141,6 +195,60 @@ function JobPostingDetail() {
       setScheduledInterviews(data.interviews || []);
     } catch (err) {
       console.error('Error fetching scheduled interviews:', err);
+    }
+  };
+
+  // Function to fetch report data for a specific interview
+  const fetchReportData = async (interviewId) => {
+    try {
+      setReportLoading(true);
+      setReportError(null);
+      
+      // Fetch the report data using the interview ID
+      const response = await interviewService.getCandidateReportById(interviewId);
+
+      // Normalize backend wrapper / keys to the shape the modal expects
+      const normalizeReport = (r) => {
+        if (!r) return null;
+        return {
+          id: r.interview_id ?? r.id ?? r._id ?? null,
+          name: r.candidate_name ?? r.name ?? null,
+          email: r.candidate_email ?? r.email ?? null,
+          position: r.job_role ?? r.position ?? null,
+          mcq: r.mcq ?? r.MCQ_data ?? r.MCQ ?? null,
+          voice: r.voice ?? r.Voice_data ?? r.Voice ?? null,
+          coding: r.coding ?? r.Coding_data ?? r.Coding ?? null,
+          overall: r.overall ?? r.Overall ?? r.overall_score ?? null,
+          // keep original data for reference
+          raw: r
+        };
+      };
+
+      const reportObj = response?.reports ?? response;
+      setCurrentReportData(normalizeReport(reportObj));
+      
+      // Open the modal after data is loaded
+      setIsReportModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching report data:', err);
+      setReportError(err.detail || 'Failed to load report data. Please try again later.');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  // Function to handle opening the report modal
+  const handleViewReport = (interviewId) => {
+    fetchReportData(interviewId);
+  };
+
+  // Function to handle downloading the report PDF
+  const handleDownloadReport = async (interviewId) => {
+    try {
+      await interviewService.downloadReportPdf(interviewId);
+    } catch (err) {
+      console.error('Error downloading report:', err);
+      setReportError(err.detail || 'Failed to download report. Please try again later.');
     }
   };
 
@@ -175,7 +283,6 @@ function JobPostingDetail() {
       formData.append('zip_file', resumeFile);
       formData.append('jd_file', jdFile);
       
-      // Use the axios instance with the correct baseURL
       const response = await fetch('http://localhost:8000/api/screening/resume-screening', {
         method: 'POST',
         body: formData,
@@ -208,9 +315,9 @@ function JobPostingDetail() {
   // Handle select individual candidate
   const handleSelectCandidate = (resume, isChecked) => {
     if (isChecked) {
-      setSelectedCandidates([...selectedCandidates, resume]);
+      setSelectedCandidates(prev => [...prev, resume]);
     } else {
-      setSelectedCandidates(selectedCandidates.filter(r => r !== resume));
+      setSelectedCandidates(prev => prev.filter(r => r !== resume));
     }
   };
 
@@ -269,7 +376,7 @@ function JobPostingDetail() {
           resume: candidate.resume
         })),
         job_description: jdFile ? jdFile.name : 'job_description.pdf',
-        attachments: [] // Add this line
+        attachments: []
       };
       
       // Process attachments if any
@@ -295,16 +402,13 @@ function JobPostingDetail() {
         interviewData.attachments = await Promise.all(attachmentPromises);
       }
       
+      const token = localStorage.getItem("access_token");
       // Call API to schedule interviews
-      const url = new URL('http://localhost:8000/api/bulk-interviews/bulk-schedule');
-      if (sessionToken) {
-        url.searchParams.append('session_token', sessionToken);
-      }
-      
-      const response = await fetch(url.toString(), {
+      const response = await fetch('http://localhost:8000/api/bulk-interviews/bulk-schedule', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(interviewData),
       });
@@ -407,117 +511,239 @@ function JobPostingDetail() {
     return formatted;
   };
 
-  // Generate PDF with job posting details
-  // Generate PDF with job posting details
-const downloadJobDescription = () => {
-  // Create a template similar to the reference
-  const pdfContent = document.createElement('div');
-  
-  // Use the formatJobDescription function for consistent formatting
-  const formattedDescription = jobPosting.job_description
-    ? formatJobDescription(jobPosting.job_description)
-    : '<p>No description available.</p>';
-  
-  // Format skills list as simple items
-  const skillsList = jobPosting.required_skills && jobPosting.required_skills.length
-    ? jobPosting.required_skills.map(skill => `<div style="margin-bottom: 4px; padding-left: 10px;">${skill}</div>`).join('')
-    : '<div>No specific skills listed</div>';
-  
-  pdfContent.innerHTML = `
-    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; position: relative; padding: 20px;">
-      <!-- Left sidebar with orange and blue colors -->
-      <div style="position: absolute; top: 0; left: 0; width: 30px; height: 80px; background-color: #FF6B00;"></div>
-      <div style="position: absolute; top: 80px; left: 0; width: 30px; height: 120px; background-color: #3B95D3;"></div>
-      
-      <!-- Company Logo and Header -->
-      <div style="margin-left: 45px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e0e0e0;">
-        <div>
-          <div style="font-weight: bold; color: #333; font-size: 22px; letter-spacing: 1px;">NEUTRINO</div>
-          <div style="font-size: 10px; color: #777; margin-top: 2px; letter-spacing: 0.5px;">RECRUITING SOLUTIONS</div>
-        </div>
-        <div style="font-size: 11px; color: #888; text-align: right;">
-          Generated on: ${new Date().toLocaleDateString()}
-        </div>
-      </div>
-     
-      <!-- Job Title Bar -->
-      <div style="margin-left: 45px; margin-top: 20px; background-color: #3B95D3; padding: 12px 20px;">
-        <h1 style="font-size: 24px; margin: 0; color: white; font-weight: normal;">${jobPosting.job_title || jobPosting.job_posting_name}</h1>
-      </div>
-       
-      <!-- Job Details Box -->
-      <div style="margin-left: 45px; padding: 20px; background-color: #f8f9fa; border-left: 4px solid #3B95D3; margin-top: 15px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <p style="margin: 6px 0; font-size: 13px;"><strong style="color: #555;">Job Title:</strong> ${jobPosting.job_title || jobPosting.job_posting_name}</p>
-          <p style="margin: 6px 0; font-size: 13px;"><strong style="color: #555;">Location:</strong> ${jobPosting.location || 'Not specified'}</p>
-          <p style="margin: 6px 0; font-size: 13px;"><strong style="color: #555;">Experience:</strong> ${jobPosting.experience_level || 'Not specified'}</p>
-          <p style="margin: 6px 0; font-size: 13px;"><strong style="color: #555;">Department:</strong> ${jobPosting.department || 'Not specified'}</p>
-          <p style="margin: 6px 0; font-size: 13px;"><strong style="color: #555;">Job Type:</strong> ${jobPosting.job_type || 'Full-time'}</p>
-        </div>
-      </div>
-       
-      <!-- Job Description Section -->
-      <div style="margin-left: 45px; margin-top: 25px;">
-        <h2 style="font-size: 18px; margin-bottom: 10px; color: #3B95D3; font-weight: 600;">Job Description</h2>
-        <div style="padding: 15px; line-height: 1.7; background-color: #f0f8ff; border-radius: 4px; border-left: 3px solid #3B95D3; font-size: 12px; color: #333;">
-          <p style="margin: 0 0 12px 0;"><span style="color: #3B95D3; font-weight: 600;">## Job Description:</span> ${jobPosting.job_title || jobPosting.job_posting_name}</p>
-          
-          <p style="margin: 0 0 12px 0;">
-            <span style="color: #3B95D3; font-weight: 600;">Company:</span> ${jobPosting.company_name || 'Neutrino Tech Systems'} 
-            <span style="color: #3B95D3; font-weight: 600;">Job Type:</span> ${jobPosting.job_type || 'Full-time'} 
-            <span style="color: #3B95D3; font-weight: 600;">Location:</span> ${jobPosting.location || 'On-site'}
-          </p>
-          
-          <div style="margin: 12px 0;">
-            <span style="color: #3B95D3; font-weight: 600;">## Job Summary</span>
-            <div style="margin-top: 8px; line-height: 1.6;">
-              ${formattedDescription}
-            </div>
-          </div>
-        </div>
-      </div>
-        
-      <!-- Key Responsibilities Section -->
-      <div style="margin-left: 45px; margin-top: 25px;">
-        <div style="padding: 15px; background-color: #f0f8ff; border-radius: 4px; font-size: 12px; color: #333; line-height: 1.7;">
-          <p style="margin: 0 0 12px 0; color: #3B95D3; font-weight: 600;">## Key Responsibilities</p>
-          <div style="margin-left: 15px;">
-            ${skillsList}
-          </div>
-          
-          <p style="margin: 20px 0 12px 0; color: #3B95D3; font-weight: 600;">## Required Qualifications</p>
-          <div style="margin-left: 15px;">
-            <div style="margin-bottom: 4px; padding-left: 10px;">Education: ${jobPosting.education || 'B.Tech or MCA'}</div>
-            <div style="margin-bottom: 4px; padding-left: 10px;">Experience: ${jobPosting.experience_level || 'Not specified'} in software development</div>
-          </div>
-          
-          <p style="margin: 20px 0 12px 0; color: #3B95D3; font-weight: 600;">## Required Skills</p>
-          <div style="margin-left: 15px;">
-            ${skillsList}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Footer with orange pattern -->
-      <div style="margin-top: 40px; margin-left: 45px;">
-        <div style="width: 100%; height: 25px; background: repeating-linear-gradient(45deg, #FF6B00, #FF6B00 10px, #FF8C40 10px, #FF8C40 20px);"></div>
-        <div style="text-align: center; padding-top: 8px; font-size: 10px; color: #666;">
-          © ${new Date().getFullYear()} Neutrino Recruiting Solutions. All rights reserved.
-        </div>
-      </div>
+  // Fix bullet alignment for PDF (using table layout for stable rendering)
+  const fixPdfBullets = (html) => {
+    // Replace <ul> with block container
+    html = html.replace(/<ul[^>]*>/g, `<div style="margin-left:10px; margin-top:8px;">`);
+    html = html.replace(/<\/ul>/g, `</div>`);
+
+    // Replace <li> with table-based bullet
+    html = html.replace(/<li[^>]*>(.*?)<\/li>/g, `
+    <div style="display:flex; align-items:flex-start; margin-bottom:6px; break-inside:avoid;">
+        <div style="font-size:14px; line-height:1.6; margin-right:8px;">•</div>
+        <div style="flex:1; line-height:1.6;">$1</div>
     </div>
-  `;
-  
-  // Generate PDF from the template
-  const opt = {
-    margin: 10,
-    filename: `${jobPosting.job_title || 'job'}_description.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  `);
+
+    return html;
   };
-  
-  html2pdf().from(pdfContent).set(opt).save();
+
+  const toBase64 = (url) =>
+  fetch(url)
+    .then((res) => res.blob())
+    .then(
+      (blob) =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        })
+    );
+
+  // Generate PDF with job posting details
+  const downloadJobDescription = async () => {
+  const logoBase64 = await toBase64(Nts_logo);
+
+  let jdRaw = jdText || jobPosting?.job_description || "";
+  const skills = jobPosting?.required_skills || [];
+
+  // ----------- 1️⃣ AUTO-DETECT WORK MODE -----------
+  let extractedWorkMode = "";
+  const modeMatch = jdRaw.match(/on[-\s]*site|remote|hybrid/gi);
+  if (modeMatch && modeMatch.length > 0) {
+    extractedWorkMode = modeMatch[0]
+      .replace(/\s+/g, " ")
+      .replace(/-/g, "-")
+      .trim();
+  }
+
+  // ----------- 2️⃣ MERGE LOCATION -----------
+  const workMode =
+    jobPosting.work_mode || extractedWorkMode || "";
+
+  const jobLocation = workMode
+    ? `${jobPosting.location}, ${workMode}`
+    : jobPosting.location;
+
+  // ----------- 3️⃣ STRONG CLEANUP OF RAW JD -----------
+  let normalizedJD = jdRaw
+    .replace(/\u00A0/g, " ")
+    .replace(/\t/g, " ");
+
+  normalizedJD = normalizedJD
+    .replace(/^.*location.*$/gmi, "")
+    .replace(/^.*company.*$/gmi, "")
+    .replace(/^.*job\s*type.*$/gmi, "")
+    .replace(/^#\s*job\s*description.*$/gmi, "");
+
+  normalizedJD = normalizedJD.replace(/\n{2,}/g, "\n").trim();
+
+  // ----------- 4️⃣ CLEAN BOLD + ## MARKDOWN -----------
+  const cleanedJD = normalizedJD
+    .replace(/\*\*(.*?)\*\*/g, (_, t) => `{{BOLD:${t}}}`)
+    .replace(/^##\s*/gm, "## ");
+
+  // ----------- 5️⃣ PARSE JD LINES -----------
+  const jdLines = cleanedJD.split("\n").map((p) => {
+    let line = p.trim();
+    if (!line) return { text: "" };
+
+    if (line.includes("{{BOLD:")) {
+      return {
+        text: line.replace(/{{BOLD:(.*?)}}/g, "$1"),
+        bold: true,
+        margin: [0, 3],
+        fontSize: 11
+      };
+    }
+
+    if (/^##\s+/.test(line)) {
+      return { text: line.replace(/^##\s+/, ""), style: "mdHeading" };
+    }
+
+    if (/^[A-Z ]+:?$/.test(line)) {
+      return { text: line.replace(":", ""), style: "sectionHeading" };
+    }
+
+    if (/^[-*•]\s+/.test(line)) {
+      return {
+        ul: [line.replace(/^[-*•]\s+/, "")],
+        margin: [0, 3]
+      };
+    }
+
+    // Extra spacing before Join us...
+    if (line.startsWith("Join us")) {
+      return { text: line, style: "paragraph", margin: [0, 12, 0, 0] };
+    }
+
+    return { text: line, style: "paragraph" };
+  });
+
+  // ----------- 6️⃣ PDF DOCUMENT -----------
+  const docDefinition = {
+    pageMargins: [45, 40, 45, 40],
+
+    content: [
+      // HEADER
+      {
+        columns: [
+          { width: 45, image: logoBase64, fit: [40, 40] },
+          {
+            width: "*",
+            stack: [
+              { text: "NEUTRINO", bold: true, fontSize: 24, color: "#222" },
+              {
+                text: "RECRUITING SOLUTIONS",
+                fontSize: 10,
+                color: "#777",
+                margin: [0, -3]
+              }
+            ],
+            margin: [10, 0]
+          },
+          {
+            alignment: "right",
+            fontSize: 10,
+            color: "#777",
+            text: `Generated on:\n${new Date().toLocaleDateString()}`
+          }
+        ],
+        margin: [0, 0, 0, 10]
+      },
+
+      // JOB TITLE
+      {
+        text: jobPosting?.job_title || jobPosting?.job_posting_name,
+        style: "jobTitleBanner"
+      },
+
+      { text: "\n" },
+
+      // ⭐ NEW COMPANY + JOB TYPE + LOCATION SECTION ⭐
+      {
+        stack: [
+          { text: `Company: ${jobPosting.company || "Neutrino Tech Systems"}`, bold: true, fontSize: 12, margin: [0, 2] },
+          { text: `Job Type: ${jobPosting.job_type || "Full-time"}`, bold: true, fontSize: 12, margin: [0, 2] },
+          { text: `Location: ${jobLocation}`, bold: true, fontSize: 12, margin: [0, 2] }
+        ],
+        margin: [0, 5, 0, 15]
+      },
+
+      // JOB DESCRIPTION TITLE
+      { text: "Job Description", style: "sectionTitle" },
+
+      { text: "\n" },
+
+      // JD CONTENT
+      ...jdLines,
+
+      { text: "\n" },
+
+      // SKILLS
+      // { text: "Required Skills", style: "sectionTitle" },
+      // { ul: skills, margin: [0, 5] }
+    ],
+
+    // FOOTER
+    footer: () => ({
+      margin: [0, -10, 0, 0],
+      stack: [
+        {
+          canvas: [
+            { type: "rect", x: 0, y: 0, w: 600, h: 10, color: "#FF6B00" },
+            { type: "rect", x: 0, y: 10, w: 600, h: 10, color: "#3B95D3" }
+          ]
+        },
+        {
+          text: `© ${new Date().getFullYear()} Neutrino Recruiting Solutions. All rights reserved.`,
+          alignment: "center",
+          fontSize: 9,
+          color: "#555",
+          margin: [0, 14]
+        }
+      ]
+    }),
+
+    // STYLES
+    styles: {
+      jobTitleBanner: {
+        fontSize: 18,
+        bold: true,
+        color: "#222",
+        background: "#EAF3FF",
+        padding: 10,
+        margin: [0, 5]
+      },
+      sectionTitle: {
+        fontSize: 15,
+        bold: true,
+        color: "#3B95D3",
+        margin: [0, 6, 0, 6]
+      },
+      sectionHeading: {
+        fontSize: 13,
+        bold: true,
+        color: "#222",
+        margin: [0, 10, 0, 5]
+      },
+      mdHeading: {
+        fontSize: 13,
+        bold: true,
+        color: "#3B95D3",
+        margin: [0, 10, 0, 5]
+      },
+      paragraph: {
+        fontSize: 11,
+        color: "#333",
+        lineHeight: 1.4
+      }
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).download(
+    `${jobPosting.job_title}_description.pdf`
+  );
 };
 
   // Get random color for company avatar
@@ -619,16 +845,16 @@ const downloadJobDescription = () => {
 </div>
             <div className="ml-6">
               <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight">
-                {jobPosting.job_posting_name || jobPosting.job_title || "Job Posting"}
+                {jobPosting?.job_posting_name || jobPosting?.job_title || "Job Posting"}
               </h1>
               <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
                 <span className="flex items-center">
                 
-                  {jobPosting.company}
+                  {jobPosting?.company}
                 </span>
                 <span className="flex items-center">
                 
-                  {jobPosting.location}
+                  {jobPosting?.location}
                 </span>
                 <span className="flex items-center">
                   <CalendarIcon className="h-4 w-4 mr-1" />
@@ -650,7 +876,7 @@ const downloadJobDescription = () => {
             {
               icon: StarIcon,
               label: 'Status',
-              value: jobPosting.status || 'Active',
+              value: jobPosting?.status || 'Active',
               isStatus: true
             },
           ].map((stat, index) => (
@@ -666,7 +892,7 @@ const downloadJobDescription = () => {
                     <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
                     <StatusDropdown
                       jobId={id}
-                      currentStatus={jobPosting.status || 'active'}
+                      currentStatus={jobPosting?.status || 'active'}
                       onStatusChange={handleStatusChange}
                     />
                   </div>
@@ -689,6 +915,9 @@ const downloadJobDescription = () => {
             { id: 'details', label: 'Details', icon: DescriptionIcon },
             { id: 'screening', label: 'Resume Screening', icon: AssessmentIcon },
             { id: 'interviews', label: 'Interviews', icon: GroupIcon },
+            { id: 'assessments', label: 'Assessment Reports', icon: AssessmentIcon },
+            { id: 'statistics', label: 'Statistics', icon: AssessmentIcon }
+
           ].map(tab => (
             <button
               key={tab.id}
@@ -736,22 +965,22 @@ const downloadJobDescription = () => {
                     <div className="flex items-center text-sm text-gray-700">
                       <WorkIcon className="h-5 w-5 mr-2 text-gray-500" />
                       <span className="font-medium mr-2">Job Type:</span>
-                      <span>{jobPosting.job_type}</span>
+                      <span>{jobPosting?.job_type}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-700">
                       <LocationIcon className="h-5 w-5 mr-2 text-gray-500" />
                       <span className="font-medium mr-2">Location:</span>
-                      <span>{jobPosting.location}</span>
+                      <span>{jobPosting?.location}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-700">
                       <ExperienceIcon className="h-5 w-5 mr-2 text-gray-500" />
                       <span className="font-medium mr-2">Experience Level:</span>
-                      <span>{jobPosting.experience_level}</span>
+                      <span>{jobPosting?.experience_level}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-700">
                       <DepartmentIcon className="h-5 w-5 mr-2 text-gray-500" />
                       <span className="font-medium mr-2">Department:</span>
-                      <span>{jobPosting.department}</span>
+                      <span>{jobPosting?.department}</span>
                     </div>
                   </div>
                 </div>
@@ -759,7 +988,7 @@ const downloadJobDescription = () => {
                 <div className="mt-8">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Required Skills</h3>
                   <div className="flex flex-wrap gap-2">
-                    {jobPosting.required_skills && jobPosting.required_skills.map((skill, index) => (
+                    {jobPosting?.required_skills && jobPosting.required_skills.map((skill, index) => (
                       <span key={index} className="badge badge-primary badge-lg py-3">{skill}</span>
                     ))}
                   </div>
@@ -774,25 +1003,66 @@ const downloadJobDescription = () => {
                     <DescriptionIcon className="h-6 w-6 mr-2 text-primary-600" />
                     <span className="text-gray-800 font-serif">Job Description</span>
                   </h2>
-                  <button
-                    onClick={downloadJobDescription}
-                    className="btn btn-outline btn-sm flex items-center"
-                    title="Download Job Description"
-                  >
-                    <FileDownloadIcon className="h-4 w-4 mr-1" />
-                    Download
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* EDIT BUTTON */}
+                    <button
+                      onClick={() => {
+                        setIsEditingJD(true);
+                        // ensure jdText initialized
+                        if (!initialJdLoaded && jobPosting?.job_description) {
+                          setJdText(jobPosting.job_description);
+                          setInitialJdLoaded(true);
+                        }
+                      }}
+                      className="btn btn-outline btn-sm flex items-center"
+                      title="Edit Job Description"
+                    >
+                      <EditIcon className="h-4 w-4 mr-1" />
+                      Edit
+                    </button>
+
+                    {/* DOWNLOAD BUTTON (unchanged) */}
+                    <button
+                      onClick={downloadJobDescription}
+                      className="btn btn-outline btn-sm flex items-center"
+                      title="Download Job Description"
+                    >
+                      <FileDownloadIcon className="h-4 w-4 mr-1" />
+                      Download
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="prose prose-lg max-w-none">
-                  <div
-                    dangerouslySetInnerHTML={{ __html: formatJobDescription(jobPosting.job_description) }}
-                    className="job-description-content leading-relaxed text-gray-700 rounded-lg bg-gray-50 p-6 border-l-4 border-primary-400"
-                    style={{
-                      lineHeight: '1.8',
-                      fontSize: '1.05rem'
-                    }}
-                  />
+                  <div className="p-6">
+                    {/* ========== IF EDITING → SHOW TEXTAREA ========== */}
+                    {isEditingJD ? (
+                      <textarea
+                        value={jdText}
+                        onChange={(e) => setJdText(e.target.value)}
+                        onBlur={async () => {
+                          // End editing and save
+                          setIsEditingJD(false);
+                          await saveUpdatedJD();
+                        }}
+                        className="w-full border border-gray-300 rounded p-3 min-h-[300px] focus:ring focus:ring-primary-300"
+                        autoFocus
+                      />
+                    ) : (
+                      /* ========== NORMAL DISPLAY MODE ========== */
+                      <div className="prose prose-lg max-w-none">
+                        <div
+                          dangerouslySetInnerHTML={{ __html: formatJobDescription(jdText || jobPosting?.job_description || '') }}
+                          className="job-description-content leading-relaxed text-gray-700 rounded-lg bg-gray-50 p-6 border-l-4 border-primary-400"
+                          style={{
+                            lineHeight: '1.8',
+                            fontSize: '1.05rem'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -813,29 +1083,30 @@ const downloadJobDescription = () => {
                 </p>
                 
                 {/* Warning message when job is not active */}
-                {jobPosting.status !== 'active' && (
+                {jobPosting?.status !== 'active' && (
                   <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md mb-6">
                     <div className="flex">
                       <WarningIcon className="h-5 w-5 text-amber-500 mr-2" />
                       <p className="text-sm text-amber-700">
-                        <strong>Resume screening is disabled.</strong> Job posting is not open.                      </p>
+                        <strong>Resume screening is disabled.</strong> Job posting is not open.
+                      </p>
                     </div>
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* JD Upload */}
                   <div>
-                    <label className={`block text-sm font-medium ${jobPosting.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
+                    <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
                       Upload Job Description (PDF)
                     </label>
-                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting.status !== 'active' ? 'opacity-60' : ''}`}>
+                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}>
                       <div className="space-y-1 text-center">
-                        <DescriptionIcon className={`mx-auto h-12 w-12 ${jobPosting.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
-                        <div className={`flex text-sm ${jobPosting.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          <label htmlFor="jd-file" className={`relative ${jobPosting.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
+                        <DescriptionIcon className={`mx-auto h-12 w-12 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
+                        <div className={`flex text-sm ${jobPosting?.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          <label htmlFor="jd-file" className={`relative ${jobPosting?.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting?.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
                             <span>Upload a file</span>
                             <input
-                              disabled={jobPosting.status !== 'active'}
+                              disabled={jobPosting?.status !== 'active'}
                               id="jd-file"
                               name="jd-file"
                               type="file"
@@ -860,17 +1131,17 @@ const downloadJobDescription = () => {
                   
                   {/* Resumes Upload */}
                   <div>
-                    <label className={`block text-sm font-medium ${jobPosting.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
+                    <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
                       Upload Resumes (ZIP file)
                     </label>
-                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting.status !== 'active' ? 'opacity-60' : ''}`}>
+                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}>
                       <div className="space-y-1 text-center">
-                        <CloudUploadIcon className={`mx-auto h-12 w-12 ${jobPosting.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
-                        <div className={`flex text-sm ${jobPosting.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          <label htmlFor="resume-file" className={`relative ${jobPosting.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
+                        <CloudUploadIcon className={`mx-auto h-12 w-12 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
+                        <div className={`flex text-sm ${jobPosting?.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
+                          <label htmlFor="resume-file" className={`relative ${jobPosting?.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting?.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
                             <span>Upload a file</span>
                             <input
-                              disabled={jobPosting.status !== 'active'}
+                              disabled={jobPosting?.status !== 'active'}
                               id="resume-file"
                               name="resume-file"
                               type="file"
@@ -897,9 +1168,9 @@ const downloadJobDescription = () => {
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handleScreenResumes}
-                    disabled={!jdFile || !resumeFile || screeningLoading || jobPosting.status !== 'active'}
-                    className={`btn w-full md:w-auto ${jobPosting.status === 'active' ? 'btn-primary' : 'btn-disabled bg-gray-300'}`}
-                    title={jobPosting.status !== 'active' ? "Resume screening is only available for active job postings" : ""}
+                    disabled={!jdFile || !resumeFile || screeningLoading || jobPosting?.status !== 'active'}
+                    className={`btn w-full md:w-auto ${jobPosting?.status === 'active' ? 'btn-primary' : 'btn-disabled bg-gray-300'}`}
+                    title={jobPosting?.status !== 'active' ? "Resume screening is only available for active job postings" : ""}
                   >
                     {screeningLoading ? (
                       <>
@@ -927,24 +1198,24 @@ const downloadJobDescription = () => {
                 
                 {/* Email Attachments */}
 <div className="mb-4">
-  <label className={`block text-sm font-medium ${jobPosting.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
+  <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
     Email Attachments (Optional)
   </label>
-  <div className={`mt-1 flex justify-center px-6 pt-3 pb-3 border-2 ${jobPosting.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting.status !== 'active' ? 'opacity-60' : ''}`}>
+  <div className={`mt-1 flex justify-center px-6 pt-3 pb-3 border-2 ${jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}>
     <div className="space-y-1 text-center">
       <div className="flex flex-col items-center">
-        <EmailIcon className={`mx-auto h-8 w-8 ${jobPosting.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
+        <EmailIcon className={`mx-auto h-8 w-8 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
         <div className="flex text-sm text-gray-600">
           <label
             htmlFor="attachment-upload"
-            className={`relative ${jobPosting.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'}`}
+            className={`relative ${jobPosting?.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting?.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'}`}
           >
             <span>Upload attachments</span>
             <input
               id="attachment-upload"
               name="attachment-upload"
               type="file"
-              disabled={jobPosting.status !== 'active'}
+              disabled={jobPosting?.status !== 'active'}
               className="sr-only"
               multiple
               onChange={handleEmailAttachmentChange}
@@ -1196,6 +1467,198 @@ const downloadJobDescription = () => {
                 )}
               </div>
             </div>
+            
+            {/* Report Modal */}
+            {isReportModalOpen && (
+              <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                  {/* Background overlay */}
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setIsReportModalOpen(false)}></div>
+                  
+                  {/* Modal panel */}
+                  <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-2xl leading-6 font-bold text-gray-900" id="modal-title">
+                              Candidate Assessment Report
+                            </h3>
+                            <button
+                              onClick={() => setIsReportModalOpen(false)}
+                              className="text-gray-400 hover:text-gray-500"
+                            >
+                              <CloseIcon className="h-6 w-6" />
+                            </button>
+                          </div>
+                          
+                          {reportLoading ? (
+                            <div className="flex justify-center py-8">
+                              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+                            </div>
+                          ) : reportError ? (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                              <div className="flex">
+                                <div className="ml-3">
+                                  <p className="text-sm text-red-700">{reportError}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : currentReportData ? (
+                            <div className="space-y-6">
+                              {/* Candidate Info */}
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                                    <PersonIcon className="h-6 w-6" />
+                                  </div>
+                                  <div className="ml-4">
+                                    <h4 className="text-lg font-medium text-gray-900">{currentReportData.name || "Unknown Candidate"}</h4>
+                                    <p className="text-sm text-gray-500">{currentReportData.email || "No email"}</p>
+                                    <p className="text-sm text-gray-500">{currentReportData.position || "Unknown Position"}</p>
+                                  </div>
+                                  <div className="ml-auto">
+                                    <div className="text-right">
+                                      <div className="text-sm text-gray-500">Overall Score</div>
+                                      <div className="text-2xl font-bold text-primary-600">{currentReportData.overall?.score || 0}%</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Assessment Scores */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* MCQ Score */}
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                  <h5 className="text-blue-800 font-medium flex items-center mb-2">
+                                    <AssessmentIcon className="mr-2 text-blue-600" />
+                                    MCQ Assessment
+                                  </h5>
+                                  <div className="mb-2">
+                                    <div className="w-full bg-blue-200 rounded-full h-2.5 mb-1">
+                                      <div
+                                        className="bg-blue-600 h-2.5 rounded-full"
+                                        style={{ width: `${currentReportData.mcq?.score || 0}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-blue-800">
+                                      <span>0%</span>
+                                      <span>50%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-gray-700 mt-2">
+                                    <p><span className="font-medium">Score:</span> {currentReportData.mcq?.score || 0}%</p>
+                                    <p><span className="font-medium">Details:</span> {currentReportData.mcq?.details || "No details available"}</p>
+                                  </div>
+                                </div>
+                                
+                                {/* Voice Score */}
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                  <h5 className="text-purple-800 font-medium flex items-center mb-2">
+                                    <MicIcon className="mr-2 text-purple-600" />
+                                    Voice Interview
+                                  </h5>
+                                  <div className="mb-2">
+                                    <div className="w-full bg-purple-200 rounded-full h-2.5 mb-1">
+                                      <div
+                                        className="bg-purple-600 h-2.5 rounded-full"
+                                        style={{ width: `${currentReportData.voice?.score || 0}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-purple-800">
+                                      <span>0%</span>
+                                      <span>50%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-gray-700 mt-2">
+                                    <p><span className="font-medium">Score:</span> {currentReportData.voice?.score || 0}%</p>
+                                    <p><span className="font-medium">Details:</span> {currentReportData.voice?.details || "No details available"}</p>
+                                  </div>
+                                </div>
+                                
+                                {/* Coding Score */}
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                  <h5 className="text-green-800 font-medium flex items-center mb-2">
+                                    <CodeIcon className="mr-2 text-green-600" />
+                                    Coding Challenge
+                                  </h5>
+                                  <div className="mb-2">
+                                    <div className="w-full bg-green-200 rounded-full h-2.5 mb-1">
+                                      <div
+                                        className="bg-green-600 h-2.5 rounded-full"
+                                        style={{ width: `${currentReportData.coding?.score || 0}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="flex justify-between text-xs text-green-800">
+                                      <span>0%</span>
+                                      <span>50%</span>
+                                      <span>100%</span>
+                                    </div>
+                                  </div>
+                                  <div className="text-sm text-gray-700 mt-2">
+                                    <p><span className="font-medium">Score:</span> {currentReportData.coding?.score || 0}%</p>
+                                    <p><span className="font-medium">Details:</span> {currentReportData.coding?.details || "No details available"}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Overall Assessment */}
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <h5 className="text-gray-800 font-medium mb-2">Overall Assessment</h5>
+                                <div className="flex items-center mb-2">
+                                  <div className="flex text-yellow-400">
+                                    {[1, 2, 3, 4, 5].map((star) => {
+                                      const rating = (currentReportData.overall?.score || 0) / 20; // Convert to 5-star scale
+                                      return star <= Math.floor(rating) ? (
+                                        <StarIcon key={star} className="h-5 w-5" />
+                                      ) : star === Math.ceil(rating) && !Number.isInteger(rating) ? (
+                                        <StarHalfIcon key={star} className="h-5 w-5" />
+                                      ) : (
+                                        <StarBorderIcon key={star} className="h-5 w-5" />
+                                      );
+                                    })}
+                                  </div>
+                                  <span className="ml-2 text-sm font-medium text-gray-900">{currentReportData.overall?.score || 0}%</span>
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                  <p><span className="font-medium">Rating:</span> {currentReportData.overall?.rating || "Not Rated"}</p>
+                                  <p><span className="font-medium">Recommendation:</span> {currentReportData.overall?.recommendation || "No recommendation"}</p>
+                                  <p className="mt-2"><span className="font-medium">Feedback:</span> {currentReportData.overall?.feedback || "No feedback available"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              No report data available
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                      <button
+                        type="button"
+                        onClick={() => currentReportData && handleDownloadReport(currentReportData.id)}
+                        disabled={!currentReportData || reportLoading}
+                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
+                      >
+                        <DownloadIcon className="h-5 w-5 mr-2" />
+                        Download PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsReportModalOpen(false)}
+                        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
@@ -1206,7 +1669,7 @@ const downloadJobDescription = () => {
                 <PersonIcon className="h-6 w-6 mr-2 text-primary-600" />
                 <span className="text-gray-800 font-serif">Scheduled Interviews</span>
               </h2>
-              
+
               {scheduledInterviews.length === 0 ? (
                 <p className="text-gray-700">
                   No interviews scheduled yet. Select candidates from the Resume Screening tab to schedule interviews.
@@ -1229,7 +1692,7 @@ const downloadJobDescription = () => {
                           Status
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Interview Link
+                          Reports
                         </th>
                       </tr>
                     </thead>
@@ -1248,14 +1711,27 @@ const downloadJobDescription = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              interview.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              interview.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                              interview.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
                               {interview.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500">
-                            <a href={interview.interview_link} target="_blank" rel="noopener noreferrer">
-                              Open Interview
-                            </a>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {interview.status === 'completed' ? (
+                              <button
+                                onClick={() => handleViewReport(interview.id)}
+                                className="text-blue-500 hover:text-blue-700 font-medium flex items-center"
+                              >
+                                <AssessmentIcon className="h-4 w-4 mr-1" />
+                                Report
+                              </button>
+                            ) : (
+                              <span className="text-gray-400">NA</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -1263,6 +1739,25 @@ const downloadJobDescription = () => {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'assessments' && (
+          <div className="space-y-8">
+            <CandidateAssessmentReports jobPostingId={id} />
+          </div>
+        )}
+
+        {activeTab === 'statistics' && (
+          <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
+                <AssessmentIcon className="h-6 w-6 mr-2 text-primary-600" />
+                <span className="text-gray-800 font-serif">Job Posting Statistics</span>
+              </h2>
+              
+                <JobPostingStatistics jobPostingId={id} />
             </div>
           </div>
         )}

@@ -380,3 +380,46 @@ async def generate_job_description(
     except Exception as e:
         logger.error(f"Error generating job description: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.patch("/job-description/{job_id}")
+async def update_job_description(
+    job_id: str,
+    data: dict,
+    current_user: dict = Depends(require_auth)
+):
+    """
+    Update ONLY the job description field, safely.
+    """
+    try:
+        db = get_database()
+
+        # Validate incoming payload
+        if "job_description" not in data:
+            raise HTTPException(status_code=400, detail="job_description is required")
+
+        new_jd = data["job_description"]
+
+        # Update only the job_description
+        await db[JOB_POSTINGS_COLLECTION].update_one(
+            {"_id": ObjectId(job_id)},
+            {
+                "$set": {
+                    "job_description": new_jd,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+
+        # Fetch updated job posting
+        updated_job = await db[JOB_POSTINGS_COLLECTION].find_one({"_id": ObjectId(job_id)})
+
+        return {
+            "id": str(updated_job["_id"]),
+            **{k: v for k, v in updated_job.items() if k != "_id"},
+            "created_at": updated_job.get("created_at").isoformat(),
+            "updated_at": updated_job.get("updated_at").isoformat()
+        }
+
+    except Exception as e:
+        logger.error(f"Error updating job description: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -13,14 +13,15 @@ const emailService = {
    * @param {string} interviewId - Interview ID
    * @returns {Promise} - Promise with the send result
    */
-  sendInterviewConfirmation: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId) => {
+  sendInterviewConfirmation: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, timezone = 'UTC') => {
     try {
       const response = await api.post('/emails/send-confirmation', {
         candidate_email: candidateEmail,
         candidate_name: candidateName,
         job_role: jobRole,
         scheduled_datetime: scheduledDateTime,
-        interview_id: interviewId
+        interview_id: interviewId,
+        timezone: timezone
       });
       return response.data;
     } catch (error) {
@@ -36,9 +37,10 @@ const emailService = {
    * @param {string} scheduledDateTime - Scheduled date and time
    * @param {string} interviewId - Interview ID
    * @param {string} customBody - Custom email body content
+   * @param {string} timezone - Timezone for the interview
    * @returns {Promise} - Promise with the send result
    */
-  sendCustomConfirmationEmail: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, customBody, attachments = []) => {
+  sendCustomConfirmationEmail: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, customBody, attachments = [], timezone = 'UTC') => {
     try {
       // Create form data to handle file uploads
       const formData = new FormData();
@@ -48,6 +50,7 @@ const emailService = {
       formData.append('scheduled_datetime', scheduledDateTime);
       formData.append('interview_id', interviewId);
       formData.append('custom_body', customBody);
+      formData.append('timezone', timezone);
       
       // Add attachments if provided
       if (attachments && attachments.length > 0) {
@@ -74,16 +77,18 @@ const emailService = {
    * @param {string} jobRole - Job role
    * @param {string} scheduledDateTime - Scheduled date and time
    * @param {string} interviewId - Interview ID
+   * @param {string} timezone - Timezone for the interview
    * @returns {Promise} - Promise with the send result
    */
-  sendInterviewReminder: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId) => {
+  sendInterviewReminder: async (candidateEmail, candidateName, jobRole, scheduledDateTime, interviewId, timezone = 'UTC') => {
     try {
       const response = await api.post('/emails/send-reminder', {
         candidate_email: candidateEmail,
         candidate_name: candidateName,
         job_role: jobRole,
         scheduled_datetime: scheduledDateTime,
-        interview_id: interviewId
+        interview_id: interviewId,
+        timezone: timezone
       });
       return response.data;
     } catch (error) {

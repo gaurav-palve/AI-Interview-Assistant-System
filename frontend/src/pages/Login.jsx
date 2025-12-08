@@ -107,7 +107,11 @@ function Login() {
               {/* SPACER TO PUSH TO CENTER */}
               <div className="flex-grow" />
 
+<<<<<<< HEAD
               {/* HIREGENIX SECTION CENTERED VERTICALLY */}
+=======
+              {/* Interview.AI SECTION CENTERED VERTICALLY */}
+>>>>>>> dca7b5352e3c42d760def262996808395e224b09
               <div className="pb-20">
                 <h1 className="
                   text-5xl font-extrabold 
@@ -115,7 +119,11 @@ function Login() {
                   bg-clip-text text-transparent 
                   drop-shadow-xl
                 ">
+<<<<<<< HEAD
                   HireGenix
+=======
+                  Interview.AI
+>>>>>>> dca7b5352e3c42d760def262996808395e224b09
                 </h1>
 
                 <p className="mt-5 text-indigo-100 text-sm leading-relaxed max-w-xs">
@@ -231,7 +239,11 @@ function Login() {
                 </label>
 
                 <Link to="/forgot-password" className="text-violet-600 hover:underline">
+<<<<<<< HEAD
                   Forgot?
+=======
+                  Forgot Password?
+>>>>>>> dca7b5352e3c42d760def262996808395e224b09
                 </Link>
               </div>
 

@@ -90,6 +90,7 @@ async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:
             "job_role": interview["job_role"],
             "job_description": interview.get("job_description", ""),
             "scheduled_datetime": interview["scheduled_datetime"],
+            "timezone": interview.get("timezone", "UTC"),  # Include timezone, default to UTC if not set
             "status": interview["status"],
             "duration": interview.get("duration", 15),  # Default to 15 minutes
             "interview_type": interview.get("interview_type", "technical_and_behavioral"),
