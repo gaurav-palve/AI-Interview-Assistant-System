@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import interviewService from '../services/interviewService';
+import { fetchScreeningResults } from '../services/screeningService';
 import { 
   Upload as UploadIcon,
   Description as DescriptionIcon,
@@ -40,14 +41,34 @@ function ResumeScreening() {
     setError(null);
     
     try {
-      const response = await interviewService.screenResumes(zipFile, jdFile);
-      setResults(response.results);
+      await interviewService.screenResumes(zipFile, jdFile);
+      // After POST we store results in DB. Refresh persisted results.
+      const persisted = await fetchScreeningResults();
+      setResults(persisted);
     } catch (err) {
       setError(err.detail || 'An error occurred during resume screening');
     } finally {
       setLoading(false);
     }
   };
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const persisted = await fetchScreeningResults();
+      setResults(persisted);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to load persisted screening results');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
     <div className="space-y-6">

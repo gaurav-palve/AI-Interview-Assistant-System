@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import interviewService from '../services/interviewService';
 import emailService from '../services/emailService';
@@ -32,13 +32,16 @@ function InterviewCreate() {
   // Email attachments state
   const [emailAttachments, setEmailAttachments] = useState([]);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prefillJobRole = searchParams.get('job_role') || '';
+  const prefillJobPostingId = searchParams.get('job_posting_id') || null;
   
   // Initialize react-hook-form
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     defaultValues: {
       candidate_name: '',
       candidate_email: '',
-      job_role: '',
+      job_role: prefillJobRole,
       scheduled_datetime: format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"), // Default to tomorrow
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Default to browser timezone
       status: 'scheduled'
@@ -238,6 +241,10 @@ Interview System Team`;
         resume_uploaded: false,
         jd_uploaded: false
       };
+      // Attach job_posting_id when creating from a job posting card
+      if (prefillJobPostingId) {
+        interviewData.job_posting_id = prefillJobPostingId;
+      }
       
       console.log('Creating interview with data:', interviewData);
       
