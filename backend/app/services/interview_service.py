@@ -17,14 +17,13 @@ class InterviewService:
         logger.info(f"Creating interview for candidate: {interview_data.candidate_email}, job role: {interview_data.job_role}")
         
         try:
-            # Validate scheduled datetime is in the future
-            # Ensure the scheduled datetime is timezone-aware
+            # Validate scheduled datetime is in the future and normalize timezone
             scheduled_dt = interview_data.scheduled_datetime
             if scheduled_dt.tzinfo is None:
                 # If naive, assume it's in UTC
                 scheduled_dt = scheduled_dt.replace(tzinfo=timezone.utc)
                 logger.info(f"Added UTC timezone to naive datetime: {scheduled_dt}")
-                
+
             if scheduled_dt <= datetime.now(timezone.utc):
                 logger.warning(f"Invalid scheduled time: {scheduled_dt} is not in the future")
                 raise ValueError("Interview must be scheduled for a future date and time")
@@ -34,7 +33,7 @@ class InterviewService:
                 "candidate_name": interview_data.candidate_name,
                 "candidate_email": interview_data.candidate_email,
                 "job_role": interview_data.job_role,
-                "scheduled_datetime": interview_data.scheduled_datetime,
+                "scheduled_datetime": scheduled_dt,
                 "timezone": interview_data.timezone,  # Store the timezone
                 "status": interview_data.status,
                 "resume_uploaded": interview_data.resume_uploaded,
@@ -47,6 +46,9 @@ class InterviewService:
                     "estimated_difficulty": "medium"
                 }
             }
+
+            if interview_data.job_posting_id is not None:
+                interview_doc["job_posting_id"] = interview_data.job_posting_id
             
             logger.info(f"Prepared interview document: {interview_doc}")
             

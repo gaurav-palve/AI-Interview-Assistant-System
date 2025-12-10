@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import interviewService from '../../services/interviewService';
+import { fetchScreeningResults } from '../../services/screeningService';
 import CandidateAssessmentReports from '../../pages/CandidateAssessmentReports';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
@@ -42,6 +43,7 @@ import {
   Visibility as ViewIcon,
   FileDownload as FileDownloadIcon,
   Mic as MicIcon,
+  Add as AddIcon,
   Code as CodeIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
@@ -113,6 +115,14 @@ function JobPostingDetail() {
       setLoading(false);
     }
   };
+
+  // When the Resume Screening tab becomes active, load persisted screening results
+  useEffect(() => {
+    if (activeTab === 'screening') {
+      fetchPersistedScreeningResults();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, id]);
 
   // Save updated JD — sends only the JD to backend and updates local state safely
   const saveUpdatedJD = async () => {
@@ -262,6 +272,21 @@ function JobPostingDetail() {
     setJdFile(e.target.files[0]);
   };
 
+  // Fetch persisted screening results from backend
+  const fetchPersistedScreeningResults = async () => {
+    try {
+      setScreeningLoading(true);
+      setScreeningError(null);
+      const persisted = await fetchScreeningResults(id);
+      setScreeningResults(persisted || []);
+    } catch (err) {
+      console.error('Failed to load persisted screening results:', err);
+      setScreeningError(err.message || 'Failed to load persisted screening results');
+    } finally {
+      setScreeningLoading(false);
+    }
+  };
+
   // Handle resume screening
   const handleScreenResumes = async () => {
     if (!jdFile) {
@@ -282,18 +307,24 @@ function JobPostingDetail() {
       const formData = new FormData();
       formData.append('resume_file', resumeFile);
       formData.append('jd_file', jdFile);
+      // include job posting id so backend can associate results
+      formData.append('job_post_id', id);
       
+      const token = localStorage.getItem('access_token');
       const response = await fetch('http://localhost:8000/api/screening/resume-screening', {
         method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
         body: formData,
       });
       
       if (!response.ok) {
         throw new Error(`Failed to screen resumes: ${response.status} ${response.statusText}`);
       }
-      
-      const data = await response.json();
-      setScreeningResults(data.results || []);
+      // POST returns acknowledgement and results are persisted in DB.
+      // Refresh persisted results via GET endpoint so UI doesn't rely on POST payload.
+      await fetchPersistedScreeningResults();
       setSelectedCandidates([]);
     } catch (err) {
       console.error('Error screening resumes:', err);
@@ -859,102 +890,112 @@ const handleDropResume = (e) => {
   return (
     <div className="space-y-8">
       {/* Enhanced Header with Gradient Background */}
-      <div className="bg-gradient-to-r from-primary-50 via-white to-purple-50 rounded-2xl p-8 shadow-xl animate-slideInDown">
-        <div className="flex items-center mb-4">
-          <button 
-            onClick={() => navigate('/job-postings')}
-            className="mr-4 p-2 rounded-lg hover:bg-white/50 transition-all duration-200 group"
-          >
-            <BackIcon className="h-5 w-5 text-gray-600 group-hover:text-primary-700 transition-colors" />
-          </button>
-          <span className="text-sm text-gray-500">Back to Job Postings</span>
-        </div>
-        
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          
-          <div className="flex items-center animate-slideInLeft">
-            <div
-  className={`
-    flex-shrink-0 h-16 w-16 rounded-xl
-    text-white flex items-center justify-center font-bold text-lg
-    shadow-md transform transition-all duration-300 bg-white
-  `}
->
-  <div className="flex items-center">
-  <div className="h-11 w-11 flex items-center">
-    <img
-      src={Nts_logo}
-      alt="NTSLOGO"
-      className="h-11 w-11 object-contain"
-    />
-  </div>
-</div>
+<div className="bg-gradient-to-r from-primary-50 via-white to-purple-50 rounded-2xl p-8 shadow-xl animate-slideInDown">
 
-</div>
-            <div className="ml-6">
-              <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight">
-                {jobPosting?.job_posting_name || jobPosting?.job_title || "Job Posting"}
-              </h1>
-              <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
-                <span className="flex items-center">
-                
-                  {jobPosting?.company}
-                </span>
-                <span className="flex items-center">
-                
-                  {jobPosting?.location}
-                </span>
-                <span className="flex items-center">
-                  <CalendarIcon className="h-4 w-4 mr-1" />
-                  Posted {new Date().toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-         
-        </div>
-        
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          {[
-            { icon: GroupIcon, label: 'Applicants', value: '0' },
-            { icon: ViewIcon, label: 'Views', value: '0' },
-            { icon: ScheduleIcon, label: 'Interviews', value: scheduledInterviews.length },
-            {
-              icon: StarIcon,
-              label: 'Status',
-              value: jobPosting?.status || 'Active',
-              isStatus: true
-            },
-          ].map((stat, index) => (
-            <div 
-              key={index}
-              className="bg-white/70 backdrop-blur-sm rounded-xl p-3 animate-slideInUp"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="flex items-center space-x-3">
-                <stat.icon className="h-5 w-5 text-primary-500" />
-                {stat.isStatus ? (
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
-                    <StatusDropdown
-                      jobId={id}
-                      currentStatus={jobPosting?.status || 'active'}
-                      onStatusChange={handleStatusChange}
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+  {/* TOP BAR */}
+  <div className="flex items-center justify-between mb-4">
+
+    {/* Left: Back to Job Postings */}
+    <div className="flex items-center">
+      <button
+        onClick={() => navigate('/job-postings')}
+        className="mr-4 p-2 rounded-lg hover:bg-white/50 transition-all duration-200 group"
+      >
+        <BackIcon className="h-5 w-5 text-gray-600 group-hover:text-primary-700 transition-colors" />
+      </button>
+      <span className="text-sm text-gray-500">Back to Job Postings</span>
+    </div>
+
+    {/* Right: New Interview */}
+    <Link
+      to={`/interviews/new?job_role=${encodeURIComponent(
+        jobPosting?.job_posting_name || jobPosting?.job_title || ""
+      )}&job_posting_id=${id}`}
+      className="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-primary-700 transition-colors duration-150"
+      onClick={(e) => e.stopPropagation()}
+      aria-label={`Create interview for ${jobPosting?.job_posting_name || jobPosting?.job_title}`}
+    >
+      <AddIcon className="-ml-1 mr-2 h-4 w-4" />
+      New Interview
+    </Link>
+  </div>
+
+  {/* JOB INFO */}
+  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="flex items-center animate-slideInLeft">
+      <div
+        className="
+          flex-shrink-0 h-16 w-16 rounded-xl
+          text-white flex items-center justify-center font-bold text-lg
+          shadow-md transform transition-all duration-300 bg-white
+        "
+      >
+        <div className="h-11 w-11 flex items-center">
+          <img
+            src={Nts_logo}
+            alt="NTSLOGO"
+            className="h-11 w-11 object-contain"
+          />
         </div>
       </div>
+
+      <div className="ml-6">
+        <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight">
+          {jobPosting?.job_posting_name || jobPosting?.job_title || "Job Posting"}
+        </h1>
+
+        <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
+          <span>{jobPosting?.company}</span>
+          <span>{jobPosting?.location}</span>
+          <span className="flex items-center">
+            <CalendarIcon className="h-4 w-4 mr-1" />
+            Posted {new Date().toLocaleDateString()}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* QUICK STATS */}
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+    {[
+      { icon: GroupIcon, label: 'Applicants', value: '0' },
+      { icon: ViewIcon, label: 'Views', value: '0' },
+      { icon: ScheduleIcon, label: 'Interviews', value: scheduledInterviews.length },
+      {
+        icon: StarIcon,
+        label: 'Status',
+        value: jobPosting?.status || 'Active',
+        isStatus: true
+      },
+    ].map((stat, index) => (
+      <div
+        key={index}
+        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 animate-slideInUp"
+        style={{ animationDelay: `${index * 100}ms` }}
+      >
+        <div className="flex items-center space-x-3">
+          <stat.icon className="h-5 w-5 text-primary-500" />
+          {stat.isStatus ? (
+            <div className="flex flex-col">
+              <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
+              <StatusDropdown
+                jobId={id}
+                currentStatus={jobPosting?.status || 'active'}
+                onStatusChange={handleStatusChange}
+              />
+            </div>
+          ) : (
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+              <p className="text-xs text-gray-500">{stat.label}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
       {/* Enhanced Tabs */}
       <div className="bg-white rounded-xl shadow-xl border border-gray-100 p-3 animate-slideInUp">
