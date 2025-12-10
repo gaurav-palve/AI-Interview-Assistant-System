@@ -81,7 +81,7 @@ function ResumeScreening() {
                   <input
                     type="file"
                     className="hidden"
-                    accept=".zip"
+                    accept=".zip,.pdf"
                     onChange={handleZipFileChange}
                   />
                 </label>
