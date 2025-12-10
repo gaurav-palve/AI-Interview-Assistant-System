@@ -280,7 +280,7 @@ function JobPostingDetail() {
       
       // Create FormData object
       const formData = new FormData();
-      formData.append('zip_file', resumeFile);
+      formData.append('resume_file', resumeFile);
       formData.append('jd_file', jdFile);
       
       const response = await fetch('http://localhost:8000/api/screening/resume-screening', {
@@ -311,6 +311,54 @@ function JobPostingDetail() {
       setSelectedCandidates([]);
     }
   };
+  const handleDragOver = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+};
+
+const handleDropJd = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (jobPosting?.status !== "active") return;
+
+  const file = e.dataTransfer.files[0];
+  // ✅ allow only PDF
+  if (
+  file.type !== "application/pdf" &&
+  !file.name.toLowerCase().endsWith(".pdf")
+) {
+  alert("Only PDF files are allowed for Job Description.");
+  return;
+}
+  handleJdFileChange({ target: { files: [file] } });
+};
+
+const handleDropResume = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (jobPosting?.status !== "active") return;
+
+  const file = e.dataTransfer.files[0];
+  
+  const fileName = file.name.toLowerCase();
+  const fileType = file.type;
+
+  // Allowed formats: PDF or ZIP
+  const isPdf =
+    fileType === "application/pdf" || fileName.endsWith(".pdf");
+
+  const isZip =
+    fileType === "application/zip" ||
+    fileType === "application/x-zip-compressed" ||
+    fileName.endsWith(".zip");
+
+  if (!isPdf && !isZip) {
+    alert("Only ZIP or PDF files are allowed for Resume upload.");
+    return;
+  }
+  handleResumeFileChange({ target: { files: [file] } });
+};
+
 
   // Handle select individual candidate
   const handleSelectCandidate = (resume, isChecked) => {
@@ -1079,7 +1127,7 @@ function JobPostingDetail() {
                 </h2>
                 
                 <p className="text-gray-700 mb-6">
-                  Upload a job description PDF and a zip file containing candidate resumes to screen them against this job posting.
+                  Upload a job description PDF and a zip file containing candidate resumes or single PDF to screen them against this job posting.
                 </p>
                 
                 {/* Warning message when job is not active */}
@@ -1099,7 +1147,15 @@ function JobPostingDetail() {
                     <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
                       Upload Job Description (PDF)
                     </label>
-                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}>
+                    <div
+                      onDragOver={handleDragOver}
+                      onDrop={handleDropJd}
+                      className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${
+                        jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'
+                      } border-dashed rounded-md ${
+                        jobPosting?.status !== 'active' ? 'opacity-60' : ''
+                    }`}
+                    >
                       <div className="space-y-1 text-center">
                         <DescriptionIcon className={`mx-auto h-12 w-12 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
                         <div className={`flex text-sm ${jobPosting?.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -1132,9 +1188,17 @@ function JobPostingDetail() {
                   {/* Resumes Upload */}
                   <div>
                     <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
-                      Upload Resumes (ZIP file)
+                      Upload Resumes (ZIP file or PDF)
                     </label>
-                    <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}>
+                    <div
+                      onDragOver={handleDragOver}
+                      onDrop={handleDropResume}
+                      className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${
+                        jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'
+                      } border-dashed rounded-md ${
+                        jobPosting?.status !== 'active' ? 'opacity-60' : ''
+                      }`}
+>
                       <div className="space-y-1 text-center">
                         <CloudUploadIcon className={`mx-auto h-12 w-12 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
                         <div className={`flex text-sm ${jobPosting?.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -1145,7 +1209,7 @@ function JobPostingDetail() {
                               id="resume-file"
                               name="resume-file"
                               type="file"
-                              accept=".zip"
+                              accept=".zip,.pdf"
                               className="sr-only"
                               onChange={handleResumeFileChange}
                             />
@@ -1153,7 +1217,7 @@ function JobPostingDetail() {
                           <p className="pl-1">or drag and drop</p>
                         </div>
                         <p className="text-xs text-gray-500">
-                          ZIP file containing PDF resumes
+                          upload file containing candidate resumes in PDF or ZIP format
                         </p>
                       </div>
                     </div>

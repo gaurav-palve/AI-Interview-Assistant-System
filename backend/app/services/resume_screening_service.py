@@ -13,6 +13,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 from dotenv import load_dotenv
 from app.utils.logger import get_logger
+from PIL import Image
+import io
+from app.utils import pdf_text_extraction_using_llm
 
 logger = get_logger(__name__)
 
@@ -38,10 +41,10 @@ def extract_text_from_pdf(pdf_path):
         text += page.get_text("text") + "\n"
     return text.strip()
 
-def extract_resumes_from_zip(zip_path):
+def extract_resumes_from_zip(resume_input_path):
     extracted_files = []
     temp_dir = tempfile.mkdtemp()
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+    with zipfile.ZipFile(resume_input_path, "r") as zip_ref:
         zip_ref.extractall(temp_dir)
     for root, _, files in os.walk(temp_dir):
         for file in files:
@@ -197,13 +200,30 @@ def get_llm_score(jd_text, resume_text):
 # ---------------------------------
 # Main Service Function
 # ---------------------------------
-async def process_resume_screening(zip_path, jd_path):
-    logger.info(f"Starting resume screening process with zip: {zip_path}, jd: {jd_path}")
-    
-    resume_files = extract_resumes_from_zip(zip_path)
-    logger.info(f"Extracted {len(resume_files)} resume files from zip")
-    
+async def process_resume_screening(resume_input_path, jd_path):
+    logger.info(f"Starting resume screening process with file: {resume_input_path}, jd: {jd_path}")
+
+    # -----------------------------
+    # 1. Detect file type
+    # -----------------------------
+    if resume_input_path.lower().endswith(".zip"):
+        logger.info("Detected ZIP file, extracting resumes...")
+        resume_files = extract_resumes_from_zip(resume_input_path)
+    else:
+        logger.info("Detected single resume PDF file")
+        resume_files = [resume_input_path]
+    logger.info(f"Total resumes to process: {len(resume_files)}")
+
+    # -----------------------------
+    # 2. Extract text
+    # -----------------------------
     resume_texts = [extract_text_from_pdf(f) for f in resume_files]
+    if len(resume_texts[0])==0:
+        for f in resume_files:
+            resume_texts = [await pdf_text_extraction_using_llm.extract_data(f)]
+   
+    logger.info("Extracted text from all resumes")
+
     jd_text = extract_text_from_pdf(jd_path)
     logger.info(f"Extracted text from JD file, length: {len(jd_text)} characters")
 
