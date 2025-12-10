@@ -11,7 +11,7 @@ const jobPostingService = {
    */
   createJobPosting: async (jobPostingData) => {
     try {
-      const response = await api.post('/job-postings', jobPostingData);
+      const response = await api.post('/job-postings/create_job_posting', jobPostingData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while creating job posting' };
@@ -26,7 +26,7 @@ const jobPostingService = {
    */
   updateJobPosting: async (id, jobPostingData) => {
     try {
-      const response = await api.put(`/job-postings/${id}`, jobPostingData);
+      const response = await api.put(`/job-postings/update_job_posting/${id}`, jobPostingData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while updating job posting' };
@@ -57,7 +57,7 @@ const jobPostingService = {
    */
   getJobPostings: async (filters = {}) => {
     try {
-      const response = await api.get('/job-postings', { params: filters });
+      const response = await api.get('/job-postings/get_job_postings', { params: filters });
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while fetching job postings' };
@@ -71,7 +71,7 @@ const jobPostingService = {
    */
   getJobPosting: async (id) => {
     try {
-      const response = await api.get(`/job-postings/${id}`);
+      const response = await api.get(`/job-postings/get_job_posting_by_id/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while fetching job posting' };
@@ -85,7 +85,7 @@ const jobPostingService = {
    */
   deleteJobPosting: async (id) => {
     try {
-      const response = await api.delete(`/job-postings/${id}`);
+      const response = await api.delete(`/job-postings/delete_job_posting/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { detail: 'An error occurred while deleting job posting' };

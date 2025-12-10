@@ -1,15 +1,21 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 import tempfile
 import shutil
 import asyncio
 from app.services.resume_screening_service import process_resume_screening
+from app.database import upsert_screening_results,get_database, SCREENING_COLLECTION
+from app.utils.auth_dependency import require_auth
+from fastapi.params import Depends
+
 
 router = APIRouter()
 
-@router.post("/resume-screening")
+@router.post("/resume-screening", status_code=202)
 async def resume_screening_endpoint(
     resume_file: UploadFile = File(...),
-    jd_file: UploadFile = File(...)
+    jd_file: UploadFile = File(...),
+    job_post_id: str = Form(None),
+    current_user: dict = Depends(require_auth)
 ):
     # -------------------------------
     # 1. Save resume (ZIP or PDF)
@@ -43,9 +49,29 @@ async def resume_screening_endpoint(
     shutil.copyfileobj(jd_file.file, temp_jd)
     temp_jd.close()
 
-    # -------------------------------
-    # 3. Process resumes
-    # -------------------------------
     results = await process_resume_screening(temp_resume.name, temp_jd.name)
+    await upsert_screening_results(results,job_post_id)
+    return {"detail": "Screening results stored"}
 
-    return results
+
+
+@router.get("/get-resume-screening/results")
+async def get_resume_screening_results(job_posting_id: str,current_user: dict = Depends(require_auth)):
+    """
+    Fetch all saved resume screening results (up to 1000 records).
+    """
+    db = get_database()
+    query = {"job_posting_id": job_posting_id}
+
+    cursor = db[SCREENING_COLLECTION].find(query)
+    results = await cursor.to_list(length=1000)
+
+    # Convert any ObjectId to string for JSON serialization
+    for doc in results:
+        if "_id" in doc:
+            try:
+                doc["_id"] = str(doc["_id"])
+            except Exception:
+                pass
+
+    return {"results": results}
