@@ -115,7 +115,7 @@ def job_posting_dict(job_posting: JobPostingCreate) -> Dict[str, Any]:
         "views_count": 0
     }
 
-@router.post("")
+@router.post("/create_job_posting")
 async def create_job_posting(job_posting: JobPostingCreate,
                               current_user: dict = Depends(require_auth)):
     """
@@ -162,7 +162,7 @@ async def create_job_posting(job_posting: JobPostingCreate,
         logger.error(f"Error creating job posting: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("")
+@router.get("/get_job_postings")
 async def get_job_postings(
     status: Optional[str] = None,
     search: Optional[str] = None,
@@ -231,7 +231,7 @@ async def get_job_postings(
         logger.error(f"Error listing job postings: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{job_id}")
+@router.get("/get_job_posting_by_id/{job_id}")
 async def get_job_posting(job_id: str, current_user: dict = Depends(require_auth)):
     """
     Get a specific job posting by ID
@@ -256,7 +256,7 @@ async def get_job_posting(job_id: str, current_user: dict = Depends(require_auth
         logger.error(f"Error getting job posting: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{job_id}")
+@router.put("/update_job_posting/{job_id}")
 async def update_job_posting(
     job_id: str,
     job_posting: JobPostingUpdate,
@@ -299,7 +299,7 @@ async def update_job_posting(
         logger.error(f"Error updating job posting: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/{job_id}")
+@router.delete("/delete_job_posting/{job_id}")
 async def delete_job_posting(job_id: str, current_user: dict = Depends(require_auth)):
     """
     Delete a job posting

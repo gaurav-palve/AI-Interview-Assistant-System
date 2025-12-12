@@ -44,6 +44,7 @@ class InterviewCreate(BaseModel):
     status: InterviewStatus = Field(default=InterviewStatus.SCHEDULED, description="Interview status")
     resume_uploaded: Optional[bool] = Field(default=False, description="Whether resume was uploaded")
     jd_uploaded: Optional[bool] = Field(default=False, description="Whether job description was uploaded")
+    job_posting_id: Optional[str] = Field(None, description="Associated job posting ID")
 
 class InterviewUpdate(BaseModel):
     candidate_name: Optional[str] = Field(None, min_length=2)
