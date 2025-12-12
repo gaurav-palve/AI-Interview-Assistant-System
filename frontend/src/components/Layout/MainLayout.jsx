@@ -274,13 +274,7 @@ export default function MainLayout({ children }) {
   </div>
  
             <div className="flex items-center space-x-3">
-              {/* <Link
-                to="/interviews/new"
-                className="btn btn-primary flex items-center"
-              >
-                <AddIcon className="-ml-1 mr-2 h-5 w-5" />
-                New Interview
-              </Link> */}
+            
               {/* Notification fixed at top right */}
 <div className="fixed top-4 right-4 z-50">
   <button className="relative btn-icon">

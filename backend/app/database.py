@@ -28,6 +28,7 @@ JOB_POSTINGS_COLLECTION = "job_postings"
 CODING_QUESTIONS_COLLECTION = "coding_questions"
 OTP_COLLECTION = "otp_collection"
 CANDIDATES_REPORTS_COLLECTION = "candidates_reports"
+SCREENING_COLLECTION = "resume_screening"
 
 client = None
 db = None
@@ -769,3 +770,31 @@ async def save_report_pdf_to_db(interview_id: str, pdf_data: bytes) -> bool:
     except Exception as e:
         logger.error(f"Error while saving report PDF to DB: {e}")
         raise RuntimeError(f"Error in save_report_pdf_to_db: {e}")
+    
+
+
+
+async def upsert_screening_results(data: dict, job_post_id: str= None):
+    try:
+        db = get_database()
+        results = data.get("results", [])
+
+        for record in results:
+            email = record.get("candidate_email")
+            await db[SCREENING_COLLECTION].update_one(
+                {"candidate_email": email},
+                {
+                    "$set": {
+                        **record,
+                        "job_posting_id": job_post_id
+                    },
+                },
+                upsert=True
+            )
+
+    except Exception as e:
+        logger.error(f"Error upserting candidate results: {e}")
+        raise RuntimeError("Failed to upsert candidate results")
+    
+
+    
