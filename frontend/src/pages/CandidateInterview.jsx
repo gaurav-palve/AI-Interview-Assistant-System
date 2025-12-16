@@ -38,6 +38,160 @@ import {
 
 // Logo component removed
 
+function useStrongAltTabGuard({ addViolation }) {
+  const [showOverlay, setShowOverlay] = useState(false);
+  const triedAutoFullscreen = useRef(false);
+
+  // helper: is fullscreen active
+  const isFullscreen = () =>
+    !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+
+  // try to request fullscreen - may be blocked unless called by user gesture
+  const tryEnterFullscreen = async () => {
+    if (isFullscreen()) return true;
+    const el = document.documentElement;
+    try {
+      // Many browsers require user gesture — this can fail silently or throw
+      if (el.requestFullscreen) await el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+      else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+      else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+      return isFullscreen();
+    } catch (err) {
+      return false;
+    }
+  };
+
+  // Exit fullscreen if active
+  const ensureExitFullscreen = async () => {
+    if (!isFullscreen()) return;
+    try {
+      if (document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      else if (document.mozCancelFullScreen) await document.mozCancelFullScreen();
+      else if (document.msExitFullscreen) await document.msExitFullscreen();
+    } catch (err) {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    let blurTimeout = null;
+
+    const handleBlur = () => {
+      // small delay to avoid false positives on very short blurs
+      blurTimeout = setTimeout(async () => {
+        // If user left while fullscreen was on, treat as alt+tab/out-of-browser
+        if (isFullscreen()) {
+          // Count violation
+          if (typeof addViolation === "function") addViolation("window-blur");
+          // Force exit fullscreen so the user cannot continue in fullscreen while off app
+          await ensureExitFullscreen();
+          // Show blocking overlay that requires re-entering fullscreen
+          setShowOverlay(true);
+          triedAutoFullscreen.current = false;
+        }
+      }, 120);
+    };
+
+    const handleFocus = async () => {
+      if (blurTimeout) {
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+      }
+
+      // On focus, attempt to auto re-enter fullscreen once.
+      if (!isFullscreen() && !triedAutoFullscreen.current) {
+        triedAutoFullscreen.current = true;
+        const ok = await tryEnterFullscreen();
+        if (ok) {
+          // Re-entered fullscreen, dismiss overlay
+          setShowOverlay(false);
+          return;
+        }
+      }
+
+      // If we couldn't auto fullscreen, keep overlay visible and let user click button
+      if (!isFullscreen()) setShowOverlay(true);
+      else setShowOverlay(false);
+    };
+
+    const handleVisibility = () => {
+      // If tab becomes hidden while in fullscreen => count violation and show overlay
+      if (document.hidden && isFullscreen()) {
+        if (typeof addViolation === "function") addViolation("visibility-hidden");
+        ensureExitFullscreen();
+        setShowOverlay(true);
+        triedAutoFullscreen.current = false;
+      }
+    };
+
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      if (blurTimeout) clearTimeout(blurTimeout);
+    };
+  }, [addViolation]);
+
+  // The overlay component (simple). Render this inside your component's JSX.
+  const Overlay = () => {
+    if (!showOverlay) return null;
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.85)",
+          color: "#fff",
+          zIndex: 99999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 20,
+          textAlign: "center",
+        }}
+      >
+        <div style={{ maxWidth: 600 }}>
+          <h2 style={{ marginBottom: 12 }}>Fullscreen is required to continue</h2>
+          <p style={{ marginBottom: 18 }}>
+            You left the exam window. Please return to fullscreen to continue. 
+            Any leaving of the window is recorded as a violation.
+          </p>
+          <button
+            onClick={async () => {
+              // User gesture: attempt to re-enter fullscreen
+              const ok = await tryEnterFullscreen();
+              if (ok) setShowOverlay(false);
+              else alert("Browser blocked automatic fullscreen. Please allow and click again.");
+            }}
+            style={{
+              padding: "12px 20px",
+              borderRadius: 6,
+              border: "none",
+              cursor: "pointer",
+              fontSize: 16,
+            }}
+          >
+            Return to fullscreen
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return { Overlay, showOverlay, tryEnterFullscreen };
+}
+
 /**
  * CandidateInterview page component
  * Displays interview instructions and MCQs for candidates
@@ -62,6 +216,25 @@ function CandidateInterview() {
   const timerRef = useRef(null);
   const mcqTimerRef = useRef(null);
   const { startCamera, stopCamera, isActive } = useCamera();
+  const [needsUserClick, setNeedsUserClick] = useState(true);
+  const [fullscreenLost, setFullscreenLost] = useState(false);
+  const [violations, setViolations] = useState(0);
+
+
+  const addViolation = (type) => {
+    console.log("Violation triggered:", type);
+
+    // Increase local count
+    setViolations((prev) => prev + 1);
+
+    // Save to backend
+    interviewService.saveViolation(interviewId, type).catch((err) =>
+      console.error("Violation save failed:", err)
+    );
+  };
+
+  const { Overlay } = useStrongAltTabGuard({ addViolation });
+
 
   // Fetch interview details on component mount
   useEffect(() => {
@@ -127,6 +300,107 @@ function CandidateInterview() {
       }
     };
   }, [timerActive, instructionTimer, mcqsGenerated]);
+
+  
+
+  useEffect(() => {
+    const handleExit = () => {
+      if (!document.fullscreenElement) {
+        console.log("⚠ Fullscreen exited — showing warning overlay");
+        setFullscreenLost(true);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleExit);
+    return () => document.removeEventListener("fullscreenchange", handleExit);
+  }, []);
+
+
+  useEffect(() => {
+    if (phase === "instructions") {
+      console.log("Entering fullscreen automatically (instructions)");
+      enterFullScreen();
+    }
+  }, [phase]);
+
+
+  useEffect(() => {
+    const enforceFullscreen = () => {
+      // If user escaped fullscreen, force it back
+      if (!document.fullscreenElement) {
+        console.log("⚠ Fullscreen exited — forcing fullscreen again");
+        enterFullScreen();
+      }
+    };
+
+    // Listen for fullscreen exit
+    document.addEventListener("fullscreenchange", enforceFullscreen);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", enforceFullscreen);
+    };
+  }, []);
+
+
+  useEffect(() => {
+    const handleExit = () => {
+      if (!document.fullscreenElement) {
+        console.log("⚠ Fullscreen exited");
+
+        // Increase violation count
+        setViolations(prev => prev + 1);
+
+        // Show overlay
+        setFullscreenLost(true);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleExit);
+    return () => document.removeEventListener("fullscreenchange", handleExit);
+  }, []);
+
+
+  // useEffect(() => {
+  //   if (violations >= 3) {
+  //     console.log("❌ Auto-fail: too many fullscreen exits");
+
+  //     // OPTIONAL: notify backend about cheating
+  //     // interviewService.reportViolation(interviewId, violations);
+
+  //     // End test immediately
+  //     setPhase("completed");
+  //     setCompleted(true);
+
+  //     // Optionally redirect to a custom fail page
+  //     // navigate(`/test-failed/${interviewId}`);
+  //   }
+  // }, [violations]);
+
+
+  useEffect(() => {
+    if (violations > 0) {
+      interviewService.saveViolation(interviewId, violations);
+    }
+  }, [violations]);
+
+
+
+    // Force fullscreen
+  const enterFullScreen = () => {
+    const element = document.documentElement;
+
+    if (element.requestFullscreen) {
+      element.requestFullscreen().catch(err => console.log("FS error:", err));
+    } else if (element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen();
+    } else if (element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if (element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+    }
+  };
+
+
 
   // Create a debounced version of the MCQ generation function
   const debouncedGenerateMCQs = useCallback(
@@ -699,6 +973,21 @@ function CandidateInterview() {
   if (phase === 'instructions' || phase === 'waiting') {
     return (
       <div className="min-h-screen bg-neutrino-gradient text-white">
+
+        {needsUserClick && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+            <button
+              onClick={() => {
+                enterFullScreen();
+                setNeedsUserClick(false);  // remove overlay
+              }}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg text-xl shadow-lg"
+            >
+              Click to Begin Assessment
+            </button>
+          </div>
+        )}
+
         {/* Navbar with Neutrino logo and camera */}
         <nav className="w-full bg-black/30 shadow-md z-50 py-2">
           <div className="max-w-6xl mx-auto">
@@ -822,15 +1111,14 @@ function CandidateInterview() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Start button */}
                 <div className="flex justify-center pt-1">
                   <button
-                    onClick={() => {
-                      // Start camera when the assessment begins
-                      // Camera is already started by the context
-                      handleStartInstructions();
-                    }}
+                      onClick={() => {
+                        enterFullScreen();     // 👈 Trigger fullscreen
+                        handleStartInstructions();
+                      }}
                     disabled={timerActive || generatingMcqs || phase === 'waiting'}
                     className="px-6 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
                   >
@@ -867,6 +1155,48 @@ function CandidateInterview() {
   
   return (
     <div className="min-h-screen bg-neutrino-gradient text-white">
+
+      {fullscreenLost && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="text-center">
+
+            <p className="text-white text-xl font-bold mb-4">
+              Fullscreen mode is required to continue the assessment.
+            </p>
+
+            <p className="text-orange-300 text-lg mb-6">
+              Warning {violations}
+              {/* Warning {violations}/3 — After 3 violations your test will auto-fail. */}
+            </p>
+
+            <button
+              onClick={() => {
+                enterFullScreen();
+                setFullscreenLost(false);
+              }}
+              className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xl shadow-lg"
+            >
+              Return to Fullscreen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {needsUserClick && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+            <button
+              onClick={() => {
+                enterFullScreen();
+                setNeedsUserClick(false);  // remove overlay
+              }}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg text-xl shadow-lg"
+            >
+              Click to Begin Assessment
+            </button>
+          </div>
+        )}
+
+
       {/* Header with Neutrino branding and timer */}
       <header className="border-b border-gray-800">
         <div className="max-w-5xl mx-auto">
@@ -1037,6 +1367,7 @@ function CandidateInterview() {
           </div>
         </div>
       </div>
+      <Overlay />
     </div>
   );
 }

@@ -14,6 +14,9 @@ from app.database import fetch_interview_report_data
 from app.database import save_report_pdf_to_db
 from app.utils.report_pdf_generation import  build_candidate_report_pdf
 from app.services.email_service import EmailService
+
+from ..database import save_violation
+
 logger = get_logger(__name__)
 router = APIRouter(tags=["Candidate"])
 
@@ -37,6 +40,10 @@ class MCQSubmission(BaseModel):
     responses: List[MCQResponse]
     total_score: int
     max_score: int
+
+class ViolationCreate(BaseModel):
+    violation_count: int
+    event_type: str = "fullscreen_exit"
 
 @router.get("/interview/{interview_id}")
 async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:
@@ -505,3 +512,20 @@ async def complete_interview(interview_id: str):
         logger.error(f"Error completing interview: {e}")
         logger.exception("Full exception details:")
         raise HTTPException(status_code=500, detail=f"Error completing interview: {str(e)}")
+    
+
+@router.post("/violations/{interview_id}")
+async def save_violation_route(interview_id: str, data: ViolationCreate):
+    """
+    Save a fullscreen/tab-switch violation for the candidate.
+    """
+    success = await save_violation(
+        interview_id,
+        data.violation_count,
+        data.event_type
+    )
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to save violation")
+
+    return {"status": "success", "message": "Violation saved"}

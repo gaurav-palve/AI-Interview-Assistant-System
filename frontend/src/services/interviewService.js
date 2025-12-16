@@ -447,7 +447,19 @@ const interviewService = {
       console.error('Error downloading PDF:', error);
       throw error.response?.data || { detail: 'An error occurred while downloading the report PDF' };
     }
+  },
+
+  saveViolation: async (interviewId, count) => {
+    try {
+      return await api.post(`/candidate/violations/${interviewId}`, {
+        violation_count: count,
+        event_type: "fullscreen_exit"
+      });
+    } catch (err) {
+      console.error("Error saving violation:", err);
+    }
   }
+
 };
 
 export default interviewService;
