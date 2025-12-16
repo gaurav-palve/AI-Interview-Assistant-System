@@ -169,6 +169,7 @@ def get_llm_score(jd_text, resume_text):
     You are an ATS scoring engine.
     Compare the job description and resume and return a JSON like:
     {{
+      "name": "Candidate Full Name",
       "email": "candidate@example.com",
       "score": 0-100,
       "strengths": ["skill1", "skill2"],
@@ -259,8 +260,14 @@ async def process_resume_screening(resume_input_path, jd_path):
 
     results = []
     for (file, _), llm_result in zip(shortlisted_files, llm_results):
+        # Get filename without extension
+        base_filename = os.path.basename(file)
+        # Extract candidate name from LLM result or fallback to filename
+        candidate_name = llm_result.get("name")
+        
         results.append({
-            "resume": os.path.basename(file),
+            "resume": base_filename,
+            "candidate_name": candidate_name if candidate_name else os.path.splitext(base_filename)[0],
             "candidate_email": llm_result.get("email"),
             "ATS_Score": llm_result.get("score"),
             "Strengths": llm_result.get("strengths", []),

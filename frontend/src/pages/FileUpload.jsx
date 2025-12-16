@@ -280,7 +280,7 @@ function FileUpload() {
                           accept=".pdf,.docx"
                           onChange={handleJdChange}
                           ref={jdInputRef}
-                          required
+                          
                         />
                       </label>
                       <p className="pl-1">or drag and drop</p>

@@ -289,16 +289,12 @@ function JobPostingDetail() {
 
   // Handle resume screening
   const handleScreenResumes = async () => {
-    if (!jdFile) {
-      setScreeningError('Please upload a job description PDF file.');
-      return;
-    }
-    
     if (!resumeFile) {
       setScreeningError('Please upload a zip file containing resumes.');
       return;
     }
 
+    // JD file is optional - if not provided, the backend will use the job description from DB
     try {
       setScreeningLoading(true);
       setScreeningError(null);
@@ -306,7 +302,9 @@ function JobPostingDetail() {
       // Create FormData object
       const formData = new FormData();
       formData.append('resume_file', resumeFile);
-      formData.append('jd_file', jdFile);
+      if (jdFile) {
+        formData.append("jd_file", jdFile);
+}
       // include job posting id so backend can associate results
       formData.append('job_post_id', id);
       
@@ -1168,7 +1166,7 @@ const handleDropResume = (e) => {
                 </h2>
                 
                 <p className="text-gray-700 mb-6">
-                  Upload a job description PDF and a zip file containing candidate resumes or single PDF to screen them against this job posting.
+                  Upload a zip file containing candidate resumes or a single PDF to screen them against this job posting. Optionally, you can upload a custom job description PDF. If not provided, the system will use the job description from the database.
                 </p>
                 
                 {/* Warning message when job is not active */}
@@ -1186,7 +1184,7 @@ const handleDropResume = (e) => {
                   {/* JD Upload */}
                   <div>
                     <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
-                      Upload Job Description (PDF)
+                      Upload Job Description (PDF) <span className="text-gray-400 text-xs">(Optional)</span>
                     </label>
                     <div
                       onDragOver={handleDragOver}
@@ -1273,7 +1271,7 @@ const handleDropResume = (e) => {
                 <div className="flex justify-center mt-4">
                   <button
                     onClick={handleScreenResumes}
-                    disabled={!jdFile || !resumeFile || screeningLoading || jobPosting?.status !== 'active'}
+                    disabled={!resumeFile || screeningLoading || jobPosting?.status !== 'active'}
                     className={`btn w-full md:w-auto ${jobPosting?.status === 'active' ? 'btn-primary' : 'btn-disabled bg-gray-300'}`}
                     title={jobPosting?.status !== 'active' ? "Resume screening is only available for active job postings" : ""}
                   >

@@ -29,6 +29,7 @@ CODING_QUESTIONS_COLLECTION = "coding_questions"
 OTP_COLLECTION = "otp_collection"
 CANDIDATES_REPORTS_COLLECTION = "candidates_reports"
 SCREENING_COLLECTION = "resume_screening"
+VENDOR_COLLECTION = "vendor_collection"
 
 client = None
 db = None
@@ -770,8 +771,6 @@ async def save_report_pdf_to_db(interview_id: str, pdf_data: bytes) -> bool:
     except Exception as e:
         logger.error(f"Error while saving report PDF to DB: {e}")
         raise RuntimeError(f"Error in save_report_pdf_to_db: {e}")
-    
-
 
 
 async def upsert_screening_results(data: dict, job_post_id: str= None):
@@ -791,10 +790,23 @@ async def upsert_screening_results(data: dict, job_post_id: str= None):
                 },
                 upsert=True
             )
-
     except Exception as e:
         logger.error(f"Error upserting candidate results: {e}")
         raise RuntimeError("Failed to upsert candidate results")
     
 
+
+async def create_vendor(
+    vendor_data: dict
+    ):
+    try:
+        db = get_database()
+       
+        result = await db[VENDOR_COLLECTION].insert_one(vendor_data)
+        logger.info(f"Vendor collection created with ID: {result.inserted_id}")
+        return str(result.inserted_id)
+    
+    except Exception as e:
+        logger.error(f"Error creating vendor collection: {e}")
+        raise RuntimeError("Failed to create vendor collection")
     
