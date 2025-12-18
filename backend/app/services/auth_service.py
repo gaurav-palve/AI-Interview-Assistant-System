@@ -1,4 +1,4 @@
-from ..database import get_database, AUTH_COLLECTION
+from ..database import get_database, USERS_COLLECTION
 from ..models.user_model import admin_dict
 from ..utils.password_handler import hash_password, verify_password
 from ..utils.token import (
@@ -30,60 +30,73 @@ REFRESH_TOKEN_COOKIE_SECURE = os.getenv("REFRESH_TOKEN_COOKIE_SECURE", "False").
 
 logger = logging.getLogger(__name__)
 
-async def create_admin_account(email: str, password: str):
+async def create_super_admin_account(
+    first_name: str,
+    middle_name: str,
+    last_name: str,
+    mobile_number,
+    email: str,
+    password: str,
+    role_id: str = None
+    ):
     try:
         db = get_database()
         # validate_password_strength is synchronous and will raise HTTPException on failure
         validate_password_strength(password)
         # Check if admin already exists
-        existing_admin = await db[AUTH_COLLECTION].find_one({"email": email})
+        existing_admin = await db[USERS_COLLECTION].find_one({"email": email})
         if existing_admin:
             return None  # Already exists
 
         hashed_pw = hash_password(password)
-        admin_data = admin_dict(email, hashed_pw)
-        result = await db[AUTH_COLLECTION].insert_one(admin_data)
-        logger.info(f"Admin account created for email: {email}")
+        admin_data = admin_dict(
+            first_name,
+            middle_name,
+            last_name,
+            mobile_number,
+            email, 
+            hashed_pw,
+            role_id
+        )
+
+        result = await db[USERS_COLLECTION].insert_one(admin_data)
+        logger.info(f"Super admin account created for email: {email}")
         return str(result.inserted_id)
     except Exception as e:
-        logger.error(f"Error creating admin account: {e}")
+        logger.error(f"Error creating super admin account: {e}")
         raise
 
-async def verify_session(session_token: str = Query(None)):
-    """
-    DEPRECATED: Use verify_token_from_header instead with Authorization header.
+# async def verify_session(session_token: str = Query(None)):
+#     """
+#     DEPRECATED: Use verify_token_from_header instead with Authorization header.
     
-    This is a compatibility function that will be removed in future versions.
-    Only used for backward compatibility with old code.
-    """
-    logger.warning("verify_session is deprecated and will be removed. Use get_current_user dependency instead.")
+#     This is a compatibility function that will be removed in future versions.
+#     Only used for backward compatibility with old code.
+#     """
+#     logger.warning("verify_session is deprecated and will be removed. Use get_current_user dependency instead.")
     
-    if not session_token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+#     if not session_token:
+#         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    try:
-        # Decode and validate the JWT token
-        payload = decode_jwt_token(session_token)
+#     try:
+#         # Decode and validate the JWT token
+#         payload = decode_jwt_token(session_token)
         
-        # Extract user information from the token
-        admin_id = payload.get("sub")
-        email = payload.get("email")
-        role = payload.get("role")
+#         # Extract user information from the token
+#         user_id = payload.get("user_id")
         
-        if not admin_id:
-            raise HTTPException(status_code=401, detail="Invalid token structure")
+#         if not user_id:
+#             raise HTTPException(status_code=401, detail="Invalid token structure")
         
-        # Return session data in the format expected by existing code
-        return {
-            "admin_id": admin_id,
-            "email": email,
-            "role": role
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in deprecated verify_session: {e}")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+#         # Return session data in the format expected by existing code
+#         return {
+#             "user_id": user_id
+#         }
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         logger.error(f"Error in deprecated verify_session: {e}")
+#         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 async def authenticate_admin(
     email: str,
@@ -97,22 +110,23 @@ async def authenticate_admin(
     """
     try:
         db = get_database()
-        admin = await db[AUTH_COLLECTION].find_one({"email": email})
-        if not admin or not verify_password(password, admin["hashed_password"]):
+        user = await db[USERS_COLLECTION].find_one({"email": email})
+        print(user)
+        if not user or not verify_password(password, user["hashed_password"]):
             return None
         
-        admin_id = str(admin["_id"])
+        user_id = str(user["_id"])
         
         # Create access token
         expires_delta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": admin_id, "email": admin["email"], "role": admin["role"]},
+            data={"user_id": user_id},
             expires_delta=expires_delta
         )
         
         # Create refresh token and store in database
         refresh_token, refresh_expiry = await create_refresh_token(
-            admin_id=admin_id,
+            user_id=user_id,
             device_info=device_info
         )
         
@@ -139,45 +153,18 @@ async def authenticate_admin(
         logger.error(f"Error authenticating admin: {e}")
         raise
 
-async def verify_token_from_header(request: Request):
-    """
-    Extract and verify JWT token from Authorization header only.
-    Returns admin data if token is valid.
-    """
-    # Get token from Authorization header
+async def verify_token_from_header(request: Request) -> dict:
     access_token = get_access_token_from_request(request)
-    
+
     if not access_token:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing Authorization header with Bearer token"
-        )
-    
-    try:
-        # Decode and validate token
-        payload = decode_jwt_token(access_token)
-        
-        # Validate token structure
-        if "sub" not in payload:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token structure"
-            )
-        
-        # Return admin data from token
-        return {
-            "admin_id": payload["sub"],
-            "email": payload.get("email"),
-            "role": payload.get("role")
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error verifying token: {e}")
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token"
-        )
+        raise HTTPException(status_code=401, detail="Missing access token")
+
+    payload = decode_jwt_token(access_token)
+
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+
+    return payload   # ✅ RETURN JWT PAYLOAD AS-IS
 
 # For backward compatibility, redirect to header-only function
 async def verify_token_from_query_or_header(request: Request):
@@ -208,9 +195,10 @@ async def refresh_auth_tokens(
     """
     try:
         # Verify the refresh token
-        admin_data = await verify_refresh_token(refresh_token)
+        token_data = await verify_refresh_token(refresh_token)
+        user_id = token_data["user_id"]
         
-        if not admin_data or "admin_id" not in admin_data:
+        if not token_data or "user_id" not in token_data:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
         
         # Rotate the refresh token (revoke the old one and create a new one)
@@ -221,7 +209,7 @@ async def refresh_auth_tokens(
         
         # Create a new access token
         access_token = create_access_token(
-            data={"sub": admin_data["admin_id"]}
+            data={"user_id": user_id, "type":"access"},
         )
         
         # If response object is provided, set new refresh token as httpOnly cookie
@@ -264,7 +252,7 @@ async def logout_admin(refresh_token: str, response: Response = None):
                 samesite="lax"
             )
         
-        logger.info("Admin logged out successfully")
+        logger.info("User logged out successfully")
         return {"message": "Logout successful"}
     except Exception as e:
         logger.error(f"Error during logout: {e}")

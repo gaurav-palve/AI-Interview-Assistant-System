@@ -127,7 +127,7 @@ The backend provides the following API endpoints:
 
 The application uses MongoDB for data storage with the following collections:
 
-- `auth_collection`: User authentication data
+- `USERS_COLLECTION`: User authentication data
 - `scheduled_interviews`: Interview session information
 - `candidate_documents`: Metadata for uploaded files
 

@@ -76,13 +76,9 @@ const authService = {
    * @param {string} confirm_password - Password confirmation
    * @returns {Promise} - Promise with account creation result
    */
-  createAccount: async (email, password, confirm_password) => {
+  createAccount: async (userData) => {
     try {
-      const response = await api.post('/auth/create-account', {
-        email,
-        password,
-        confirm_password
-      });
+      const response = await api.post('/auth/create-account', userData);
       return {
         success: true,
         message: 'Account created successfully',

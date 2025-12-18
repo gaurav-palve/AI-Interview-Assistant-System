@@ -6,6 +6,8 @@ import {
   LockReset as LockResetIcon,
   Visibility,
   VisibilityOff,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
 } from "@mui/icons-material";
 import authService from "../services/authService";
 import Nts_logo from "../assets/Nts_logo/NTSLOGO.png";
@@ -17,6 +19,10 @@ function Signup() {
   // Form states
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -42,6 +48,12 @@ function Signup() {
   const validateOtp = () => {
     if (!otp) return "OTP is required";
     if (!/^\d+$/.test(otp)) return "OTP must contain only numbers";
+    return "";
+  };
+
+  const validateMobileNumber = () => {
+    if (!mobileNumber) return "Mobile number is required";
+    if (!/^\d{10}$/.test(mobileNumber)) return "Please enter a valid 10-digit mobile number";
     return "";
   };
 
@@ -108,6 +120,13 @@ function Signup() {
   const handleCreateAccount = async (e) => {
     e.preventDefault();
 
+    // Validate all fields
+    if (!firstName) return showMessage("First name is required", true);
+    if (!lastName) return showMessage("Last name is required", true);
+    
+    const mobileError = validateMobileNumber();
+    if (mobileError) return showMessage(mobileError, true);
+
     if (!password) return showMessage("Password is required", true);
     if (password.length < 8)
       return showMessage("Password must be at least 8 characters", true);
@@ -116,7 +135,15 @@ function Signup() {
 
     setIsLoading(true);
     try {
-      await authService.createAccount(email, password, confirmPassword);
+      await authService.createAccount({
+        first_name: firstName,
+        middle_name: middleName || undefined,
+        last_name: lastName,
+        mobile_number: mobileNumber,
+        email: email,
+        password: password,
+        confirm_password: confirmPassword,
+      });
       showMessage("Account created successfully!");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
@@ -145,7 +172,7 @@ function Signup() {
         animate-cardUp
       "
       >
-        {/* LEFT PANEL (same as LOGIN) */}
+        {/* LEFT PANEL */}
         <div className="hidden lg:flex relative p-4">
           <div
             className="
@@ -271,6 +298,7 @@ function Signup() {
                   from-violet-600 to-indigo-600 
                   text-white rounded-lg font-medium shadow-md 
                   hover:shadow-xl hover:scale-[1.02] transition-all
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 "
                 >
                   {isLoading ? "Sending..." : "Send OTP"}
@@ -315,6 +343,7 @@ function Signup() {
                     from-violet-600 to-indigo-600 
                     text-white rounded-lg font-medium shadow-md 
                     hover:shadow-xl transition
+                    disabled:opacity-50 disabled:cursor-not-allowed
                   "
                   >
                     {isLoading ? "Verifying..." : "Verify"}
@@ -323,13 +352,81 @@ function Signup() {
               </form>
             )}
 
-            {/* STEP 3 — PASSWORD */}
+            {/* STEP 3 — PERSONAL DETAILS & PASSWORD */}
             {otpVerified && (
-              <form onSubmit={handleCreateAccount} className="space-y-5">
+              <form onSubmit={handleCreateAccount} className="space-y-4">
+                {/* FIRST NAME */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1">
+                    First Name *
+                  </label>
+                  <div className="relative">
+                    <PersonIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-400/50"
+                    />
+                  </div>
+                </div>
+
+                {/* MIDDLE NAME */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1">
+                    Middle Name <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <PersonIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={middleName}
+                      onChange={(e) => setMiddleName(e.target.value)}
+                      placeholder="Michael"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-400/50"
+                    />
+                  </div>
+                </div>
+
+                {/* LAST NAME */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1">
+                    Last Name *
+                  </label>
+                  <div className="relative">
+                    <PersonIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-400/50"
+                    />
+                  </div>
+                </div>
+
+                {/* MOBILE NUMBER */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1">
+                    Mobile Number *
+                  </label>
+                  <div className="relative">
+                    <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 h-4 w-4" />
+                    <input
+                      type="text"
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      placeholder="10-digit number"
+                      className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-violet-400/50"
+                    />
+                  </div>
+                </div>
+
                 {/* PASSWORD */}
                 <div>
                   <label className="block text-xs font-semibold mb-1">
-                    Password
+                    Password *
                   </label>
                   <div className="relative">
                     <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 h-4 w-4" />
@@ -346,9 +443,9 @@ function Signup() {
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                     >
                       {showPassword ? (
-                        <VisibilityOff className="h-4 w-4" />
+                        <VisibilityOff className="h-4 w-4 text-gray-500" />
                       ) : (
-                        <Visibility className="h-4 w-4" />
+                        <Visibility className="h-4 w-4 text-gray-500" />
                       )}
                     </button>
                   </div>
@@ -357,7 +454,7 @@ function Signup() {
                 {/* CONFIRM PASSWORD */}
                 <div>
                   <label className="block text-xs font-semibold mb-1">
-                    Confirm Password
+                    Confirm Password *
                   </label>
                   <div className="relative">
                     <LockResetIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 h-4 w-4" />
@@ -376,9 +473,9 @@ function Signup() {
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                     >
                       {showConfirmPassword ? (
-                        <VisibilityOff className="h-4 w-4" />
+                        <VisibilityOff className="h-4 w-4 text-gray-500" />
                       ) : (
-                        <Visibility className="h-4 w-4" />
+                        <Visibility className="h-4 w-4 text-gray-500" />
                       )}
                     </button>
                   </div>
@@ -386,13 +483,21 @@ function Signup() {
 
                 <button
                   type="submit"
-                  disabled={isLoading || !password || !confirmPassword}
+                  disabled={
+                    isLoading ||
+                    !firstName ||
+                    !lastName ||
+                    !mobileNumber ||
+                    !password ||
+                    !confirmPassword
+                  }
                   className="
                   w-full py-3 bg-gradient-to-r 
                   from-violet-600 to-indigo-600 
                   text-white rounded-lg font-medium shadow-md 
                   hover:shadow-xl hover:scale-[1.02] 
                   transition
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 "
                 >
                   {isLoading ? "Creating..." : "Create Account"}

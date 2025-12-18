@@ -7,7 +7,7 @@ from app.services.generate_jd_service import generate_jd
 from bson import ObjectId
 from datetime import datetime, timezone
 from app.utils.logger import get_logger
-from app.utils.auth_dependency import require_auth
+from app.utils.auth_dependency import get_current_user
 
 
 logger = get_logger(__name__)
@@ -117,7 +117,7 @@ def job_posting_dict(job_posting: JobPostingCreate) -> Dict[str, Any]:
 
 @router.post("/create_job_posting")
 async def create_job_posting(job_posting: JobPostingCreate,
-                              current_user: dict = Depends(require_auth)):
+                               current_user: dict = Depends(get_current_user)):
     """
     Create a new job posting
     """
@@ -169,7 +169,7 @@ async def get_job_postings(
     sort: Optional[str] = "newest",
     limit: int = Query(20, ge=1, le=100),
     skip: int = Query(0, ge=0),
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Get all job postings with optional filters
@@ -232,7 +232,7 @@ async def get_job_postings(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_job_posting_by_id/{job_id}")
-async def get_job_posting(job_id: str, current_user: dict = Depends(require_auth)):
+async def get_job_posting(job_id: str, current_user: dict = Depends(get_current_user)):
     """
     Get a specific job posting by ID
     """
@@ -260,7 +260,7 @@ async def get_job_posting(job_id: str, current_user: dict = Depends(require_auth
 async def update_job_posting(
     job_id: str,
     job_posting: JobPostingUpdate,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Update a job posting
@@ -300,7 +300,7 @@ async def update_job_posting(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/delete_job_posting/{job_id}")
-async def delete_job_posting(job_id: str, current_user: dict = Depends(require_auth)):
+async def delete_job_posting(job_id: str, current_user: dict = Depends(get_current_user)):
     """
     Delete a job posting
     """
@@ -327,7 +327,7 @@ async def delete_job_posting(job_id: str, current_user: dict = Depends(require_a
 async def update_job_posting_status(
     job_id: str,
     status_update: JobPostingStatusUpdate,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Update the status of a job posting
@@ -368,7 +368,7 @@ async def update_job_posting_status(
 @router.post("/generate-description")
 async def generate_job_description(
     request: JobDescriptionGenerate,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Generate a job description based on the provided requirements
@@ -385,7 +385,7 @@ async def generate_job_description(
 async def update_job_description(
     job_id: str,
     data: dict,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Update ONLY the job description field, safely.

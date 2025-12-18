@@ -9,6 +9,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.auth_service import verify_token_from_query_or_header
+from app.RBAC.init__permissions import init_rbac
+from app.database import  create_user_collection
+
 
 
 # Suppress warnings globally
@@ -74,6 +77,8 @@ async def lifespan(app: FastAPI):
             logger.info("Database connection verified successfully")
         else:
             logger.warning("Database verification failed. Some features may not work.")
+
+        await init_rbac()
     except Exception as e:
         logger.exception(f"Error during startup: {e}")
 

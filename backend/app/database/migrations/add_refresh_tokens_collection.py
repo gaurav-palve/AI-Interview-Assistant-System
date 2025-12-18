@@ -48,7 +48,7 @@ async def create_refresh_tokens_collection():
     await db[REFRESH_TOKENS_COLLECTION].create_index("token", unique=True)
     # Index on admin_id to find all tokens for a user
     # Index on admin_id to find all tokens for a user
-    await db[REFRESH_TOKENS_COLLECTION].create_index("admin_id")
+    await db[REFRESH_TOKENS_COLLECTION].create_index("user_id")
     # Index on expires_at for cleaning up expired tokens
     await db[REFRESH_TOKENS_COLLECTION].create_index("expires_at")
     # Index on created_at for sorting

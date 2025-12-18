@@ -33,7 +33,7 @@ const interviewService = {
   getInterviews: async (page = 1, pageSize = 10) => {
     try {
       const response = await api.get('/interviews/list-interviews', {
-        params: { page, page_size: pageSize }
+        params: { page, page_size: pageSize },
       });
       return response.data;
     } catch (error) {

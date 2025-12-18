@@ -4,16 +4,17 @@ from ..schemas.interview_schema import (
 )
 from ..services.interview_service import InterviewService
 from typing import Optional
-from ..utils.auth_dependency import get_current_user, require_auth
+from ..utils.auth_dependency import require_auth
 from fastapi import Request
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["Interviews"])
 
-# The get_current_user function is now imported from auth_dependency.py
+# The require_auth function is now imported from auth_dependency.py
 
-@router.post("/create-interview", response_model=dict)
+@router.post("/create-interview", response_model=dict,
+             )
 async def create_interview(
     request: Request,
     interview_data: InterviewCreate,
@@ -35,7 +36,7 @@ async def create_interview(
         interview_service = InterviewService()
         interview_id = await interview_service.create_interview(
             interview_data,
-            current_user["admin_id"]
+            str(current_user["_id"])
         )
         
         # Verify the interview was created
@@ -79,7 +80,7 @@ async def get_interview(
             raise HTTPException(status_code=404, detail="Interview not found")
         
         # Check if user has access to this interview
-        if interview["created_by"] != current_user["admin_id"]:
+        if interview["created_by"] != str(current_user["_id"]):
             raise HTTPException(status_code=403, detail="Access denied")
         
         return interview
@@ -99,13 +100,14 @@ async def list_interviews(
     """List interviews created by the current user"""
     try:
         logger.info(f"Received request to list interviews. Query params: {request.query_params}")
-        logger.info(f"Authenticated user: {current_user['email']}")
-            
+        print(current_user)
+        print(40*"-")
         # Process the interview listing
-        logger.info(f"Fetching interviews for user ID: {current_user['admin_id']}")
+        user_id = str(current_user["_id"])  # Convert ObjectId to string
+        logger.info(f"Fetching interviews for user ID: {user_id}")
         interview_service = InterviewService()
         result = await interview_service.get_interviews_by_creator(
-            current_user["admin_id"],
+            user_id,
             page,
             page_size
         )
@@ -137,7 +139,7 @@ async def update_interview(
         success = await interview_service.update_interview(
             interview_id, 
             update_data, 
-            current_user["admin_id"]
+            str(current_user["_id"])
         )
         
         if not success:
@@ -166,7 +168,7 @@ async def delete_interview(
         interview_service = InterviewService()
         success = await interview_service.delete_interview(
             interview_id, 
-            current_user["admin_id"]
+            str(current_user["_id"])
         )
         
         if not success:
@@ -192,7 +194,7 @@ async def get_interview_statistics(
     """Get interview statistics for the current user"""
     try:
         interview_service = InterviewService()
-        stats = await interview_service.get_interview_statistics(current_user["admin_id"])
+        stats = await interview_service.get_interview_statistics(str(current_user["_id"]))
         
         return {
             "message": "Statistics retrieved successfully",

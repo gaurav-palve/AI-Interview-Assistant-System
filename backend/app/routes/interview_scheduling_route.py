@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 from ..utils.logger import get_logger
 from ..database import get_database, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION, save_candidate_data
-from ..utils.auth_dependency import require_auth, get_current_user
+from ..utils.auth_dependency import  get_current_user
 from ..services.email_service import EmailService
 from fastapi import Depends
 
@@ -38,7 +38,7 @@ class BulkInterviewScheduleRequest(BaseModel):
 @router.post("/bulk-schedule")
 async def schedule_interviews_bulk(
     request: BulkInterviewScheduleRequest = Body(...),
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 
 ):
     """
@@ -345,7 +345,7 @@ async def schedule_interviews_bulk(
 
 @router.get("/get-interviews-by-job-posting/{job_posting_id}")
 async def get_interviews_by_job_posting(job_posting_id: str,
-                                        current_user: dict = Depends(require_auth)
+                                        current_user: dict = Depends(get_current_user)
                                         ):
     """
     Get all interviews for a specific job posting
