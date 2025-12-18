@@ -4,7 +4,7 @@ from ..services.mcq_generation_service import generate_mcqs
 from ..services.resume_upload_service import save_files
 from ..utils.extract_jd_text import extract_text_from_jd
 from ..utils.extract_resume_text import extract_text_from_resume
-from ..utils.auth_dependency import require_auth
+from ..utils.auth_dependency import get_current_user
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 import logging
@@ -28,7 +28,7 @@ class MCQGenerationRequest(BaseModel):
 @router.post("/generate-mcqs/")
 async def generate_mcqs_route(
     request: MCQGenerationRequest = Body(...),
-    session_data: dict = Depends(require_auth)
+    session_data: dict = Depends(get_current_user)
 ):
     """
     Generate MCQs based on the candidate's resume and job description

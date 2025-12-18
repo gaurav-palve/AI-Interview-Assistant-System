@@ -5,14 +5,14 @@ from typing import List, Optional
 import base64
 from app.utils.logger import get_logger
 from fastapi import Depends
-from app.utils.auth_dependency import require_auth
+from app.utils.auth_dependency import get_current_user
 logger = get_logger(__name__)
 
 router = APIRouter()
 
 @router.get("/download-report-pdf")
 async def download_report_pdf(interview_id: str,
-                              current_user: dict = Depends(require_auth)):
+                              current_user: dict = Depends(get_current_user)):
     """
     Fetch the stored PDF from MongoDB and return it as a downloadable file.
     """
@@ -83,7 +83,7 @@ async def list_candidate_reports(
     candidate_email: Optional[str] = None,
     job_role: Optional[str] = None,
     interview_id: Optional[str] = None,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Fetch all candidate reports with pagination and filtering options.
@@ -154,7 +154,7 @@ async def job_posting_candidate_reports(
     candidate_email: Optional[str] = None,
     job_role: Optional[str] = None,
     interview_id: Optional[str] = None,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Fetch all candidate reports with pagination and filtering options.
@@ -198,7 +198,7 @@ async def job_posting_candidate_reports(
 @router.get("/candidate_report/{interview_id}")
 async def candidate_report(
     interview_id: str,
-    current_user: dict = Depends(require_auth)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Fetch all candidate reports with pagination and filtering options.

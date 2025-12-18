@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Body, File, UploadFile, Form
 from fastapi.params import Depends
 from ..services.email_service import EmailService
-from ..utils.auth_dependency import require_auth
+from ..utils.auth_dependency import get_current_user
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from typing import Optional
@@ -37,7 +37,7 @@ class TestEmailRequest(BaseModel):
 @router.post("/send-confirmation")
 async def send_confirmation_email(
     request: EmailConfirmationRequest,
-    session_data: dict = Depends(require_auth)
+    session_data: dict = Depends(get_current_user)
 ):
 
     """Send interview confirmation email"""
@@ -73,7 +73,7 @@ async def send_confirmation_email(
 @router.post("/send-reminder")
 async def send_reminder_email(
     request: EmailReminderRequest,
-    session_data: dict = Depends(require_auth)
+    session_data: dict = Depends(get_current_user)
 ):
     
     admin_id = session_data.get("admin_id")
@@ -110,7 +110,7 @@ async def send_reminder_email(
 @router.post("/test")
 async def test_email_configuration(
     request: TestEmailRequest,
-    session_data: dict = Depends(require_auth)
+    session_data: dict = Depends(get_current_user)
 ):
     """Test email configuration by sending a test email"""
     
@@ -154,7 +154,7 @@ async def send_custom_confirmation_email(
     interview_id: str = Form(...),
     custom_body: str = Form(...),
     attachments: List[UploadFile] = File(None),
-    session_data: dict = Depends(require_auth)
+    session_data: dict = Depends(get_current_user)
 ):
     """Send custom confirmation email with optional attachments"""
     

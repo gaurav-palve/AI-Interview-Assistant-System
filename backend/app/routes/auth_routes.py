@@ -3,15 +3,17 @@ from typing import Optional, Dict
 import logging
 from app.utils.otp_verification import verify_otp
 from app.utils.email_domain_validator import validate_domain
-from app.database import AUTH_COLLECTION, OTP_COLLECTION, get_database
+from app.database import USERS_COLLECTION, OTP_COLLECTION, get_database
 import random
 from datetime import datetime, timedelta
 from app.services.email_service import EmailService
-from ..schemas.auth_schema import (
-    AdminSignupRequest,
-    AdminSignupResponse,
-    AdminSigninRequest,
-    AdminSigninResponse,
+from app.RBAC.role_creation import create_role 
+
+from app.schemas.auth_schema import (
+    UserSignupRequest,
+    UserSignupResponse,
+    UserSigninRequest,
+    UserSigninResponse,
     RefreshRequest,
     RefreshResponse,
     LogoutRequest,
@@ -20,9 +22,9 @@ from ..schemas.auth_schema import (
     OTPVerifyRequest,
     CreateAccountRequest
 )
-from ..services.auth_service import (
+from app.services.auth_service import (
     REFRESH_TOKEN_COOKIE_SECURE,
-    create_admin_account,
+    create_super_admin_account,
     authenticate_admin,
     verify_token_from_query_or_header,
     refresh_auth_tokens,
@@ -37,75 +39,89 @@ router = APIRouter(tags=["Authentication"])
 
 # --- Admin Signup ---
 @router.post("/signup/send-otp", response_model=OTPResponse)
-async def admin_signup(payload: EmailRequest):
-    validate_domain(payload.email)
+async def admin_signup(request: EmailRequest):
+    validate_domain(request.email)
 
     db = get_database()
 
-    existing_admin = await db[AUTH_COLLECTION].find_one({"email": payload.email})
-    if existing_admin:
-        raise HTTPException(status_code=400, detail="Admin already exists")
+    existing_user = await db[USERS_COLLECTION].find_one({"email": request.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="user already exists")
 
     otp = random.randint(100000, 999999)
     expiry = datetime.utcnow() + timedelta(minutes=5)
 
     await db[OTP_COLLECTION].update_one(
-        {"email": payload.email},
+        {"email": request.email},
         {"$set": {"otp": otp, "expires_at": expiry}},
         upsert=True
     )
 
     emailobject = EmailService()
-    await emailobject.send_signup_verification_email(payload.email, otp)
+    await emailobject.send_signup_verification_email(request.email, otp)
 
     return {"message": "OTP sent to email"}
 
 @router.post("/verify-otp", response_model=OTPResponse)
-async def verify_signup_otp(payload: OTPVerifyRequest):
+async def verify_signup_otp(request: OTPVerifyRequest):
     db = get_database()
 
-    is_verified = await verify_otp(db, payload.email, payload.otp, OTP_COLLECTION)
+    is_verified = await verify_otp(db, request.email, request.otp, OTP_COLLECTION)
     if is_verified is False:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
     return {"message": "OTP verified successfully"}
 
-@router.post("/create-account", response_model=AdminSignupResponse)
-async def create_account(payload: CreateAccountRequest):
+@router.post("/create-account", response_model=UserSignupResponse)
+async def create_account(request: CreateAccountRequest):
     db = get_database()
 
     # This verifies if OTP was verified earlier
-    record = await db[OTP_COLLECTION].find_one({"email": payload.email})
+    record = await db[OTP_COLLECTION].find_one({"email": request.email})
     if not record:
         raise HTTPException(status_code=400, detail="Email not verified")
+    
 
-    admin_id = await create_admin_account(payload.email, payload.password)
+     ## create SUPER_ADMIN role if not exists
+    id = await create_role(
+        role_name="SUPER_ADMIN",
+        description="System owner with full access"
+    )
+
+    super_admin_id = await create_super_admin_account(
+        request.first_name,
+        request.middle_name,
+        request.last_name,
+        request.mobile_number,
+        request.email,
+        request.password,
+        role_id = id
+    )
 
     # Delete OTP record once done
-    await db[OTP_COLLECTION].delete_one({"email": payload.email})
+    await db[OTP_COLLECTION].delete_one({"email": request.email})
 
-    return {"message": "Admin account created", "admin_id": str(admin_id)}
-
+    return {"message": "Account created successfully.", "user_id": str(super_admin_id)}
 
 # --- Admin Signin ---
-@router.post("/signin", response_model=AdminSigninResponse, status_code=200)
-async def admin_signin(
-    payload: AdminSigninRequest,
+@router.post("/signin", response_model=UserSigninResponse, status_code=200)
+async def user_signin(
+    request: UserSigninRequest,
     response: Response
 ):
     try:
         # Log request for debugging
-        logger.info(f"Admin signin attempt for email: {payload.email}")
+        logger.info(f"User signin attempt for email: {request.email}")
         
         # Get device info from request body if available
-        device_info = payload.device_info if hasattr(payload, 'device_info') else None
+        device_info = request.device_info if hasattr(request, 'device_info') else None
         
         # Log raw request data for debugging
-        logger.info(f"Auth request: email={payload.email}, has_device_info={hasattr(payload, 'device_info')}")
+        logger.info(f"Auth request: email={request.email}, has_device_info={hasattr(request, 'device_info')}")
         
         token_response = await authenticate_admin(
-            email=payload.email,
-            password=payload.password,
+            email=request.email,
+            password=request.password,
             response=response,
             device_info=device_info
         )
@@ -113,7 +129,7 @@ async def admin_signin(
         if not token_response:
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
-        logger.info(f"Admin authenticated successfully: {payload.email}")
+        logger.info(f"User authenticated successfully: {request.email}")
         logger.info(f"Token response keys: {token_response.keys()}")
         
     except HTTPException as e:

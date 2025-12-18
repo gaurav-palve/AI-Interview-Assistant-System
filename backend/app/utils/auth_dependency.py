@@ -1,56 +1,86 @@
 """
-Authentication dependency utilities for FastAPI routes.
+Authentication & Authorization dependencies for FastAPI routes.
 
-This module provides convenience functions to easily add authentication
-using JWT tokens in Authorization headers.
+JWT → User → Role → Permissions → Allow / Deny
 """
 
 import logging
 from fastapi import Depends, Request, HTTPException
 from typing import Callable, Dict, Any, Optional
 from ..services.auth_service import verify_token_from_header
-
+from app.database import get_database, USERS_COLLECTION
+from bson import ObjectId
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------
+# AUTHENTICATION (JWT → USER)
+# ---------------------------------------------------------
 
 async def get_current_user(request: Request) -> Dict[str, Any]:
     """
-    Dependency to get current authenticated user from Authorization header.
-    
-    Extracts and validates JWT token from the request.
+    Extract JWT, validate it, and fetch the latest user from DB.
+    JWT must contain only user_id.
     """
     try:
-        current_user = await verify_token_from_header(request)
-        if not current_user:
+        payload = await verify_token_from_header(request)
+        if not payload or not payload.get("user_id"):
             raise HTTPException(status_code=401, detail="Invalid or expired token")
-        return current_user
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in get_current_user: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error during authentication")
+        
+        user_id = payload["user_id"]
+        db = get_database()
 
-def auth_required(admin_only: bool = False) -> Callable:
-    """
-    Creates a dependency that requires authentication and optionally checks for admin role.
-    
-    Args:
-        admin_only: If True, only users with admin role can access the endpoint
-        
-    Returns:
-        A dependency function that can be used with FastAPI Depends()
-    """
-    async def check_auth(request: Request) -> Dict[str, Any]:
-        user = await get_current_user(request)
-        
-        # If admin_only is True, check if user has admin role
-        if admin_only and user.get("role") != "admin":
-            logger.warning(f"Non-admin user {user.get('email')} attempted to access admin-only endpoint")
-            raise HTTPException(status_code=403, detail="Admin privileges required")
-            
+        user = await db.users.find_one({
+            "_id": ObjectId(user_id)
+        })
+
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+
         return user
-        
-    return check_auth
+    except HTTPException:
+         raise
+    except Exception as e:
+        logger.exception("Unexpected error in get_current_user")
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error during authentication"
+        )
+       
 
-# Create commonly used dependencies
-require_auth = auth_required(admin_only=False)
-require_admin = auth_required(admin_only=True)
+def require_permission(permission: str) -> Callable:
+    """
+    Dependency to check if the current user has the required permission.
+    SuperAdmin is identified via role.
+    """
+    async def check_permission(
+        current_user: Dict[str, Any] = Depends(get_current_user)
+    ) -> Dict[str, Any]:
+
+        role_id = current_user.get("role_id")
+        if not role_id:
+            raise HTTPException(status_code=403, detail="Role not assigned")
+
+        db = get_database()
+        role = await db.roles.find_one({"_id": ObjectId(role_id)})
+
+        if not role:
+            raise HTTPException(status_code=403, detail="Role not found")
+
+        permissions = role.get("permissions", [])
+
+        # SUPERADMIN → FULL ACCESS
+        if role.get("name") == "SUPERADMIN":
+            return current_user
+
+        # Normal permission check
+        if permission in permissions or "*" in permissions:
+            return current_user
+
+        logger.warning(
+            f"Access denied | user={current_user['_id']} | permission={permission}"
+        )
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return check_permission
+
+require_auth = get_current_user

@@ -17,7 +17,6 @@ from fastapi import HTTPException
 logger = get_logger(__name__)
 
 # Define collection names as constants
-AUTH_COLLECTION = "auth_collection"
 SCHEDULED_INTERVIEWS_COLLECTION = "scheduled_interviews"
 CANDIDATE_DOCUMENTS_COLLECTION = "candidate_documents"
 MCQS_COLLECTION = "mcqs"
@@ -29,6 +28,10 @@ CODING_QUESTIONS_COLLECTION = "coding_questions"
 OTP_COLLECTION = "otp_collection"
 CANDIDATES_REPORTS_COLLECTION = "candidates_reports"
 SCREENING_COLLECTION = "resume_screening"
+ROLES_COLLECTION = "roles"
+PERMISSIONS_COLLECTION = "permissions"
+ROLE_PERMISSIONS_COLLECTION = "role_permissions"
+USERS_COLLECTION = "users"
 
 client = None
 db = None
@@ -59,7 +62,7 @@ async def connect_to_mongo():
         
         # Ensure required collections exist
         required_collections = [
-            AUTH_COLLECTION,
+            USERS_COLLECTION,
             SCHEDULED_INTERVIEWS_COLLECTION,
             CANDIDATE_DOCUMENTS_COLLECTION,
             MCQS_COLLECTION,
@@ -591,7 +594,7 @@ async def update_admin_password(email: str, new_password: str):
     try:
         db = get_database()
         hashed_pw = hash_password(new_password)
-        result = await db[AUTH_COLLECTION].update_one(
+        result = await db[USERS_COLLECTION].update_one(
             {"email": email},
             {"$set": {"hashed_password": hashed_pw}}
         )
@@ -796,5 +799,51 @@ async def upsert_screening_results(data: dict, job_post_id: str= None):
         logger.error(f"Error upserting candidate results: {e}")
         raise RuntimeError("Failed to upsert candidate results")
     
+async def create_user_collection(
+    first_name: str,
+    last_name: str,
+    email: str,
+    phone: str,
+    password: str,
+    role_id: str,
+    middle_name: str = None
+):
+    """
+    Create a user in USERS_COLLECTION
+    """
+    try:
+        db = get_database()
+ 
+        # Check if email already exists
+        existing_user = await db[USERS_COLLECTION].find_one(
+            {"email": email.lower().strip()}
+        )
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+ 
+        user_data = {
+            "_id": str(uuid.uuid4()),
+            "first_name": first_name.strip(),
+            "middle_name": middle_name.strip() if middle_name else None,
+            "last_name": last_name.strip(),
+            "email": email.strip().lower(),
+            "phone": phone.strip(),
+            "password": hash_password(password),  # hashed
+            "role_id": role_id,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": None
+        }
+ 
+        await db[USERS_COLLECTION].insert_one(user_data)
+ 
+        logger.info(f"User created successfully: {email}")
+        return True
+ 
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating user {email}: {e}")
+        raise RuntimeError("Failed to create user")
+ 
 
     

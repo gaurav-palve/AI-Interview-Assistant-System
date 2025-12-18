@@ -1,10 +1,10 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
-from app.database import get_database, OTP_COLLECTION, AUTH_COLLECTION
+from app.database import get_database, OTP_COLLECTION, USERS_COLLECTION
 from app.database import update_admin_password
 from app.utils.validate_password_strength import validate_password_strength
-from app.utils.auth_dependency import require_auth
+from app.utils.auth_dependency import get_current_user
 from app.utils import otp_verification
 router = APIRouter()
 class ResetPasswordRequest(BaseModel):
@@ -15,7 +15,7 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/reset-password")
 async def reset_password(request: ResetPasswordRequest,
-                         current_user: dict = Depends(require_auth)):
+                         current_user: dict = Depends(get_current_user)):
     db = get_database()
     await otp_verification.verify_otp(db, request.email, request.otp, OTP_COLLECTION)
     

@@ -1,3 +1,4 @@
+import hashlib
 import os
 import secrets
 import logging
@@ -33,13 +34,18 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     """Generate a JWT access token"""
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire, "token_type": "access"})
+    to_encode.update({
+    "exp": expire,
+    "type": "access"
+})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
 
-async def create_refresh_token(admin_id: str, device_info: Optional[Dict] = None) -> Tuple[str, datetime]:
+async def create_refresh_token(
+        user_id: str, 
+        device_info: Optional[Dict] = None) -> Tuple[str, datetime]:
     """
     Generate a JWT refresh token and store jti in DB for rotation/revocation.
     Returns (token, expires_at)
@@ -47,9 +53,9 @@ async def create_refresh_token(admin_id: str, device_info: Optional[Dict] = None
 
     db = get_database()
 
-    # Make sure admin_id is a string
-    if isinstance(admin_id, ObjectId):
-        admin_id = str(admin_id)
+    # Make sure user_id is a string
+    if isinstance(user_id, ObjectId):
+        user_id = str(user_id)
 
     # Unique ID for refresh token
     jti = str(uuid.uuid4())
@@ -60,7 +66,7 @@ async def create_refresh_token(admin_id: str, device_info: Optional[Dict] = None
 
     # JWT payload
     payload = {
-        "sub": admin_id,
+        "sub": user_id,
         "jti": jti,
         "type": "refresh",
         "exp": expires_at
@@ -69,11 +75,14 @@ async def create_refresh_token(admin_id: str, device_info: Optional[Dict] = None
     # Create JWT token
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
+    # Hash the token before storing
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+
     # Store refresh token metadata in DB
     token_data = {
         "jti": jti,
-        "token": token,  # Store the actual token to match migration script's index
-        "admin_id": ObjectId(admin_id),
+        "token_hash": token_hash,
+        "user_id": user_id,
         "created_at": created_at,
         "expires_at": expires_at,
         "is_revoked": False,
@@ -96,36 +105,35 @@ async def verify_refresh_token(token: str) -> dict:
         # Decode the token to get payload
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         
-        # Extract token identifier and admin id
+        # Extract token identifier and user id
         jti = payload.get("jti")
-        admin_id = payload.get("sub")
+        user_id = payload.get("sub")
         token_type = payload.get("type")
 
         # Validate token structure
-        if not jti or not admin_id or token_type != "refresh":
-            logger.warning("Invalid refresh token structure")
+        if not jti or not user_id or token_type != "refresh":
             raise HTTPException(status_code=401, detail="Invalid refresh token")
+        
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
 
         # Check in database to verify token is valid
         db = get_database()
-        token_data = await db[REFRESH_TOKENS_COLLECTION].find_one({"jti": jti})
+        token_data = await db[REFRESH_TOKENS_COLLECTION].find_one({"jti": jti, "token_hash": token_hash})
 
         if not token_data:
-            logger.warning(f"Refresh token not found in database: {jti}")
             raise HTTPException(status_code=401, detail="Refresh token not found")
 
-        # if token_data["is_revoked"]:
-        #     logger.warning(f"Attempt to use revoked refresh token: {jti}")
-        #     raise HTTPException(status_code=401, detail="Refresh token revoked")
-
+        if token_data.get("is_revoked"):
+            raise HTTPException(status_code=401, detail="Refresh token revoked")
+       
         # Check expiration
         if datetime.utcnow() > token_data["expires_at"]:
-            logger.warning(f"Attempt to use expired refresh token: {jti}")
             raise HTTPException(status_code=401, detail="Refresh token expired")
 
         logger.info(f"Refresh token verified successfully: {jti}")
         return {
-            "admin_id": admin_id
+            "user_id": user_id,  # Return as admin_id to maintain consistency
+            "jti": jti
         }
     except jwt.ExpiredSignatureError:
         logger.warning("Refresh token JWT expired")
@@ -133,9 +141,7 @@ async def verify_refresh_token(token: str) -> dict:
     except jwt.JWTError as e:
         logger.warning(f"JWT error while verifying refresh token: {e}")
         raise HTTPException(status_code=401, detail="Invalid refresh token")
-    except Exception as e:
-        logger.error(f"Unexpected error verifying refresh token: {e}")
-        raise HTTPException(status_code=401, detail="Error verifying refresh token")
+
 
 async def revoke_refresh_token(token: str) -> bool:
     """
@@ -145,35 +151,44 @@ async def revoke_refresh_token(token: str) -> bool:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         jti = payload.get("jti")
-    except Exception:
+        token_type = payload.get("type")
+
+        if not jti or token_type != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+    except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    if not jti:
-        raise HTTPException(status_code=401, detail="Invalid refresh token structure")
-
+    
+     # Hash token to match DB entry
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
     db = get_database()
 
-    result = await db[REFRESH_TOKENS_COLLECTION].delete_one(
-        {"jti": jti}
+    result = await db[REFRESH_TOKENS_COLLECTION].update_one(
+        {"jti": jti,
+          "token_hash": token_hash,
+            "is_revoked": False},
+        {
+            "$set": {
+                "is_revoked": True,
+                "revoked_at": datetime.utcnow()}
+    }
     )
 
-    success = result.deleted_count > 0
+    if result.modified_count == 1:
+        logger.info(f"Refresh token revoked successfully (jti={jti})")
+        return True
 
-    if success:
-        logger.info(f"Refresh token revoked (jti={jti})")
-    else:
-        logger.warning(f"Refresh token not found or already revoked (jti={jti})")
-
-    return success
+    logger.warning(f"Refresh token not found or already revoked (jti={jti})")
+    return False
 
 async def rotate_refresh_token(token: str, device_info: Optional[Dict] = None) -> Tuple[str, datetime]:
-    admin_data = await verify_refresh_token(token)
+    token_data = await verify_refresh_token(token)
+    user_id = token_data["user_id"]
 
     await revoke_refresh_token(token)
 
     # Create new refresh token
     new_token, expires_at = await create_refresh_token(
-        admin_id=admin_data["admin_id"],
+        user_id=user_id,  # Pass as user_id because create_refresh_token expects user_id
         device_info=device_info
     )
 
@@ -209,18 +224,19 @@ def decode_jwt_token(token: str) -> dict:
             SECRET_KEY,
             algorithms=[ALGORITHM],
             options={
+                "require": ["exp", "sub", "type"],
                 "verify_signature": True,
                 "verify_exp": True
             }
         )
-        
-        # Verify token type to prevent token substitution attacks
-        token_type = payload.get("token_type")
-        if token_type != "access":
+
+        if payload.get("type") != "access":
             logger.warning("Invalid token type - expected access token")
             raise HTTPException(status_code=401, detail="Invalid token type")
-            
+        logger.info(f"JWT payload received: {payload}")     
+
         return payload
+       
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.JWTError:

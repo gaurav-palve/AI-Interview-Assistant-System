@@ -2,7 +2,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Dict, Optional
 
-class AdminSignupRequest(BaseModel):
+class UserSignupRequest(BaseModel):
     email: EmailStr
     password: str
     confirm_password: str
@@ -16,19 +16,23 @@ class OTPVerifyRequest(BaseModel):
     otp: int
 
 class CreateAccountRequest(BaseModel):
+    first_name: str
+    middle_name: Optional[str] = None
+    last_name: str
+    mobile_number: str
     email: EmailStr
     password: str
     confirm_password: str
 
-class AdminSignupResponse(BaseModel):
+class UserSignupResponse(BaseModel):
     message: str
-    admin_id: str
-class AdminSigninRequest(BaseModel):
+    user_id: str
+class UserSigninRequest(BaseModel):
     email: EmailStr
     password: str
     device_info: Optional[Dict] = None
 
-class AdminSigninResponse(BaseModel):
+class UserSigninResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     refresh_token: Optional[str] = None  # Optional to support both cookie and response body
