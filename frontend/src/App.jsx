@@ -37,6 +37,8 @@ import VoiceInterviewInstructions from './pages/VoiceInterviewInstructions';
 // Coding interview
 import CodingInstructions from './pages/CodingInstructions';
 import LeetCodeLayout from './components/LeetCodeLayout';
+import CreateRole from './pages/SuperAdmin/RoleManagement';
+import RoleManagement from './pages/SuperAdmin/RoleManagement';
 
 /**
  * Main App component
@@ -228,6 +230,14 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <TokenUsage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/create-role" element={ 
+            <ProtectedRoute>
+              <MainLayout>
+                <RoleManagement />
               </MainLayout>
             </ProtectedRoute>
           } />

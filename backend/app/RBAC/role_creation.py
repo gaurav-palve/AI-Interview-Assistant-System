@@ -6,7 +6,12 @@ logger = logging.getLogger(__name__)
 
 
 
-async def create_role(role_name: str, description: str, created_by: str= None, is_active: bool = True):
+async def create_role(
+    role_name: str,
+    description: str,
+    created_by: str= None,
+    is_active: bool = True
+):
     try:
         db = get_database()
         if created_by is None:
@@ -19,12 +24,14 @@ async def create_role(role_name: str, description: str, created_by: str= None, i
             return {"message": "Role already exists"}
 
         role_data = {
-            "name": role_name,
+            "role_name": role_name,
             "description": description,
             "is_active": is_active,
             "created_by": created_by,
             "created_at": datetime.now(timezone.utc)
         }
+        print(role_data)
+        print(30*"-")
 
         data= await db[ROLES_COLLECTION].insert_one(role_data)
         logger.info(f"Created role: {role_name}")

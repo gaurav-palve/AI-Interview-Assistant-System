@@ -69,7 +69,13 @@ async def connect_to_mongo():
             VOICE_INTERVIEW_SESSIONS_COLLECTION,
             EMAIL_TEMPLATES_COLLECTION,
             JOB_DESCRIPTIONS_COLLECTION,
-            JOB_POSTINGS_COLLECTION
+            JOB_POSTINGS_COLLECTION,
+            CODING_QUESTIONS_COLLECTION,
+            OTP_COLLECTION,
+            CANDIDATES_REPORTS_COLLECTION,
+            SCREENING_COLLECTION,
+            ROLES_COLLECTION,
+            PERMISSIONS_COLLECTION,
         ]
         for collection in required_collections:
             if collection not in collections:
