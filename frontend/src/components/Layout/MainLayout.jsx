@@ -40,6 +40,7 @@ export default function MainLayout({ children }) {
     { path: '/resume-screening', label: 'Resume Screening', icon: <AssessmentIcon /> },
     { path: '/job-description-generator', label: 'JD Generator', icon: <DescriptionIcon /> },
    { path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon /> },
+   { path: '/create-role', label: 'Create Role', icon: <AddIcon /> }
   ];
  
   useEffect(() => {

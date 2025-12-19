@@ -8,7 +8,6 @@ import logging
 from fastapi import Depends, Request, HTTPException
 from typing import Callable, Dict, Any, Optional
 
-from streamlit import user
 from ..services.auth_service import verify_token_from_header
 from app.database import get_database, USERS_COLLECTION
 from bson import ObjectId
