@@ -122,19 +122,19 @@ app.add_middleware(
 async def log_requests(request: Request, call_next):
     logger.info(f"{request.method} {request.url}")
 
-    try:
-        body = await request.body()
-        if body:
-            try:
-                body_json = json.loads(body.decode())
-                logger.debug(f"Request Body: {body_json}")
-            except Exception:
-                logger.debug(f"Request Body (raw): {body.decode(errors='ignore')}")
-    except Exception as e:
-        logger.error(f"Error reading request body: {e}")
+    body = await request.body()
 
+    async def receive():
+        return {"type": "http.request", "body": body}
+    request._receive = receive
+    if body:
+        try:
+            logger.debug(f"Request Body: {json.loads(body)}")
+        except Exception:
+            logger.debug(f"Request Body (raw): {body}")
     response = await call_next(request)
     logger.info(f"Response: {response.status_code}")
+
     return response
 
 

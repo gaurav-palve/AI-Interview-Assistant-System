@@ -116,8 +116,10 @@ def job_posting_dict(job_posting: JobPostingCreate) -> Dict[str, Any]:
     }
 
 @router.post("/create_job_posting")
-async def create_job_posting(job_posting: JobPostingCreate,
-                               current_user: dict = Depends(get_current_user)):
+async def create_job_posting(
+    job_posting: JobPostingCreate,
+    current_user: dict = Depends(get_current_user)
+):
     """
     Create a new job posting
     """
@@ -128,7 +130,7 @@ async def create_job_posting(job_posting: JobPostingCreate,
         # job_doc = job_posting_dict(job_posting)
         job_doc = job_posting_dict(job_posting)
 
-        job_doc["created_by"] = current_user["admin_id"]
+        job_doc["created_by"] = str(current_user["_id"])
 
         # Insert into database
         result = await db[JOB_POSTINGS_COLLECTION].insert_one(job_doc)
@@ -216,17 +218,32 @@ async def get_job_postings(
         for job in job_postings:
             result.append({
                 "id": str(job["_id"]),
-                **{k: v for k, v in job.items() if k != "_id"},
+                "job_title": job.get("job_title"),
+                "company": job.get("company"),
+                "job_type": job.get("job_type"),
+                "work_location": job.get("work_location"),
+                "location": job.get("location"),
+                "experience_level": job.get("experience_level"),
+                "department": job.get("department"),
+                "required_skills": job.get("required_skills", []),
+                "requirements": job.get("requirements", []),
+                "responsibilities": job.get("responsibilities", []),
+                "qualifications": job.get("qualifications"),
+                "company_description": job.get("company_description"),
+                "job_description": job.get("job_description"),
+                "status": job.get("status"),
+                "created_by": str(job.get("created_by")) if job.get("created_by") else None,
                 "created_at": job.get("created_at", datetime.now(timezone.utc)).isoformat(),
-                "updated_at": job.get("updated_at", datetime.now(timezone.utc)).isoformat()
+                "updated_at": job.get("updated_at", datetime.now(timezone.utc)).isoformat(),
+                "applicants_count": job.get("applicants_count", 0),
+                "views_count": job.get("views_count", 0)
             })
-        
-        return {
-            "job_postings": result,
-            "total": total_count,
-            "limit": limit,
-            "skip": skip
-        }
+            return {
+                "job_postings": result,
+                "total": total_count,
+                "limit": limit,
+                "skip": skip
+            }
     except Exception as e:
         logger.error(f"Error listing job postings: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -242,19 +259,35 @@ async def get_job_posting(job_id: str, current_user: dict = Depends(get_current_
         # Fetch job posting
         job = await db[JOB_POSTINGS_COLLECTION].find_one({"_id": ObjectId(job_id)})
         
-        if not job:
-            raise HTTPException(status_code=404, detail="Job posting not found")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid job ID")
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job posting not found")
         
         # Convert ObjectId to string and datetime to ISO format
-        return {
-            "id": str(job["_id"]),
-            **{k: v for k, v in job.items() if k != "_id"},
-            "created_at": job.get("created_at", datetime.now(timezone.utc)).isoformat(),
-            "updated_at": job.get("updated_at", datetime.now(timezone.utc)).isoformat()
-        }
-    except Exception as e:
-        logger.error(f"Error getting job posting: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+    "id": str(job["_id"]),
+    "job_title": job.get("job_title"),
+    "company": job.get("company"),
+    "job_type": job.get("job_type"),
+    "work_location": job.get("work_location"),
+    "location": job.get("location"),
+    "experience_level": job.get("experience_level"),
+    "department": job.get("department"),
+    "required_skills": job.get("required_skills", []),
+    "requirements": job.get("requirements", []),
+    "responsibilities": job.get("responsibilities", []),
+    "qualifications": job.get("qualifications"),
+    "company_description": job.get("company_description"),
+    "job_description": job.get("job_description"),
+    "status": job.get("status"),
+    "created_by": str(job.get("created_by")) if job.get("created_by") else None,
+    "created_at": job.get("created_at", datetime.now(timezone.utc)).isoformat(),
+    "updated_at": job.get("updated_at", datetime.now(timezone.utc)).isoformat(),
+    "applicants_count": job.get("applicants_count", 0),
+    "views_count": job.get("views_count", 0)
+}
 
 @router.put("/update_job_posting/{job_id}")
 async def update_job_posting(

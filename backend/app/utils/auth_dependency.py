@@ -7,6 +7,8 @@ JWT → User → Role → Permissions → Allow / Deny
 import logging
 from fastapi import Depends, Request, HTTPException
 from typing import Callable, Dict, Any, Optional
+
+from streamlit import user
 from ..services.auth_service import verify_token_from_header
 from app.database import get_database, USERS_COLLECTION
 from bson import ObjectId
@@ -32,7 +34,8 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
         user = await db.users.find_one({
             "_id": ObjectId(user_id)
         })
-
+        user.pop("hashed_password", None)
+        user.pop("mobile_number", None)
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
 
@@ -83,4 +86,3 @@ def require_permission(permission: str) -> Callable:
 
     return check_permission
 
-require_auth = get_current_user

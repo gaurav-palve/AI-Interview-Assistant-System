@@ -48,27 +48,44 @@ function JobPostingsList() {
   }, [activeTab, searchQuery, filters, sortOption]);
 
   const fetchJobPostings = async () => {
-    try {
-      setLoading(true);
-      
-      // Prepare filter parameters
-      const filterParams = {
-        ...filters,
-        status: activeTab !== 'all' ? activeTab : undefined,
-        search: searchQuery || undefined,
-        sort: sortOption
-      };
-      
-      const response = await jobPostingService.getJobPostings(filterParams);
-      setJobPostings(response.job_postings || []);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching job postings:', err);
+  try {
+    setLoading(true);
+    setError(null);
+
+    const filterParams = {
+      ...filters,
+      status: activeTab !== 'all' ? activeTab : undefined,
+      search: searchQuery || undefined,
+      sort: sortOption
+    };
+
+    const response = await jobPostingService.getJobPostings(filterParams);
+
+    // ✅ ALWAYS treat missing / empty as success
+    const jobs = Array.isArray(response?.job_postings)
+      ? response.job_postings
+      : [];
+
+    setJobPostings(jobs);
+
+  } catch (err) {
+    console.error('Error fetching job postings:', err);
+
+    // ✅ Only show error for REAL failures
+    if (
+      err?.response?.status === 401 ||
+      err?.response?.status >= 500
+    ) {
       setError('Failed to load job postings. Please try again later.');
-    } finally {
-      setLoading(false);
+    } else {
+      // 404 / empty / filtered-out = NO ERROR
+      setJobPostings([]);
+      setError(null);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Handle status change
   const handleStatusChange = async (jobId, newStatus) => {
