@@ -630,3 +630,64 @@ Neutrino Tech Systems
             logger.error(f"Failed to send email to {user_email}: {e}")
             raise RuntimeError(f"Failed to send email {user_email}: {e}")
         
+    async def send_user_credentials_email(
+            self,
+            user_email: str,
+            user_name: str,
+            temp_password: str
+        ) -> bool:
+            """Send user credentials email to new user"""
+            try:
+                if not self.smtp_username or not self.smtp_password:
+                    logger.warning("SMTP credentials not configured. Skipping email send.")
+                    return False
+
+                # Create message
+                msg = EmailMessage()
+                msg['From'] = self.from_email
+                msg['To'] = user_email
+                msg['Subject'] = "Your Account Has Been Created"
+                
+                # Email body
+                body = f"""
+                Hello {user_name},
+
+                Your account has been created by the Super Administrator.
+
+                Here are your login credentials:
+                Email: {user_email}
+                Password: {temp_password}
+
+                Please change your password after your first login.
+
+                Best regards,
+                Interview System Team
+                """
+                msg.set_content(body)
+                # Connect to SMTP server and send email
+                server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
+                server.set_debuglevel(2)  
+                logger.info("SMTP connection established")
+                try:
+                    server.ehlo()
+                    logger.info("Starting TLS...")
+                    server.starttls()
+                    server.ehlo()
+
+                    logger.info(f"Logging in as {self.smtp_username}")
+                    server.login(self.smtp_username, self.smtp_password)
+                    logger.info("SMTP login successful")
+                    server.send_message(msg)
+                    logger.info(f"Email successfully sent")
+                except smtplib.SMTPException as e:
+                    logger.error(f"SMTP error while sending email")
+                    raise
+                finally:
+                    server.quit()
+                    logger.info("SMTP connection closed")
+
+                return True
+            except Exception as e:
+                logger.error(f"Failed to send email to {user_email}: {e}")
+                raise RuntimeError(f"Failed to send email {user_email}: {e}")
+            
