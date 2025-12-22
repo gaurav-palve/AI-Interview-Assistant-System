@@ -18,7 +18,12 @@ import {
   GradingOutlined as GradingIcon,
   WorkOutlined as WorkIcon,
   ChevronLeftOutlined as ChevronLeftIcon,
-  ChevronRightOutlined as ChevronRightIcon
+  ChevronRightOutlined as ChevronRightIcon,
+  AdminPanelSettingsOutlined as RolesIcon,
+  SettingsOutlined,
+  PersonAddOutlined,
+  PeopleOutlined,
+  AdminPanelSettingsOutlined
 } from '@mui/icons-material';
  
 export default function MainLayout({ children }) {
@@ -31,16 +36,19 @@ export default function MainLayout({ children }) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true); // Desktop sidebar toggle state
   const [greeting, setGreeting] = useState('Hello');
   const [notificationCount, setNotificationCount] = useState(3);
+
+  const [settingsOpen, setSettingsOpen] = useState(
+  location.pathname.startsWith("/users") ||
+  location.pathname.startsWith("/roles")
+  );
+
  
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-     { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon /> },
+    { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon /> },
     { path: '/interviews', label: 'Interviews', icon: <AssignmentIcon /> },
     { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
-    { path: '/resume-screening', label: 'Resume Screening', icon: <AssessmentIcon /> },
-    { path: '/job-description-generator', label: 'JD Generator', icon: <DescriptionIcon /> },
-   { path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon /> },
-   { path: '/create-role', label: 'Create Role', icon: <AddIcon /> }
+    { path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon /> }
   ];
  
   useEffect(() => {
@@ -56,6 +64,18 @@ export default function MainLayout({ children }) {
  
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (
+      location.pathname.startsWith("/users") ||
+      location.pathname.startsWith("/roles")
+    ) {
+      setSettingsOpen(true);
+    } else {
+      setSettingsOpen(false);
+    }
+  }, [location.pathname]);
+
  
   const handleLogout = async () => {
     try {
@@ -154,6 +174,90 @@ export default function MainLayout({ children }) {
       </div>
     </Link>
   ))}
+  {/* SETTINGS */}
+  <div>
+    <button
+      onClick={() => setSettingsOpen(!settingsOpen)}
+      className="flex items-center text-white/90 hover:text-white transition-all duration-200 w-full"
+    >
+      <div
+        className={`h-11 w-full flex ${
+          isSidebarVisible ? 'justify-start pl-3' : 'justify-center'
+        } items-center rounded-lg transition-all duration-300 ${
+          settingsOpen
+            ? 'bg-white/15 shadow-lg border-l-2 border-primary-400'
+            : 'hover:bg-white/10 hover:shadow-md'
+        }`}
+      >
+        <span className="h-6 w-6 flex items-center justify-center">
+          <SettingsOutlined />
+        </span>
+
+        <span
+          className={`ml-3 whitespace-nowrap transition-all duration-300 ${
+            isSidebarVisible
+              ? 'opacity-100 max-w-[200px]'
+              : 'opacity-0 max-w-0 overflow-hidden'
+          }`}
+        >
+          Settings
+        </span>
+      </div>
+    </button>
+
+    {/* SETTINGS SUB MENU */}
+    {settingsOpen && isSidebarVisible && (
+      <div className="ml-6 mt-1 space-y-1">
+        {/* Create User */}
+        <Link to="/users/create">
+          <div
+            className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
+            text-white/80 hover:text-white
+            ${
+              location.pathname === '/users/create'
+                ? 'bg-white/15 shadow-lg border-l-2 border-primary-400 font-semibold'
+                : 'hover:bg-white/10 hover:shadow-md'
+            }`}
+          >
+            <PersonAddOutlined fontSize="small" className="mr-2" />
+            Create User
+          </div>
+        </Link>
+
+        {/* Role Management */}
+        <Link to="/create-role">
+          <div
+            className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
+            text-white/80 hover:text-white
+            ${
+              location.pathname === '/roles'
+                ? 'bg-white/15 shadow-lg border-l-2 border-primary-400 font-semibold'
+                : 'hover:bg-white/10 hover:shadow-md'
+            }`}
+          >
+            <AdminPanelSettingsOutlined fontSize="small" className="mr-2" />
+            Role Management
+          </div>
+        </Link>
+
+        {/* All Users */}
+        <Link to="/users">
+          <div
+            className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
+            text-white/80 hover:text-white
+            ${
+              location.pathname === '/users'
+                ? 'bg-white/15 shadow-lg border-l-2 border-primary-400 font-semibold'
+                : 'hover:bg-white/10 hover:shadow-md'
+            }`}
+          >
+            <PeopleOutlined fontSize="small" className="mr-2" />
+            All Users
+          </div>
+        </Link>
+      </div>
+    )}
+  </div>
 </nav>
  
           {/* User Info */}

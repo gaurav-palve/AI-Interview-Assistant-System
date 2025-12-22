@@ -14,6 +14,7 @@ from app.utils.password_handler import hash_password
 from app.utils.validate_password_strength import validate_password_strength
 from app.utils.coding_question_analyser import get_llm_coding_score
 from fastapi import HTTPException
+
 logger = get_logger(__name__)
 
 # Define collection names as constants
@@ -32,6 +33,14 @@ ROLES_COLLECTION = "roles"
 PERMISSIONS_COLLECTION = "permissions"
 ROLE_PERMISSIONS_COLLECTION = "role_permissions"
 USERS_COLLECTION = "users"
+
+USERS_COLLECTION = "users"
+# ROLES_COLLECTION = "roles"
+# PERMISSIONS_COLLECTION = "permissions"
+# ROLE_PERMISSIONS_COLLECTION = "role_permissions"
+
+
+
 
 client = None
 db = None
@@ -82,6 +91,19 @@ async def connect_to_mongo():
                 logger.warning(f"Collection {collection} does not exist. Creating it now.")
                 await db.create_collection(collection)
                 logger.info(f"Created collection: {collection}")
+        
+
+        await db[USERS_COLLECTION].create_index(
+            [("email", 1)],
+            unique=True
+        )
+
+        await db[USERS_COLLECTION].create_index(
+            [("phone", 1)],
+            unique=True
+        )
+
+
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
         logger.error("Please ensure MongoDB is running and accessible")
@@ -122,6 +144,29 @@ async def verify_database_connection():
         logger.error(f"Database verification failed: {e}")
         return False
 
+
+async def delete_user(user_id: str):
+    """
+    Delete a user from USERS_COLLECTION
+    """
+    try:
+        db = get_database()
+
+        result = await db[USERS_COLLECTION].delete_one(
+            {"_id": ObjectId(user_id)}
+        )
+
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        logger.info(f"User deleted successfully: {user_id}")
+        return True
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {e}")
+        raise RuntimeError("Failed to delete user")
 
 
 async def save_candidate_data(candidate_email, jd_file, resume_file):

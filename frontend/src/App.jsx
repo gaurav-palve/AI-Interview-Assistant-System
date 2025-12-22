@@ -40,6 +40,12 @@ import LeetCodeLayout from './components/LeetCodeLayout';
 import CreateRole from './pages/SuperAdmin/RoleManagement';
 import RoleManagement from './pages/SuperAdmin/RoleManagement';
 
+// User Management
+// import UsersList from './pages/Users/UsersList';
+import CreateUser from './pages/CreateUser';
+import UsersList from './pages/UserList';
+
+
 /**
  * Main App component
  * Routing and authentication setup
@@ -258,6 +264,51 @@ function App() {
           
           {/* Redirect any unknown routes to 404 */}
           <Route path="*" element={<Navigate to="/404" replace />} />
+
+      {/* <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UsersList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      /> */}
+
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UsersList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users/create"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateUser />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users/:userId/edit"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateUser />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
         </Routes>
     //     </Router>
     //   </CameraProvider>

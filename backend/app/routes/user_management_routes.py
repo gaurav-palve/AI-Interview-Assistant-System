@@ -1,0 +1,207 @@
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime, timezone
+
+from app.services.user_management_service import UserService
+from app.utils.logger import get_logger
+from app.utils.auth_dependency import get_current_user
+from bson import ObjectId
+
+logger = get_logger(__name__)
+
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
+
+class UserCreate(BaseModel):
+    first_name: str
+    middle_name: Optional[str] = None
+    last_name: str
+    email: EmailStr
+    phone: str
+    password: str
+    role_id: str
+    employee_id: str
+    department: str
+    location: str
+    reporting_manager: str
+    # is_active: Optional[bool] = True
+
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    middle_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    password: Optional[str] = None
+    role_id: Optional[str] = None
+
+@router.post("/create")
+async def create_user(
+    payload: UserCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Create a new user
+    """
+    try:
+        user_service = UserService()
+
+        user_email =  current_user.get("email")
+        user_id = await user_service.create_user(
+            first_name=payload.first_name,
+            middle_name=payload.middle_name,
+            last_name=payload.last_name,
+            email=payload.email,
+            phone=payload.phone,
+            password=payload.password,
+            role_id=payload.role_id,
+            employee_id = payload.employee_id,
+            department=payload.department,
+            location=payload.location,
+            reporting_manager=payload.reporting_manager,
+            created_by=user_email,
+        )
+
+        return {
+            "message": "User created successfully",
+            "user_id": user_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating user: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create user")
+
+
+@router.put("/{user_id}")
+async def update_user(
+    user_id: str,
+    payload: UserUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update user details
+    """
+    try:
+        user_service = UserService()
+
+        user_email =  current_user.get("email")
+
+        updated = await user_service.update_user(
+            user_id=user_id,
+            first_name=payload.first_name,
+            middle_name=payload.middle_name,
+            last_name=payload.last_name,
+            phone=payload.phone,
+            password=payload.password,
+            role_id=payload.role_id,
+            employee_id=payload.employee_id,
+            department=payload.department,
+            location=payload.location,
+            reporting_manager=payload.reporting_manager,
+            is_active=payload.is_active,
+            updated_by=user_email
+        )
+
+        return {
+            "success": True,
+            "message": "User updated successfully" if updated else "No changes applied",
+            "updated": updated
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating user {user_id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update user"
+        )
+
+
+
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Delete a user
+    """
+    try:
+        user_service = UserService()
+        await user_service.delete_user(user_id)
+
+        return {
+            "message": "User deleted successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete user")
+    
+
+@router.get("")
+async def get_all_users(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Fetch all users
+    """
+    try:
+        user_service = UserService()
+        db = user_service.db
+
+        users = []
+        cursor = db["users"].find(
+            {},
+            {
+                "password": 0  # never expose password
+            }
+        )
+
+        async for user in cursor:
+            user["_id"] = str(user["_id"])  # ObjectId → string
+            users.append(user)
+
+        return users
+
+    except Exception as e:
+        logger.error(f"Error fetching users: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch users")
+    
+
+@router.get("/{user_id}")
+async def get_user_by_id(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Fetch single user by ID
+    """
+    try:
+        user_service = UserService()
+        db = user_service.db
+
+        user = await db["users"].find_one(
+            {"_id": ObjectId(user_id)},
+            {"password": 0}
+        )
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user["_id"] = str(user["_id"])
+        return user
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user")
