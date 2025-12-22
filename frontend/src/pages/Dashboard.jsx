@@ -130,9 +130,7 @@ function Dashboard() {
   {/* Welcome Header */}
   <div className="p-8 text-white">
     <div>
-      <h1 className="text-4xl font-bold mb-2 animate-sparkle">
-        {greeting}, {user?.name || 'User'}! 👋
-      </h1>
+      
       <p className="text-black/90 text-lg opacity-90">
         Welcome back to your interview management dashboard
       </p>
