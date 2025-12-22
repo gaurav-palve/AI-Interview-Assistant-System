@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 
-ALLOWED_DOMAIN = "@neutrinotechlabs.com"
+ALLOWED_DOMAIN = "kunal.patil@neutrinotechlabs.com"
 
 def validate_domain(email: str):
     if not email.lower().endswith(f"{ALLOWED_DOMAIN}"):
