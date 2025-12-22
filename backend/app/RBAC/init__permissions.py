@@ -14,35 +14,41 @@ SYSTEM_PERMISSIONS = [
     {"code": "JOB_DELETE", "module": "Job", "description": "Delete job postings"},
     {"code": "JOB_VIEW", "module": "Job", "description": "View job postings"},
     {"code": "JOB_VIEW_ALL", "module": "Job", "description": "View all job postings"},
-    {"code": "JOB_VIEW_ASSIGNED", "module": "Job", "description": "View only assigned job postings"},
+    {"code": "JOB_POSTING_STATUS_UPDATE", "module": "Job", "description": "Update job posting status"},
+    {"code": "JOB_DESCRIPTION_GENERATION", "module": "Job", "description": "Generate job description"},
+    {"code": "JOB_POSTING_STATISTICS", "module": "Job", "description": "Show job posting statistics"},
     
     # Resume module
     {"code": "RESUME_UPLOAD", "module": "Resume", "description": "Upload candidate resumes"},
-    {"code": "RESUME_VIEW", "module": "Resume", "description": "View candidate resumes"},
-    {"code": "RESUME_SCREEN", "module": "Resume", "description": "Screen and evaluate resumes"},
-    {"code": "DUPLICATE_VIEW", "module": "Resume", "description": "View duplicate resumes"},
+    {"code": "RESUME_SCREENING", "module": "Resume", "description": "Screen and evaluate resumes"},
+    {"code": "RESUME_SCREENING_RESULTS", "module": "Resume", "description": "View resume screening results"},
     
     # Interview module
-    {"code": "INTERVIEW_SCHEDULE", "module": "Interview", "description": "Schedule interviews"},
-    {"code": "INTERVIEW_EVALUATE", "module": "Interview", "description": "Evaluate interview results"},
-    {"code": "INTERVIEW_VIEW", "module": "Interview", "description": "View interview details"},
-    {"code": "INTERVIEW_VIEW_ALL", "module": "Interview", "description": "View all interviews"},
-    
-    # Admin module
+    {"code": "CREATE_INTERVIEW", "module": "Interview", "description": "Create interviews"},
+    {"code": "GET_INTERVIEW", "module": "Interview", "description": "Get interview details"},
+    {"code": "LIST_INTERVIEWS", "module": "Interview", "description": "List interviews"},
+    {"code": "UPDATE_INTERVIEW", "module": "Interview", "description": "Update interview details"},
+    {"code": "DELETE_INTERVIEW", "module": "Interview", "description": "Delete interviews"},
+    {"code": "BULK_INTERVIEW_SCHEDULE", "module": "Interview", "description": "Schedule bulk interviews"},
+    {"code": "GET_INTERVIEWS_BY_JOB_POSTING", "module": "Interview", "description": "View interview details by job posting"},
+    {"code": "GET_INTERVIEW_STATISTICS", "module": "Interview", "description": "Get interview statistics for the current user"},
+
+    #Super Admin module
     {"code": "USER_CREATE", "module": "Admin", "description": "Create new users"},
     {"code": "USER_EDIT", "module": "Admin", "description": "Edit existing users"},
     {"code": "USER_DELETE", "module": "Admin", "description": "Delete users"},
-    {"code": "USER_VIEW", "module": "Admin", "description": "View users"},
-    {"code": "ROLE_MANAGE", "module": "Admin", "description": "Manage roles and permissions"},
-    {"code": "USER_CREATE_VENDOR", "module": "Admin", "description": "Create vendor users"},
-    
-    # Assessment module
-    {"code": "ASSESSMENT_VIEW", "module": "Assessment", "description": "View assessment results"},
-    {"code": "ASSESSMENT_CREATE", "module": "Assessment", "description": "Create assessments"},
+    {"code": "VIEW_ALL_USERS", "module": "Admin", "description": "View allusers"},
+    {"code": "USER_VIEW", "module": "Admin", "description": "View single user by ID"},
+    {"code": "CREATE_ROLE", "module": "Admin", "description": "Create roles and permissions"},
+    {"code": "VIEW_ROLES", "module": "Admin", "description": "View roles and permissions"},
+   
     
     # Report module
     {"code": "REPORT_GENERATE", "module": "Report", "description": "Generate reports"},
     {"code": "REPORT_VIEW", "module": "Report", "description": "View reports"},
+    {"code": "REPORT_DOWNLOAD", "module": "Report", "description": "Download reports"},
+    {"code": "LIST_CANDIDATE_REPORTS", "module": "Report", "description": "List candidate reports"},
+    {"code": "JOB_POSTING_CANDIDATES_REPORT", "module": "Report", "description": "View candidate report by job posting"},
 ]
 
 async def init_permissions():

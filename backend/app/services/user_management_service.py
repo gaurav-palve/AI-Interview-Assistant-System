@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from ..database import get_database, USERS_COLLECTION
 from ..utils.logger import get_logger
 from ..utils.password_handler import hash_password
-
+from app.services.email_service import EmailService
 logger = get_logger(__name__)
 
 
@@ -70,6 +70,10 @@ class UserService:
                 raise RuntimeError("User creation failed")
 
             logger.info(f"User created successfully: {user_id}")
+
+            await EmailService().send_user_credentials_email(user_email=email,
+                                            user_name=f"{first_name} {last_name}",
+                                            temp_password=password)
             return user_id
 
         except HTTPException:
@@ -78,6 +82,8 @@ class UserService:
             logger.error(f"Error creating user {email}: {e}")
             logger.exception("Full exception details:")
             raise RuntimeError("Failed to create user")
+        
+    
 
     async def update_user(
         self,
