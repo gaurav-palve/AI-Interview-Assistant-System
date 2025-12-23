@@ -107,7 +107,7 @@ function Login() {
               {/* SPACER TO PUSH TO CENTER */}
               <div className="flex-grow" />
 
-              {/* Interview.AI SECTION CENTERED VERTICALLY */}
+              {/* HIREGENIX SECTION CENTERED VERTICALLY */}
               <div className="pb-20">
                 <h1 className="
                   text-5xl font-extrabold 
@@ -115,7 +115,7 @@ function Login() {
                   bg-clip-text text-transparent 
                   drop-shadow-xl
                 ">
-                  Interview.AI
+                  HireGenix
                 </h1>
 
                 <p className="mt-5 text-indigo-100 text-sm leading-relaxed max-w-xs">
@@ -142,9 +142,13 @@ function Login() {
         <div className="flex items-center justify-center p-10 bg-white animate-rightFade overflow-visible">
           <div className="w-full max-w-xs">
 
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-1 bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
               Welcome Back 👋
             </h2>
+
+            <p className="text-sm text-gray-500 mb-6">
+              Login to access your HireGenix dashboard
+            </p>
 
             {/* API ERROR */}
             {error && (
@@ -227,7 +231,7 @@ function Login() {
                 </label>
 
                 <Link to="/forgot-password" className="text-violet-600 hover:underline">
-                  Forgot Password?
+                  Forgot?
                 </Link>
               </div>
 
