@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 from ..utils.logger import get_logger
 from ..database import get_database, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_DOCUMENTS_COLLECTION, save_candidate_data
-from ..utils.auth_dependency import  get_current_user
+from ..utils.auth_dependency import  get_current_user,require_permission
 from ..services.email_service import EmailService
 from fastapi import Depends
 
@@ -38,15 +38,14 @@ class BulkInterviewScheduleRequest(BaseModel):
 @router.post("/bulk-schedule")
 async def schedule_interviews_bulk(
     request: BulkInterviewScheduleRequest = Body(...),
-    current_user: dict = Depends(get_current_user)
-
+    current_user: dict = Depends(require_permission("INTERVIEW_SCHEDULE"))
 ):
     """
     Schedule interviews for multiple candidates at once
     """
     
     try:
-        admin_id = current_user["admin_id"]
+        user_id = current_user["_id"]
         
         # Verify database connection before insert
         from ..database import verify_database_connection
@@ -244,7 +243,7 @@ async def schedule_interviews_bulk(
                     "status": "scheduled",
                     "resume_uploaded": True,  # Set to true since we've uploaded the resume
                     "jd_uploaded": True,      # Set to true since we've uploaded the JD
-                    "created_by": str(admin_id),   # Always store as string representation of admin_id
+                    "created_by": str(user_id),   # Always store as string representation of user_id
                     "created_at": datetime.now(timezone.utc),  # Use timezone-aware datetime
                     "updated_at": datetime.now(timezone.utc),  # Use timezone-aware datetime
                     "job_posting_id": request.job_posting_id,  # Keep this field for reference
@@ -257,8 +256,8 @@ async def schedule_interviews_bulk(
                         "bulk_scheduled": True,  # Mark this as a bulk-scheduled interview
                         "scheduling_method": "resume_screening",  # Indicate how this interview was scheduled
                         "resume_size_bytes": len(resume_content) if resume_content else 0,  # Store the size of the resume
-                        "admin_id_type": "ObjectId",  # Always an ObjectId now
-                        "scheduled_by": str(admin_id),  # Store the admin ID as a string for reference                                             
+                        "user_id_type": "ObjectId",  # Always an ObjectId now
+                        "scheduled_by": str(user_id),  # Store the admin ID as a string for reference                                             
                             }
                 }
             except Exception as e:
@@ -277,7 +276,7 @@ async def schedule_interviews_bulk(
             
             # Insert into database
             logger.info(f"Inserting interview into {SCHEDULED_INTERVIEWS_COLLECTION} collection")
-            logger.info(f"Original admin ID type: {type(admin_id)}, value: {admin_id}")
+            logger.info(f"Original admin ID type: {type(user_id)}, value: {user_id}")
             logger.info(f"Created_by field (after str conversion): {interview_data['created_by']}")
             logger.info(f"Full interview data: {interview_data}")
             result = await db[SCHEDULED_INTERVIEWS_COLLECTION].insert_one(interview_data)
@@ -344,9 +343,10 @@ async def schedule_interviews_bulk(
 
 
 @router.get("/get-interviews-by-job-posting/{job_posting_id}")
-async def get_interviews_by_job_posting(job_posting_id: str,
-                                        current_user: dict = Depends(get_current_user)
-                                        ):
+async def get_interviews_by_job_posting(
+    job_posting_id: str,
+    current_user: dict = Depends(require_permission("INTERVIEW_VIEW"))
+):
     """
     Get all interviews for a specific job posting
     """
@@ -365,7 +365,7 @@ async def get_interviews_by_job_posting(job_posting_id: str,
             
         db = get_database()
         interviews = await db[SCHEDULED_INTERVIEWS_COLLECTION].find(
-            {"job_posting_id": job_posting_id, "created_by": str(current_user["admin_id"])}
+            {"job_posting_id": job_posting_id, "created_by": str(current_user["_id"])}
         ).to_list(length=100)
         
         # Convert ObjectId to string for each interview and ensure id field is set

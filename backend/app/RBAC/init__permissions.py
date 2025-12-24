@@ -24,17 +24,14 @@ SYSTEM_PERMISSIONS = [
     
     # Interview module
     {"code": "INTERVIEW_SCHEDULE", "module": "Interview", "description": "Schedule interviews"},
-    {"code": "INTERVIEW_EVALUATE", "module": "Interview", "description": "Evaluate interview results"},
+    {"code": "INTERVIEW_MANAGE", "module": "Interview", "description": "Manage Interviews"},
     {"code": "INTERVIEW_VIEW", "module": "Interview", "description": "View interview details"},
-    {"code": "INTERVIEW_VIEW_ALL", "module": "Interview", "description": "View all interviews"},
     
     # Admin module
-    {"code": "USER_CREATE", "module": "Admin", "description": "Create new users"},
-    {"code": "USER_EDIT", "module": "Admin", "description": "Edit existing users"},
-    {"code": "USER_DELETE", "module": "Admin", "description": "Delete users"},
-    {"code": "USER_VIEW", "module": "Admin", "description": "View users"},
     {"code": "ROLE_MANAGE", "module": "Admin", "description": "Manage roles and permissions"},
-    {"code": "USER_CREATE_VENDOR", "module": "Admin", "description": "Create vendor users"},
+    {"code": "ROLE_VIEW", "module": "Admin", "description": "View roles and permissions"},
+    {"code": "USER_MANAGE", "module": "Admin", "description": "Create users"},
+    {"code": "USER_VIEW", "module": "Admin", "description": "View users"},
     
     # Assessment module
     {"code": "ASSESSMENT_VIEW", "module": "Assessment", "description": "View assessment results"},
@@ -65,56 +62,9 @@ async def init_permissions():
     
     logger.info("Permission initialization complete.")
 
-async def create_super_admin_role():
-    """
-    Create the SUPER_ADMIN role if it doesn't exist.
-    Returns the role ObjectId.
-    """
-  
-    db = get_database()
-    from app.database import ROLES_COLLECTION
-    # Check if SUPER_ADMIN role already exists
-    super_admin_role = await db[ROLES_COLLECTION].find_one({"name": "SUPER_ADMIN"})
-    
-    if super_admin_role:
-        logger.info("SUPER_ADMIN role already exists")
-        return super_admin_role["_id"]
-    
-    # Create SUPER_ADMIN role
-    role_data = {
-        "_id": ObjectId(),
-        "name": "SUPER_ADMIN",
-        "description": "System owner with full access",
-        "is_system": True,
-        "created_at": datetime.now(timezone.utc)
-    }
-    
-    await db[ROLES_COLLECTION].insert_one(role_data)
-    logger.info("Created SUPER_ADMIN role")
-    
-    # Assign all permissions to SUPER_ADMIN
-    from app.database import ROLE_PERMISSIONS_COLLECTION
-    
-    # Get all permissions
-    permissions = []
-    async for perm in db[PERMISSIONS_COLLECTION].find():
-        permissions.append(perm["code"])
-    
-    # Assign all permissions to SUPER_ADMIN
-    for perm_code in permissions:
-        await db[ROLE_PERMISSIONS_COLLECTION].insert_one({
-            "_id": ObjectId(),
-            "role_id": role_data["_id"],
-            "permission_code": perm_code,
-            "created_at": datetime.now(timezone.utc)
-        })
-    
-    logger.info(f"Assigned {len(permissions)} permissions to SUPER_ADMIN role")
-    
-    return role_data["_id"]
+
 
 async def init_rbac():
     """Initialize RBAC system with permissions and SUPER_ADMIN role."""
     await init_permissions()
-    #super_admin_role_id = await create_super_admin_role()
     return 

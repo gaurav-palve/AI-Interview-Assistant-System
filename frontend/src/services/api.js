@@ -372,14 +372,20 @@ api.interceptors.response.use(
         });
       }
     }
-    // For 403 errors or any other auth errors that aren't handled by refresh
-    else if (error.response && (error.response.status === 403 ||
-             (error.response.status === 401 && originalRequest._retry))) {
+    // For 401 errors that couldn't be fixed with token refresh
+    else if (error.response && error.response.status === 401 && originalRequest._retry) {
       console.log('Authentication error - redirecting to login');
       // Clear the token and redirect to login
       localStorage.removeItem('access_token');
       localStorage.removeItem('user_email');
       window.location.href = '/login';
+    }
+    // For 403 errors (permission denied), don't redirect, just pass the error
+    else if (error.response && error.response.status === 403) {
+      console.log('Permission denied error - user lacks required permissions');
+      // Add a specific flag to identify permission errors
+      error.isPermissionError = true;
+      error.permissionMessage = error.response.data.detail || 'You do not have permission to perform this action';
     }
     
     // Enhance error object with more details

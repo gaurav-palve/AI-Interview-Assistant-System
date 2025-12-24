@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from app.utils.auth_dependency import get_current_user
+from app.utils.auth_dependency import get_current_user, require_permission
 from fastapi.params import Depends
 from app.RBAC.role_creation import create_role, update_role
 from pydantic import BaseModel
@@ -38,7 +38,7 @@ class GetPermissionsResponse(BaseModel):
 @router.post("/create-role", response_model=dict)
 async def create_role_endpoint(
     request: CreateRoleRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("ROLE_MANAGE"))
 ):
     try:
         result = await create_role(
@@ -62,7 +62,7 @@ async def create_role_endpoint(
 
 @router.get("/get-roles", response_model=dict)
 async def get_roles_endpoint(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("ROLE_VIEW"))
 ):
     try:
         db = get_database()
@@ -93,7 +93,7 @@ async def get_roles_endpoint(
 @router.get("/get-role/{role_id}", response_model=dict)
 async def get_role_endpoint(
     role_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("ROLE_VIEW"))
 ):
     """
     Get a single role by ID.
@@ -143,7 +143,7 @@ async def get_role_endpoint(
 async def edit_role_endpoint(
     role_id: str,
     request: UpdateRoleRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("ROLE_MANAGE"))
 ):
     """
     Update an existing role with new values.
@@ -205,7 +205,7 @@ async def edit_role_endpoint(
 
 @router.get("/get_permissions",response_model=GetPermissionsResponse,status_code=status.HTTP_200_OK)
 async def get_permissions(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("ROLE_MANAGE"))
 ):
     try:
         db = get_database()

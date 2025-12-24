@@ -130,7 +130,13 @@ function CreateJobPosting() {
       navigate('/job-postings');
     } catch (err) {
       console.error('Error saving job posting:', err);
-      setError('Failed to save job posting. Please try again.');
+      
+      // Check if this is a permission error
+      if (err.isPermissionError) {
+        setError(err.detail || 'You do not have permission to create job postings.');
+      } else {
+        setError(err.detail || 'Failed to save job posting. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

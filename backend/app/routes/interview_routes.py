@@ -4,7 +4,7 @@ from ..schemas.interview_schema import (
 )
 from ..services.interview_service import InterviewService
 from typing import Optional
-from ..utils.auth_dependency import get_current_user
+from ..utils.auth_dependency import get_current_user, require_permission
 from fastapi import Request
 from ..utils.logger import get_logger
 
@@ -13,12 +13,11 @@ router = APIRouter(tags=["Interviews"])
 
 # The require_auth function is now imported from auth_dependency.py
 
-@router.post("/create-interview", response_model=dict,
-             )
+@router.post("/create-interview", response_model=dict)
 async def create_interview(
     request: Request,
     interview_data: InterviewCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("INTERVIEW_SCHEDULE"))
 ):
     """Create a new interview"""
     logger.info(f"Request to create interview for candidate: {interview_data.candidate_email}")
@@ -69,7 +68,7 @@ async def create_interview(
 async def get_interview(
     interview_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("INTERVIEW_VIEW"))
 ):
     """Get interview by ID"""
     try:
@@ -95,7 +94,7 @@ async def list_interviews(
     request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Page size"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("INTERVIEW_VIEW"))
 ):
     """List interviews created by the current user"""
     try:
@@ -129,7 +128,7 @@ async def list_interviews(
 async def update_interview(
     interview_id: str,
     update_data: InterviewUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("INTERVIEW_MANAGE"))
 ):
     """Update an existing interview"""
     try:
@@ -159,7 +158,7 @@ async def update_interview(
 @router.delete("/delete-interview/{interview_id}", response_model=dict)
 async def delete_interview(
     interview_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("INTERVIEW_MANAGE"))
 ):
     """Delete an interview"""
     try:
@@ -187,7 +186,7 @@ async def delete_interview(
 
 @router.get("/stats/summary", response_model=dict)
 async def get_interview_statistics(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("INTERVIEW_VIEW"))
 ):
     """Get interview statistics for the current user"""
     try:

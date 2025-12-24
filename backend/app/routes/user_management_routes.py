@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from app.services.user_management_service import UserService
 from app.utils.logger import get_logger
-from app.utils.auth_dependency import get_current_user
+from app.utils.auth_dependency import get_current_user, require_permission
 from bson import ObjectId
 
 logger = get_logger(__name__)
@@ -41,7 +41,7 @@ class UserUpdate(BaseModel):
 @router.post("/create")
 async def create_user(
     payload: UserCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("USER_MANAGE"))
 ):
     """
     Create a new user
@@ -81,7 +81,7 @@ async def create_user(
 async def update_user(
     user_id: str,
     payload: UserUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("USER_MANAGE"))
 ):
     """
     Update user details
@@ -127,7 +127,7 @@ async def update_user(
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("USER_MANAGE"))
 ):
     """
     Delete a user
@@ -149,7 +149,7 @@ async def delete_user(
 
 @router.get("")
 async def get_all_users(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("USER_VIEW"))
 ):
     """
     Fetch all users
@@ -157,10 +157,10 @@ async def get_all_users(
     try:
         user_service = UserService()
         db = user_service.db
-
+        created_by = current_user.get("email")
         users = []
         cursor = db["users"].find(
-            {},
+            {"created_by": created_by},
             {
                 "password": 0  # never expose password
             }
@@ -180,7 +180,7 @@ async def get_all_users(
 @router.get("/{user_id}")
 async def get_user_by_id(
     user_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("USER_VIEW"))
 ):
     """
     Fetch single user by ID

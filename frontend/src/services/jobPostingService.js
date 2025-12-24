@@ -14,6 +14,14 @@ const jobPostingService = {
       const response = await api.post('/job-postings/create_job_posting', jobPostingData);
       return response.data;
     } catch (error) {
+      // Check if this is a permission error
+      if (error.isPermissionError) {
+        // Handle permission errors specifically
+        throw {
+          isPermissionError: true,
+          detail: error.permissionMessage || 'You do not have permission to create job postings'
+        };
+      }
       throw error.response?.data || { detail: 'An error occurred while creating job posting' };
     }
   },
@@ -29,6 +37,13 @@ const jobPostingService = {
       const response = await api.put(`/job-postings/update_job_posting/${id}`, jobPostingData);
       return response.data;
     } catch (error) {
+      // Check if this is a permission error
+      if (error.isPermissionError) {
+        throw {
+          isPermissionError: true,
+          detail: error.permissionMessage || 'You do not have permission to update job postings'
+        };
+      }
       throw error.response?.data || { detail: 'An error occurred while updating job posting' };
     }
   },
@@ -46,6 +61,13 @@ const jobPostingService = {
       });
       return response.data;
     } catch (error) {
+      // Check if this is a permission error
+      if (error.isPermissionError) {
+        throw {
+          isPermissionError: true,
+          detail: error.permissionMessage || 'You do not have permission to update job descriptions'
+        };
+      }
       throw error.response?.data || { detail: 'An error occurred while updating job description' };
     }
   },
@@ -88,6 +110,13 @@ const jobPostingService = {
       const response = await api.delete(`/job-postings/delete_job_posting/${id}`);
       return response.data;
     } catch (error) {
+      // Check if this is a permission error
+      if (error.isPermissionError) {
+        throw {
+          isPermissionError: true,
+          detail: error.permissionMessage || 'You do not have permission to delete job postings'
+        };
+      }
       throw error.response?.data || { detail: 'An error occurred while deleting job posting' };
     }
   },

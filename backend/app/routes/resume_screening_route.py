@@ -4,7 +4,7 @@ import shutil
 import asyncio
 from app.services.resume_screening_service import process_resume_screening
 from app.database import upsert_screening_results,get_database, SCREENING_COLLECTION
-from app.utils.auth_dependency import get_current_user
+from app.utils.auth_dependency import get_current_user, require_permission
 from fastapi.params import Depends
 
 
@@ -15,7 +15,7 @@ async def resume_screening_endpoint(
     resume_file: UploadFile = File(...),
     jd_file: UploadFile = File(...),
     job_post_id: str = Form(None),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("RESUME_SCREEN"))
 ):
     # -------------------------------
     # 1. Save resume (ZIP or PDF)
@@ -56,7 +56,7 @@ async def resume_screening_endpoint(
 
 
 @router.get("/get-resume-screening/results")
-async def get_resume_screening_results(job_posting_id: str,current_user: dict = Depends(get_current_user)):
+async def get_resume_screening_results(job_posting_id: str, current_user: dict = Depends(require_permission("RESUME_SCREEN"))):
     """
     Fetch all saved resume screening results (up to 1000 records).
     """

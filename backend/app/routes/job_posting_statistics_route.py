@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi import Depends
 from openai import BaseModel
 from typing import Dict, Any
-from app.utils.auth_dependency import get_current_user
+from app.utils.auth_dependency import get_current_user, require_permission
 from app.services.interview_service import InterviewService
 from app.services.job_posting_summary_statistics_service import get_interview_statistics
 from app.utils.logger import get_logger
@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("/stats/job-posting/{job_posting_id}")
 async def get_job_posting_interview_statistics(
     job_posting_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_permission("JOB_VIEW"))
 ):
     try:
         user_id = current_user["_id"]
