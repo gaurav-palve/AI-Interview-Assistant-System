@@ -19,7 +19,7 @@ async def create_role(
             created_by = "system"
 
         # Check if role already exists
-        existing_role = await db[ROLES_COLLECTION].find_one({"name": role_name})
+        existing_role = await db[ROLES_COLLECTION].find_one({"role_name": role_name})
         if existing_role:
             logger.info(f"Role {role_name} already exists")
             return {"message": "Role already exists"}

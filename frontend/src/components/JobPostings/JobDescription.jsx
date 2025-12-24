@@ -81,7 +81,7 @@ function JobDescription({ formData, handleChange }) {
       setShowAISuccess(true);
     } catch (err) {
       console.error('Error generating job description:', err);
-      setError('Failed to generate job description. Please try again.');
+      setError('Access Denied.');
     } finally {
       setLoading(false);
     }

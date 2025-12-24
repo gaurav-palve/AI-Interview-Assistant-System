@@ -3,7 +3,7 @@ from ..schemas.interview_schema import (
     InterviewCreate, InterviewUpdate, InterviewResponse, InterviewListResponse
 )
 from ..services.interview_service import InterviewService
-from ..utils.auth_dependency import get_current_user
+from ..utils.auth_dependency import get_current_user, require_permission
 from ..services.resume_upload_service import save_files
 from typing import Optional
 from ..utils.logger import get_logger
@@ -16,7 +16,7 @@ async def upload_resume(
     jd: UploadFile = File(...),
     resume: UploadFile = File(...),
     candidate_email: str = Form(...),
-    session_data: dict = Depends(get_current_user)   # <-- JWT auth
+    session_data: dict = Depends(require_permission("RESUME_UPLOAD"))   # <-- JWT auth with permission
 ):
     """
     Upload JD and resume files for a candidate (requires JWT via Authorization header)

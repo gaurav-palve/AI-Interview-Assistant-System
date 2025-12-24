@@ -71,7 +71,7 @@ def require_permission(permission: str) -> Callable:
         permissions = role.get("permissions", [])
 
         # SUPERADMIN → FULL ACCESS
-        if role.get("name") == "SUPERADMIN":
+        if role.get("role_name") == "SUPER_ADMIN":
             return current_user
 
         # Normal permission check
