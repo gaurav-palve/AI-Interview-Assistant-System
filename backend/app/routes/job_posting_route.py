@@ -238,12 +238,13 @@ async def get_job_postings(
                 "applicants_count": job.get("applicants_count", 0),
                 "views_count": job.get("views_count", 0)
             })
-            return {
-                "job_postings": result,
-                "total": total_count,
-                "limit": limit,
-                "skip": skip
-            }
+        
+        return {
+            "job_postings": result,
+            "total": total_count,
+            "limit": limit,
+            "skip": skip
+        }
     except Exception as e:
         logger.error(f"Error listing job postings: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
