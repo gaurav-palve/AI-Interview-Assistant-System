@@ -16,6 +16,8 @@ from app.utils.logger import get_logger
 from PIL import Image
 import io
 from app.utils import pdf_text_extraction_using_llm
+from app.database import get_database
+from bson import ObjectId
 
 logger = get_logger(__name__)
 
@@ -200,7 +202,7 @@ def get_llm_score(jd_text, resume_text):
 # ---------------------------------
 # Main Service Function
 # ---------------------------------
-async def process_resume_screening(resume_input_path, jd_path):
+async def process_resume_screening(resume_input_path, jd_path, job_post_id=None):
     logger.info(f"Starting resume screening process with file: {resume_input_path}, jd: {jd_path}")
 
     # -----------------------------
@@ -214,7 +216,20 @@ async def process_resume_screening(resume_input_path, jd_path):
         resume_files = [resume_input_path]
     logger.info(f"Total resumes to process: {len(resume_files)}")
 
-    # -----------------------------
+    count_applications = len(resume_files)
+
+    db = get_database()
+    if job_post_id:
+         result = await db["job_postings"].update_one(
+        {"_id": ObjectId(job_post_id)},
+        
+        {
+            "$inc": {"number_of_applications": count_applications}
+        }
+    )
+
+    if result.matched_count == 0:
+        raise ValueError("Job post not found")
     # 2. Extract text
     # -----------------------------
     resume_texts = [extract_text_from_pdf(f) for f in resume_files]
