@@ -82,9 +82,13 @@ def require_permission(permission: str) -> Callable:
             return current_user
 
         # Normal permission check
-        if permission in permissions or "*" in permissions:
-            return current_user
+        permission_docs = await db["role_permissions"].find({"role_id":role["_id"]}).to_list(length=None)
+        permissions = [doc["permission_code"] for doc in permission_docs]
 
+        
+        # Check if user has required permission
+        if permission in permissions:
+            return current_user
         logger.warning(
             f"Access denied | user={current_user['_id']} | permission={permission}"
         )
