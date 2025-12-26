@@ -49,7 +49,7 @@ async def resume_screening_endpoint(
     shutil.copyfileobj(jd_file.file, temp_jd)
     temp_jd.close()
 
-    results = await process_resume_screening(temp_resume.name, temp_jd.name)
+    results = await process_resume_screening(temp_resume.name, temp_jd.name, job_post_id)
     await upsert_screening_results(results,job_post_id)
     return {"detail": "Screening results stored"}
 

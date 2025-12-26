@@ -15,6 +15,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 from dotenv import load_dotenv
 from app.utils.logger import get_logger
+from PIL import Image
+import io
+from app.utils import pdf_text_extraction_using_llm
+from app.database import get_database
+from bson import ObjectId
 
 logger = get_logger(__name__)
 
@@ -613,187 +618,155 @@ Scoring guidelines:
 # ---------------------------------
 # Main Service Function
 # ---------------------------------
-async def process_resume_screening(zip_path, jd_path):
-    """
-    Main function to process resume screening with improved error handling
-    
-    Args:
-        zip_path: Path to zip file containing resumes
-        jd_path: Path to job description PDF
-    
-    Returns:
-        Dictionary with results matching original format
-    """
+async def process_resume_screening(
+    resume_input_path: str,
+    jd_path: str,
+    job_post_id: Optional[str] = None
+):
     logger.info("=" * 80)
     logger.info("STARTING RESUME SCREENING PROCESS")
-    logger.info(f"ZIP Path: {zip_path}")
+    logger.info(f"Resume Input: {resume_input_path}")
     logger.info(f"JD Path: {jd_path}")
     logger.info("=" * 80)
-    
+
+    db = get_database()
+
     try:
-        # Extract resumes from zip
-        resume_files = extract_resumes_from_zip(zip_path)
+        # --------------------------------------------------
+        # 1. Detect resume input type
+        # --------------------------------------------------
+        if resume_input_path.lower().endswith(".zip"):
+            logger.info("Detected ZIP file, extracting resumes...")
+            resume_files = extract_resumes_from_zip(resume_input_path)
+        else:
+            logger.info("Detected single resume PDF")
+            resume_files = [resume_input_path]
+
         if not resume_files:
-            logger.error("No PDF files found in the zip archive")
-            return {"results": [], "error": "No PDF files found in zip"}
-        
-        logger.info(f"Total resume files extracted: {len(resume_files)}")
-        
-        # Extract text from resumes
-        logger.info("Extracting text from all resume PDFs...")
+            return {"results": [], "error": "No resumes found"}
+
+        logger.info(f"Total resumes found: {len(resume_files)}")
+
+        # --------------------------------------------------
+        # 2. Update job post application count
+        # --------------------------------------------------
+        if job_post_id:
+            result = await db.job_postings.update_one(
+                {"_id": ObjectId(job_post_id)},
+                {"$inc": {"number_of_applications": len(resume_files)}}
+            )
+            if result.matched_count == 0:
+                raise ValueError("Job post not found")
+
+        # --------------------------------------------------
+        # 3. Extract resume text
+        # --------------------------------------------------
         resume_texts = []
         valid_files = []
-        
+
         for file in resume_files:
             text = extract_text_from_pdf(file)
-            if text and len(text.strip()) > 100:  # Minimum 100 chars for valid resume
+
+            if not text or len(text.strip()) < 100:
+                logger.warning(f"Fallback to LLM extraction: {file}")
+                text = await pdf_text_extraction_using_llm.extract_data(file)
+
+            if text and len(text.strip()) >= 100:
                 resume_texts.append(text)
                 valid_files.append(file)
             else:
-                logger.warning(f"Skipping resume with insufficient text: {os.path.basename(file)}")
-        
+                logger.warning(f"Skipping invalid resume: {file}")
+
         resume_files = valid_files
-        
+
         if not resume_texts:
-            logger.error("No valid resume text extracted")
-            return {"results": [], "error": "No valid text extracted from resumes"}
-        
-        logger.info(f"Successfully extracted text from {len(resume_texts)} resumes")
-        
-        # Extract JD text
-        logger.info("Extracting text from JD PDF...")
+            return {"results": [], "error": "No valid resume text extracted"}
+
+        # --------------------------------------------------
+        # 4. Extract JD text
+        # --------------------------------------------------
         jd_text = extract_text_from_pdf(jd_path)
         if not jd_text or len(jd_text.strip()) < 100:
-            logger.error("Failed to extract sufficient text from JD file")
-            return {"results": [], "error": "Invalid job description"}
-        
-        logger.info(f"JD text extracted: {len(jd_text)} characters")
-        
-        # Extract experience from all resumes in parallel
-        logger.info("=" * 80)
-        logger.info("PHASE 1: EXTRACTING EXPERIENCE FROM ALL RESUMES")
-        logger.info("=" * 80)
-        
+            return {"results": [], "error": "Invalid JD file"}
+
+        # --------------------------------------------------
+        # 5. Extract experience (parallel)
+        # --------------------------------------------------
         loop = asyncio.get_running_loop()
         candidate_years = await asyncio.gather(*[
-            loop.run_in_executor(executor, openai_extract_experience_from_resume, text)
+            loop.run_in_executor(
+                executor,
+                openai_extract_experience_from_resume,
+                text
+            )
             for text in resume_texts
         ])
-        
-        logger.info("Experience extraction completed for all resumes")
-        for file, years in zip(resume_files, candidate_years):
-            logger.info(f"  - {os.path.basename(file)}: {years} years")
-        
-        # Extract experience requirements from JD
-        logger.info("=" * 80)
-        logger.info("PHASE 2: ANALYZING JOB DESCRIPTION")
-        logger.info("=" * 80)
-        
+
         min_exp, max_exp = openai_extract_experience_from_jd(jd_text)
-        logger.info(f"JD Experience Requirements: {min_exp} - {max_exp if max_exp else 'No Max'} years")
-        
-        # Filter resumes by experience
-        logger.info("=" * 80)
-        logger.info("PHASE 3: FILTERING RESUMES BY EXPERIENCE")
-        logger.info("=" * 80)
-        
-        filtered_resumes = []
+        logger.info(f"JD Experience Requirement: {min_exp} - {max_exp}")
+
+        # --------------------------------------------------
+        # 6. Filter by experience
+        # --------------------------------------------------
         filtered_files = []
+        filtered_texts = []
         filtered_years = []
-        
+
         for file, text, years in zip(resume_files, resume_texts, candidate_years):
-            passes = passes_experience_filter(years, min_exp, max_exp)
-            status = "✓ PASS" if passes else "✗ FAIL"
-            logger.info(f"{status} - {os.path.basename(file)}: {years} years")
-            
-            if passes:
-                filtered_resumes.append(text)
+            if passes_experience_filter(years, min_exp, max_exp):
                 filtered_files.append(file)
+                filtered_texts.append(text)
                 filtered_years.append(years)
-        
-        logger.info(f"Experience Filter Results: {len(filtered_resumes)}/{len(resume_texts)} candidates passed")
-        
-        if not filtered_resumes:
-            logger.warning("No resumes passed the experience filter")
-            return {"results": [], "message": "No candidates matched experience requirements"}
-        
-        # Semantic search on filtered resumes
-        logger.info("=" * 80)
-        logger.info("PHASE 4: SEMANTIC SEARCH AND RANKING")
-        logger.info("=" * 80)
-        
-        resume_scores = semantic_search(jd_text, filtered_files, filtered_resumes, top_k=5)
-        
-        # Validate scores
-        if not resume_scores or all(score == 0.0 for score in resume_scores.values()):
-            logger.warning("All semantic scores are zero, using equal weighting")
-            resume_scores = {file: 0.5 for file in filtered_files}
-        
-        # Apply semantic weights
-        logger.info("Applying semantic weights to scores...")
-        weighted_scores = {}
-        for file, score in resume_scores.items():
-            text = filtered_resumes[filtered_files.index(file)]
-            weight = semantic_weight(text)
-            weighted_score = score * weight
-            weighted_scores[file] = weighted_score
-            logger.debug(f"{os.path.basename(file)}: score={score:.4f}, weight={weight:.4f}, final={weighted_score:.4f}")
-        
-        # Shortlist top N
-        shortlisted_files = sorted(weighted_scores.items(), key=lambda x: x[1], reverse=True)[:TOP_N]
-        logger.info(f"Shortlisted top {len(shortlisted_files)} candidates for detailed scoring")
-        
-        for rank, (file, score) in enumerate(shortlisted_files, 1):
-            logger.info(f"  {rank}. {os.path.basename(file)}: score={score:.4f}")
-        
-        # Get detailed LLM scores
-        logger.info("=" * 80)
-        logger.info("PHASE 5: DETAILED LLM SCORING")
-        logger.info("=" * 80)
-        
+
+        if not filtered_files:
+            return {"results": [], "message": "No candidates matched experience criteria"}
+
+        # --------------------------------------------------
+        # 7. Semantic ranking
+        # --------------------------------------------------
+        resume_scores = semantic_search(
+            jd_text,
+            filtered_files,
+            filtered_texts,
+            top_k=TOP_N
+        )
+
+        if not resume_scores:
+            resume_scores = {f: 0.5 for f in filtered_files}
+
+        # --------------------------------------------------
+        # 8. LLM detailed scoring
+        # --------------------------------------------------
         llm_results = await asyncio.gather(*[
-            loop.run_in_executor(executor, get_llm_score, jd_text, filtered_resumes[filtered_files.index(file)])
-            for file, _ in shortlisted_files
+            loop.run_in_executor(
+                executor,
+                get_llm_score,
+                jd_text,
+                filtered_texts[filtered_files.index(file)]
+            )
+            for file in resume_scores.keys()
         ])
-        
-        # Compile results
-        logger.info("=" * 80)
-        logger.info("PHASE 6: COMPILING FINAL RESULTS")
-        logger.info("=" * 80)
-        
+
+        # --------------------------------------------------
+        # 9. Compile results
+        # --------------------------------------------------
         results = []
-        for (file, _), llm_result in zip(shortlisted_files, llm_results):
-            file_index = filtered_files.index(file)
-            experience_years = filtered_years[file_index]
-            
-            result = {
+        for file, llm_result in zip(resume_scores.keys(), llm_results):
+            idx = filtered_files.index(file)
+            results.append({
                 "resume": os.path.basename(file),
                 "candidate_email": llm_result.get("email"),
-                "experience_years": experience_years,
+                "experience_years": filtered_years[idx],
                 "ATS_Score": llm_result.get("score", 0),
                 "Strengths": llm_result.get("strengths", []),
                 "Weaknesses": llm_result.get("weaknesses", []),
-            }
-            results.append(result)
-            
-            logger.info(f"Candidate: {result['resume']}")
-            logger.info(f"  Email: {result['candidate_email']}")
-            logger.info(f"  Experience: {experience_years} years")
-            logger.info(f"  ATS Score: {result['ATS_Score']}")
-        
-        # Sort by ATS score
-        results = sorted(results, key=lambda x: x["ATS_Score"] or 0, reverse=True)
-        
-        logger.info("=" * 80)
+            })
+
+        results.sort(key=lambda x: x["ATS_Score"], reverse=True)
+
         logger.info("RESUME SCREENING COMPLETED SUCCESSFULLY")
-        logger.info(f"Total Processed: {len(resume_files)}")
-        logger.info(f"Passed Filter: {len(filtered_resumes)}")
-        logger.info(f"Final Results: {len(results)}")
-        logger.info("=" * 80)
-        
         return {"results": results}
-    
+
     except Exception as e:
-        logger.error(f"Critical error in resume screening process: {str(e)}")
-        logger.exception("Full traceback:")
+        logger.exception("Critical error in resume screening")
         return {"results": [], "error": str(e)}

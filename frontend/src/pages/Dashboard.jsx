@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import interviewService from '../services/interviewService';
 import { useAuth } from '../contexts/AuthContext';
+import JobStatisticsTable from '../components/JobStatisticsTable/JobStatisticsTable';
 
 // Material UI Icons
 import {
@@ -317,6 +318,9 @@ function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Job Statistics Table */}
+      <JobStatisticsTable />
 
       {/* Recent Interviews */}
       <div className="relative overflow-hidden card shadow-2xl border-t-4 border-violet-500 animate-fadeIn hover:shadow-3xl transition-all duration-500 bg-gradient-to-br from-white to-gray-50" style={{ animationDelay: '0.9s' }}>
