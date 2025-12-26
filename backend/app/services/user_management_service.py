@@ -50,7 +50,7 @@ class UserService:
                 "last_name": last_name.strip(),
                 "email": email.strip().lower(),
                 "phone": phone.strip(),
-                "password": hash_password(password),
+                "hashed_password": hash_password(password),
                 "role_id": role_id,
                 "employee_id": employee_id,
                 "department": department.strip(),

@@ -15,7 +15,7 @@ async def resume_screening_endpoint(
     resume_file: UploadFile = File(...),
     jd_file: UploadFile = File(...),
     job_post_id: str = Form(None),
-    current_user: dict = Depends(require_permission("RESUME_SCREEN"))
+    current_user: dict = Depends(require_permission("RESUME_SCREENING"))
 ):
     # -------------------------------
     # 1. Save resume (ZIP or PDF)
@@ -56,7 +56,7 @@ async def resume_screening_endpoint(
 
 
 @router.get("/get-resume-screening/results")
-async def get_resume_screening_results(job_posting_id: str, current_user: dict = Depends(require_permission("RESUME_SCREEN"))):
+async def get_resume_screening_results(job_posting_id: str, current_user: dict = Depends(require_permission("RESUME_SCREENING_RESULTS"))):
     """
     Fetch all saved resume screening results (up to 1000 records).
     """
