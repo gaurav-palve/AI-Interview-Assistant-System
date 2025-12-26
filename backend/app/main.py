@@ -52,7 +52,7 @@ from app.routes import (
     job_posting_statistics_route,
     role_management_route,
     user_management_routes,
-    users_permission_route
+    users_permission_route,
     jobwise_statistics_route,
 )
 

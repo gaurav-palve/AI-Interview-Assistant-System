@@ -14,13 +14,14 @@ SYSTEM_PERMISSIONS = [
     {"code": "JOB_DELETE", "module": "Job", "description": "Delete job postings"},
     {"code": "JOB_VIEW", "module": "Job", "description": "View job postings"},
     {"code": "JOB_VIEW_ALL", "module": "Job", "description": "View all job postings"},
-    {"code": "JOB_VIEW_ASSIGNED", "module": "Job", "description": "View only assigned job postings"},
+    {"code": "JOB_POSTING_STATUS_UPDATE", "module": "Job", "description": "Update job posting status"},
+    {"code": "JOB_DESCRIPTION_GENERATION", "module": "Job", "description": "Generate job description"},
+    {"code": "JOB_POSTING_STATISTICS", "module": "Job", "description": "Show job posting statistics"},
     
     # Resume module
     {"code": "RESUME_UPLOAD", "module": "Resume", "description": "Upload candidate resumes"},
-    {"code": "RESUME_VIEW", "module": "Resume", "description": "View candidate resumes"},
-    {"code": "RESUME_SCREEN", "module": "Resume", "description": "Screen and evaluate resumes"},
-    {"code": "DUPLICATE_VIEW", "module": "Resume", "description": "View duplicate resumes"},
+    {"code": "RESUME_SCREENING", "module": "Resume", "description": "Screen and evaluate resumes"},
+    {"code": "RESUME_SCREENING_RESULTS", "module": "Resume", "description": "View resume screening results"},
     
     # Interview module
     {"code": "INTERVIEW_SCHEDULE", "module": "Interview", "description": "Schedule interviews"},
@@ -40,6 +41,9 @@ SYSTEM_PERMISSIONS = [
     # Report module
     {"code": "REPORT_GENERATE", "module": "Report", "description": "Generate reports"},
     {"code": "REPORT_VIEW", "module": "Report", "description": "View reports"},
+    {"code": "REPORT_DOWNLOAD", "module": "Report", "description": "Download reports"},
+    {"code": "LIST_CANDIDATE_REPORTS", "module": "Report", "description": "List candidate reports"},
+    {"code": "JOB_POSTING_CANDIDATES_REPORT", "module": "Report", "description": "View candidate report by job posting"},
 ]
 
 async def init_permissions():

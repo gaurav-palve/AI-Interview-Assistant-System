@@ -20,6 +20,7 @@ import io
 from app.utils import pdf_text_extraction_using_llm
 from app.database import get_database
 from bson import ObjectId
+from typing import Optional, Dict, Any, List
 
 logger = get_logger(__name__)
 
