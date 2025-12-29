@@ -16,7 +16,14 @@ import {
   Edit as EditIcon,
   TrendingUp as TrendingUpIcon,
   People as PeopleIcon,
-  Notifications as NotificationsIcon
+  Notifications as NotificationsIcon,
+  WorkOutlined,
+  CheckCircleOutline,
+  Cancel as CancelIcon,
+  ArchiveOutlined,
+  PeopleOutlined,
+  SecurityOutlined,
+  PersonOutline
 } from '@mui/icons-material';
 
 /**
@@ -31,6 +38,20 @@ function Dashboard() {
   const [error, setError] = useState(null);
   const [greeting, setGreeting] = useState('Hello');
   const [notificationCount, setNotificationCount] = useState(3);
+  const [jobsStats, setJobsStats] = useState({
+  totalJobs: 0,
+  activeJobs: 0,
+  draftJobs: 0,
+  closedJobs: 0,
+  archivedJobs: 0,
+  });
+  const [userRoleStats, setUserRoleStats] = useState({
+  totalUsers: 0,
+  totalRoles: 0,
+  roleWise: []
+  });
+
+
 
   // Fetch interviews and stats on component mount
   // Set greeting based on time of day
@@ -40,6 +61,27 @@ function Dashboard() {
     else if (hour < 18) setGreeting('Good afternoon');
     else setGreeting('Good evening');
   }, []);
+
+
+  useEffect(() => {
+    const loadUserRoleStats = async () => {
+      try {
+        const res = await interviewService.getUserRoleStatistics();
+
+        setUserRoleStats({
+          totalUsers: res.total_users,
+          totalRoles: res.total_roles,
+          roleWise: res.role_wise_users
+        });
+      } catch (err) {
+        console.error("Failed to load user role stats", err);
+      }
+    };
+
+    loadUserRoleStats();
+  }, []);
+
+
 
   // Fetch dashboard data
   useEffect(() => {
@@ -54,6 +96,16 @@ function Dashboard() {
         // Fetch statistics
         const statsResponse = await interviewService.getInterviewStatistics();
         setStats(statsResponse.data || {});
+
+        // Fetch jobs stats
+        const jobsResponse = await interviewService.getJobsStatistics();
+        setJobsStats({
+          totalJobs: jobsResponse.total || 0,
+          activeJobs: jobsResponse.active || 0,
+          draftJobs: jobsResponse.draft || 0,
+          closedJobs: jobsResponse.closed || 0,
+          archivedJobs: jobsResponse.archived || 0,
+        });
         
         setError(null);
       } catch (err) {
@@ -113,6 +165,7 @@ function Dashboard() {
     }
   };
 
+
   // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -136,6 +189,120 @@ function Dashboard() {
       </p>
     </div>
   </div>
+      {/* ================= JOB STATISTICS ================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+
+        {/* Total Jobs */}
+        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-500">Total Jobs</p>
+            <p className="text-2xl font-bold text-gray-900">{jobsStats.totalJobs}</p>
+          </div>
+          <WorkOutlined className="text-blue-600" />
+        </div>
+
+        {/* Active Jobs */}
+        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-500">Active Jobs</p>
+            <p className="text-2xl font-bold text-green-600">{jobsStats.activeJobs}</p>
+          </div>
+          <CheckCircleOutline className="text-green-600" />
+        </div>
+
+        {/* Draft Jobs */}
+        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-500">Draft</p>
+            <p className="text-2xl font-bold text-amber-600">{jobsStats.draftJobs}</p>
+          </div>
+          <DraftIcon className="text-amber-600" />
+        </div>
+
+        {/* Closed Jobs */}
+        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-500">Closed</p>
+            <p className="text-2xl font-bold text-red-600">{jobsStats.closedJobs}</p>
+          </div>
+          <CancelIcon className="text-red-600" />
+        </div>
+
+        {/* Archived Jobs */}
+        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-500">Archived</p>
+            <p className="text-2xl font-bold text-gray-600">{jobsStats.archivedJobs}</p>
+          </div>
+          <ArchiveOutlined className="text-gray-600" />
+        </div>
+
+      </div>
+
+      {/* ================= USER & ROLE STATISTICS ================= */}
+      <div className="space-y-6">
+        {/* Top Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          {/* Total Users */}
+          <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-500">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {userRoleStats.totalUsers}
+              </p>
+            </div>
+            <PeopleOutlined className="text-blue-600" />
+          </div>
+
+          {/* Total Roles */}
+          <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-500">Total Roles</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {userRoleStats.totalRoles}
+              </p>
+            </div>
+            <SecurityOutlined className="text-purple-600" />
+          </div>
+
+        </div>
+
+        {/* Role-wise User Count */}
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Users by Role
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {userRoleStats.roleWise.map((role) => (
+              <div
+                key={role.role_id}
+                className="border rounded-lg p-4 flex justify-between items-center hover:bg-gray-50 transition"
+              >
+                <div>
+                  {/* ROLE NAME */}
+                  <p className="text-sm font-medium text-gray-600">
+                    {role.role_name}
+                  </p>
+
+                  {/* USER COUNT */}
+                  <p className="text-xl font-bold text-gray-900">
+                    {role.count}{" "}
+                    <span className="text-sm font-medium text-gray-500">
+                      
+                    </span>
+                  </p>
+                </div>
+
+                <PersonOutline className="text-gray-400" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+      </div>
 
 
       {error && (

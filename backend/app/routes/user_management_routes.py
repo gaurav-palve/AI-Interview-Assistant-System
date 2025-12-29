@@ -11,7 +11,7 @@ from bson import ObjectId
 logger = get_logger(__name__)
 
 router = APIRouter(
-    prefix="/users",
+    prefix="/user-management",
     tags=["Users"]
 )
 
@@ -21,7 +21,7 @@ class UserCreate(BaseModel):
     last_name: str
     email: EmailStr
     phone: str
-    password: str
+    hashed_password: str
     role_id: str
     employee_id: str
     department: str
@@ -35,8 +35,13 @@ class UserUpdate(BaseModel):
     middle_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
-    password: Optional[str] = None
+    hashed_password: Optional[str] = None
     role_id: Optional[str] = None
+    employee_id: Optional[str] = None
+    department: Optional[str] = None
+    location: Optional[str] = None
+    reporting_manager: Optional[str] = None
+    is_active: Optional[bool] = None
 
 @router.post("/create")
 async def create_user(
@@ -56,7 +61,7 @@ async def create_user(
             last_name=payload.last_name,
             email=payload.email,
             phone=payload.phone,
-            password=payload.password,
+            hashed_password=payload.hashed_password,
             role_id=payload.role_id,
             employee_id = payload.employee_id,
             department=payload.department,
@@ -77,7 +82,7 @@ async def create_user(
         raise HTTPException(status_code=500, detail="Failed to create user")
 
 
-@router.put("/{user_id}")
+@router.put("/update/{user_id}")
 async def update_user(
     user_id: str,
     payload: UserUpdate,
@@ -97,7 +102,7 @@ async def update_user(
             middle_name=payload.middle_name,
             last_name=payload.last_name,
             phone=payload.phone,
-            password=payload.password,
+            hashed_password=payload.hashed_password,
             role_id=payload.role_id,
             employee_id=payload.employee_id,
             department=payload.department,
@@ -124,7 +129,7 @@ async def update_user(
 
 
 
-@router.delete("/{user_id}")
+@router.delete("/delete/{user_id}")
 async def delete_user(
     user_id: str,
     current_user: dict = Depends(require_permission("USER_MANAGE"))
@@ -147,7 +152,7 @@ async def delete_user(
         raise HTTPException(status_code=500, detail="Failed to delete user")
     
 
-@router.get("")
+@router.get("/get-all-users")
 async def get_all_users(
     current_user: dict = Depends(require_permission("USER_VIEW"))
 ):
@@ -177,7 +182,7 @@ async def get_all_users(
         raise HTTPException(status_code=500, detail="Failed to fetch users")
     
 
-@router.get("/{user_id}")
+@router.get("/get-user-by-id/{user_id}")
 async def get_user_by_id(
     user_id: str,
     current_user: dict = Depends(require_permission("USER_VIEW"))

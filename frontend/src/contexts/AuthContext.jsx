@@ -1,28 +1,47 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
+import { createContext, useContext, useState, useEffect } from "react";
+import authService from "../services/authService";
 
-// Create the authentication context
-const AuthContext = createContext();
+// ==================
+// LocalStorage Keys
+// ==================
+const LS_EMAIL_KEY = "auth_email";
+const LS_PERMS_KEY = "auth_permissions";
 
-/**
- * AuthProvider component to wrap the application and provide authentication state
- */
+// ==================
+// Create Context
+// ==================
+const AuthContext = createContext(null);
+
+// ==================
+// Auth Provider
+// ==================
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Initialize auth state on component mount
+  // ==================
+  // Initialize Auth
+  // ==================
   useEffect(() => {
     const initializeAuth = () => {
       try {
         if (authService.isAuthenticated()) {
-          const email = authService.getCurrentUserEmail();
-          setUser({ email });
+          const email =
+            authService.getCurrentUserEmail() ||
+            localStorage.getItem(LS_EMAIL_KEY);
+
+          const permissions = JSON.parse(
+            localStorage.getItem(LS_PERMS_KEY) || "[]"
+          );
+
+          if (email) {
+            setUser({ email, permissions });
+          }
         }
       } catch (err) {
-        console.error('Error initializing auth:', err);
-        setError('Failed to initialize authentication');
+        console.error("Auth initialization failed:", err);
+        setError("Failed to initialize authentication");
       } finally {
         setLoading(false);
       }
@@ -31,63 +50,86 @@ export function AuthProvider({ children }) {
     initializeAuth();
   }, []);
 
-  /**
-   * Sign in a user
-   * @param {string} email - User email
-   * @param {string} password - User password
-   */
+  // ==================
+  // Sign In
+  // ==================
   const signIn = async (email, password) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await authService.signIn(email, password);
-      setUser({ email });
-      return data;
-    } catch (err) {
-      setError(err.detail || 'Failed to sign in');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setError(null);
 
-  /**
-   * Sign up a new user
-   * @param {string} email - User email
-   * @param {string} password - User password
-   */
+  try {
+    // 1️⃣ Login (tokens only)
+    await authService.signIn(email, password);
+
+    // 2️⃣ Fetch permissions from separate API
+    const permissions = await authService.getUserPermissions();
+
+    // 3️⃣ Persist
+    localStorage.setItem(LS_EMAIL_KEY, email);
+    localStorage.setItem(LS_PERMS_KEY, JSON.stringify(permissions));
+
+    setUser({ email, permissions });
+
+  } catch (err) {
+    console.error("Login failed:", err);
+    setError(err?.detail || "Failed to sign in");
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // ==================
+  // Sign Up
+  // ==================
   const signUp = async (email, password) => {
     setLoading(true);
     setError(null);
+
     try {
-      const data = await authService.signUp(email, password);
-      return data;
+      return await authService.signUp(email, password);
     } catch (err) {
-      setError(err.detail || 'Failed to sign up');
+      setError(err?.detail || "Failed to sign up");
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Log out the current user
-   */
+  // ==================
+  // Logout
+  // ==================
   const logout = async () => {
     setLoading(true);
     setError(null);
+
     try {
       await authService.logout();
+
+      // Clear storage
+      localStorage.removeItem(LS_EMAIL_KEY);
+      localStorage.removeItem(LS_PERMS_KEY);
+
       setUser(null);
     } catch (err) {
-      setError(err.detail || 'Failed to log out');
+      setError(err?.detail || "Failed to log out");
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Value to be provided by the context
+  // ==================
+  // Permission Checker
+  // ==================
+  const hasPermission = (permission) => {
+    return user?.permissions?.includes(permission);
+  };
+
+  // ==================
+  // Context Value
+  // ==================
   const value = {
     user,
     loading,
@@ -95,19 +137,24 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     signIn,
     signUp,
-    logout
+    logout,
+    hasPermission,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
-/**
- * Custom hook to use the auth context
- */
+// ==================
+// Custom Hook
+// ==================
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

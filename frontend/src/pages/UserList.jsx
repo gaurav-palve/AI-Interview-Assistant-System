@@ -239,7 +239,7 @@ function UsersList() {
 
               <div className="flex justify-center gap-2">
                 <button
-                  onClick={() => navigate(`/users/edit/${user._id}`)}
+                  onClick={() => navigate(`/users/${user._id}`)}
                   className="h-8 w-8 rounded-full border flex items-center justify-center hover:bg-gray-100"
                 >
                   <EditOutlined fontSize="small" />

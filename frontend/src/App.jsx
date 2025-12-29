@@ -299,7 +299,7 @@ function App() {
       />
 
       <Route
-        path="/users/:userId/edit"
+        path="/users/:userId"
         element={
           <ProtectedRoute>
             <MainLayout>

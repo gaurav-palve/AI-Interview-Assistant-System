@@ -447,7 +447,41 @@ const interviewService = {
       console.error('Error downloading PDF:', error);
       throw error.response?.data || { detail: 'An error occurred while downloading the report PDF' };
     }
+  },
+
+  /**
+  * Get jobs statistics
+  * @returns {Promise}
+  */
+  getJobsStatistics: async () => {
+    try {
+      const response = await api.get('/job-postings/statistics');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching jobs statistics' };
+    }
+  },
+
+
+/**
+ * Get total users, total roles, and role-wise user counts
+ * @returns {Promise}
+ */
+getUserRoleStatistics: async () => {
+  try {
+    const response = await api.get('/job-postings/user-role-statistics');
+    return response.data;
+  } catch (error) {
+    throw (
+      error.response?.data || {
+        detail: 'An error occurred while fetching user role statistics'
+      }
+    );
   }
+},
+
+
+
 };
 
 export default interviewService;

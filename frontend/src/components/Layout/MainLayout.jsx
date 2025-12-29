@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Logo from '../../pages/Logo';
+import { PERMISSIONS } from "../../constants/permissions";
+import { NAV_ITEMS, SETTINGS_MENU } from "../../config/navigationConfig";
  
 import {
   MenuOutlined as MenuIcon,
@@ -27,7 +29,8 @@ import {
 } from '@mui/icons-material';
  
 export default function MainLayout({ children }) {
-  const { user, logout } = useAuth();
+  // const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
  
@@ -42,13 +45,41 @@ export default function MainLayout({ children }) {
   location.pathname.startsWith("/roles")
   );
 
+  const canSeeSettings =
+  hasPermission(PERMISSIONS.USER_VIEW) ||
+  hasPermission(PERMISSIONS.USER_MANAGE) ||
+  hasPermission(PERMISSIONS.ROLE_MANAGE);
  
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-    { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon /> },
-    { path: '/interviews', label: 'Interviews', icon: <AssignmentIcon /> },
-    { path: '/statistics', label: 'Statistics', icon: <StatsIcon /> },
-    { path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon /> }
+    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon />, permissions: [
+      // PERMISSIONS.JOB_VIEW,
+      PERMISSIONS.REPORT_VIEW,
+      PERMISSIONS.USER_VIEW,
+    ], },
+
+    { path: '/job-postings', label: 'Job Postings', icon: <WorkIcon />, permissions: [
+      PERMISSIONS.JOB_VIEW,
+      PERMISSIONS.JOB_CREATE,
+      PERMISSIONS.JOB_EDIT,
+      PERMISSIONS.JOB_DELETE,
+      PERMISSIONS.JOB_VIEW_ALL,
+      PERMISSIONS.JOB_VIEW_ASSIGNED,
+    ], },
+
+    { path: '/interviews', label: 'Interviews', icon: <AssignmentIcon />, permissions: [
+      PERMISSIONS.INTERVIEW_VIEW,
+      PERMISSIONS.INTERVIEW_SCHEDULE,
+      PERMISSIONS.INTERVIEW_MANAGE,
+    ], },
+
+    { path: '/statistics', label: 'Statistics', icon: <StatsIcon />, permissions: [
+      PERMISSIONS.REPORT_VIEW,
+    ], },
+
+    { path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon />, permissions: [
+      PERMISSIONS.ASSESSMENT_VIEW,
+      PERMISSIONS.ASSESSMENT_CREATE,
+    ], }
   ];
  
   useEffect(() => {
@@ -68,7 +99,7 @@ export default function MainLayout({ children }) {
   useEffect(() => {
     if (
       location.pathname.startsWith("/users") ||
-      location.pathname.startsWith("/roles")
+      location.pathname.startsWith("/create-role")
     ) {
       setSettingsOpen(true);
     } else {
@@ -80,7 +111,7 @@ export default function MainLayout({ children }) {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -143,8 +174,8 @@ export default function MainLayout({ children }) {
   <div className="mt-3 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 </div>
  
-          <nav className="flex-1 px-2 py-4 space-y-2 overflow-hidden">
-  {navItems.map((item) => (
+  <nav className="flex-1 px-2 py-4 space-y-2 overflow-hidden">
+  {NAV_ITEMS.filter(item =>item.permissions.some(p => hasPermission(p))).map((item) => (
     <Link
       key={item.path}
       to={item.path}
@@ -161,7 +192,7 @@ export default function MainLayout({ children }) {
             : 'hover:bg-white/10 hover:shadow-md'
         }`}
       >
-        <span className="h-6 w-6 flex-shrink-0 flex items-center justify-center">{item.icon}</span>
+        <span className="h-6 w-6 flex-shrink-0 flex items-center justify-center"><item.icon /></span>
         <span
           className={`ml-3 whitespace-nowrap transition-all duration-300 ${
             isSidebarVisible
@@ -175,6 +206,7 @@ export default function MainLayout({ children }) {
     </Link>
   ))}
   {/* SETTINGS */}
+  {canSeeSettings && (
   <div>
     <button
       onClick={() => setSettingsOpen(!settingsOpen)}
@@ -209,6 +241,7 @@ export default function MainLayout({ children }) {
     {settingsOpen && isSidebarVisible && (
       <div className="ml-6 mt-1 space-y-1">
         {/* Create User */}
+        {hasPermission(PERMISSIONS.USER_MANAGE) && (
         <Link to="/users/create">
           <div
             className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
@@ -223,14 +256,16 @@ export default function MainLayout({ children }) {
             Create User
           </div>
         </Link>
+        )}
 
         {/* Role Management */}
+        {hasPermission(PERMISSIONS.ROLE_MANAGE) && (
         <Link to="/create-role">
           <div
             className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
             text-white/80 hover:text-white
             ${
-              location.pathname === '/roles'
+              location.pathname === '/create-role'
                 ? 'bg-white/15 shadow-lg border-l-2 border-primary-400 font-semibold'
                 : 'hover:bg-white/10 hover:shadow-md'
             }`}
@@ -239,8 +274,10 @@ export default function MainLayout({ children }) {
             Role Management
           </div>
         </Link>
+        )}
 
         {/* All Users */}
+        {hasPermission(PERMISSIONS.USER_VIEW) && (
         <Link to="/users">
           <div
             className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
@@ -255,9 +292,12 @@ export default function MainLayout({ children }) {
             All Users
           </div>
         </Link>
+        )}
       </div>
     )}
+
   </div>
+  )}
 </nav>
  
           {/* User Info */}
@@ -311,7 +351,8 @@ export default function MainLayout({ children }) {
             </div>
  
             <nav className="mt-5 px-2 space-y-2">
-              {navItems.map((item) => (
+              {navItems.filter(item =>item.permissions.some(p => hasPermission(p))).map((item) => (
+
                 <Link
                   key={item.path}
                   to={item.path}

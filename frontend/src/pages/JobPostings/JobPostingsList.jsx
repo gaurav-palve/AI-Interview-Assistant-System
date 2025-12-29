@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
+import { useAuth } from "../../contexts/AuthContext";
+import { PERMISSIONS } from "../../constants/permissions";
+
 // Material UI Icons
 import {
   Add as AddIcon,
@@ -46,6 +49,17 @@ function JobPostingsList() {
   useEffect(() => {
     fetchJobPostings();
   }, [activeTab, searchQuery, filters, sortOption]);
+
+  const { hasPermission } = useAuth();
+
+  const canViewJobs =
+    hasPermission(PERMISSIONS.JOB_VIEW) ||
+    hasPermission(PERMISSIONS.JOB_VIEW_ALL) ||
+    hasPermission(PERMISSIONS.JOB_VIEW_ASSIGNED);
+  const canCreateJob = hasPermission(PERMISSIONS.JOB_CREATE);
+  const canChangeStatus = hasPermission(PERMISSIONS.JOB_POSTING_STATUS);
+  const canDeleteJob = hasPermission(PERMISSIONS.JOB_DELETE);
+  const canEditJob = hasPermission(PERMISSIONS.JOB_EDIT);
 
   const fetchJobPostings = async () => {
   try {
@@ -198,6 +212,7 @@ function JobPostingsList() {
           <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight animate-slideInLeft">Job Postings</h1>
           <p className="text-gray-600 mt-2 animate-slideInLeft animation-delay-100">Manage and track all your job openings in one place</p>
         </div>
+        {canCreateJob && (
         <Link
           to="/job-postings/new"
           className="btn btn-primary group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
@@ -208,6 +223,7 @@ function JobPostingsList() {
           </span>
           <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
         </Link>
+        )}
       </div>
 
       {error && (
@@ -358,13 +374,14 @@ function JobPostingsList() {
                   }}
                   data-testid={`status-dropdown-${job.id}`}
                 >
+                  {canChangeStatus && (
                   <StatusDropdown
                     key={`status-${job.id}-${job.status}`}
                     jobId={job.id}
                     currentStatus={job.status || 'active'}
                     onStatusChange={(newStatus) => handleStatusChange(job.id, newStatus)}
                   />
-                  
+                  )}
                   
                 </div>
                 
@@ -452,6 +469,7 @@ function JobPostingsList() {
                   </div>
                   
                   {/* Delete button at bottom right */}
+                  {canDeleteJob && (
                   <div
                     className="absolute bottom-4 right-4 z-10"
                     onClick={(e) => handleDeleteClick(e, job.id)}
@@ -463,6 +481,7 @@ function JobPostingsList() {
                       <DeleteIcon className="h-5 w-5" />
                     </button>
                   </div>
+                  )}
                 </div>
               </div>
             </Link>

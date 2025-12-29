@@ -10,6 +10,8 @@ import {
 import { useFormValidation } from '../hooks/useFormValidation';
 import Nts_logo from '../assets/Nts_logo/NTSLOGO.png';
 import LoginBg from '../assets/login_bg.png';
+import { NAV_ITEMS } from "../config/navigationConfig";
+import { getFirstAllowedRoute } from "../utils/getFirstAllowedRoute";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +22,7 @@ function Login() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = '/dashboard';
 
   const {
     values,
@@ -45,7 +47,15 @@ function Login() {
 
     try {
       await signIn(values.email, values.password);
-      navigate(from, { replace: true });
+
+      const permissions = JSON.parse(
+        localStorage.getItem("auth_permissions") || "[]"
+      );
+
+      const redirectTo = getFirstAllowedRoute(permissions, NAV_ITEMS);
+
+      navigate(redirectTo, { replace: true });
+
     } catch (err) {
       setError(err.detail || 'Failed to sign in. Please check your credentials.');
     } finally {
