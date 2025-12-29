@@ -15,12 +15,15 @@ SYSTEM_PERMISSIONS = [
     {"code": "JOB_VIEW", "module": "Job", "description": "View job postings"},
     {"code": "JOB_VIEW_ALL", "module": "Job", "description": "View all job postings"},
     {"code": "JOB_VIEW_ASSIGNED", "module": "Job", "description": "View only assigned job postings"},
+    {"code": "JOB_POSTING_STATUS", "module": "Job", "description": "Update job posting status"},
+    {"code": "UPDATE_JOB_DESCRIPTION", "module": "Job", "description": "Update job description"},
     
     # Resume module
     {"code": "RESUME_UPLOAD", "module": "Resume", "description": "Upload candidate resumes"},
-    {"code": "RESUME_VIEW", "module": "Resume", "description": "View candidate resumes"},
     {"code": "RESUME_SCREEN", "module": "Resume", "description": "Screen and evaluate resumes"},
-    {"code": "DUPLICATE_VIEW", "module": "Resume", "description": "View duplicate resumes"},
+    {"code": "RESUME_SCREENING_RESULT", "module": "Resume", "description": "Resume screening result"},
+    # {"code": "DUPLICATE_VIEW", "module": "Resume", "description": "View duplicate resumes"},
+    # {"code": "RESUME_VIEW", "module": "Resume", "description": "View candidate resumes"},
     
     # Interview module
     {"code": "INTERVIEW_SCHEDULE", "module": "Interview", "description": "Schedule interviews"},
@@ -40,6 +43,7 @@ SYSTEM_PERMISSIONS = [
     # Report module
     {"code": "REPORT_GENERATE", "module": "Report", "description": "Generate reports"},
     {"code": "REPORT_VIEW", "module": "Report", "description": "View reports"},
+    {"code": "REPORT_DOWNLOAD", "module": "Report", "description": "Download reports"},
 ]
 
 async def init_permissions():

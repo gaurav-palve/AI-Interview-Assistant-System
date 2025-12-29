@@ -12,13 +12,13 @@ import api from "./api";
  */
 export const createUser = async (userData) => {
   try {
-    const response = await api.post("/users/create", {
+    const response = await api.post("/user-management/create", {
       first_name: userData.first_name,
       middle_name: userData.middle_name || null,
       last_name: userData.last_name,
       email: userData.email,
       phone: userData.phone,
-      password: userData.password,
+      hashed_password: userData.hashed_password,
       role_id: userData.role_id,
       employee_id: userData.employee_id,
       department: userData.department,
@@ -42,14 +42,23 @@ export const updateUser = async (userId, userData) => {
     const payload = {};
 
     if ("first_name" in userData) payload.first_name = userData.first_name;
-    if ("middle_name" in userData) payload.middle_name = userData.middle_name;
+    if ("middle_name" in userData)
+      payload.middle_name = userData.middle_name || null;
     if ("last_name" in userData) payload.last_name = userData.last_name;
     if ("phone" in userData) payload.phone = userData.phone;
-    if ("password" in userData && userData.password)
-      payload.password = userData.password;
-    if ("role_id" in userData) payload.role_id = userData.role_id;
 
-    const response = await api.put(`/users/${userId}`, payload);
+    if ("hashed_password" in userData && userData.hashed_password) {
+      payload.hashed_password = userData.hashed_password;
+    }
+
+    if ("role_id" in userData) payload.role_id = userData.role_id;
+    if ("employee_id" in userData) payload.employee_id = userData.employee_id;
+    if ("department" in userData) payload.department = userData.department;
+    if ("location" in userData) payload.location = userData.location;
+    if ("reporting_manager" in userData)
+      payload.reporting_manager = userData.reporting_manager;
+
+    const response = await api.put(`/user-management/update/${userId}`, payload);
     return response.data;
   } catch (error) {
     console.error(`Error updating user ${userId}:`, error);
@@ -63,7 +72,7 @@ export const updateUser = async (userId, userData) => {
  */
 export const deleteUser = async (userId) => {
   try {
-    const response = await api.delete(`/users/${userId}`);
+    const response = await api.delete(`/user-management/delete/${userId}`);
     return response.data;
   } catch (error) {
     console.error(`Error deleting user ${userId}:`, error);
@@ -77,7 +86,7 @@ export const deleteUser = async (userId) => {
  */
 export const fetchUsers = async () => {
   try {
-    const response = await api.get("/users");
+    const response = await api.get("/user-management/get-all-users");
     return response.data;
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -91,7 +100,7 @@ export const fetchUsers = async () => {
  */
 export const fetchUserById = async (userId) => {
   try {
-    const response = await api.get(`/users/${userId}`);
+    const response = await api.get(`/user-management/get-user-by-id/${userId}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching user ${userId}:`, error);
