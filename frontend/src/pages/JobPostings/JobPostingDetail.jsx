@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
 import JobPostingStatistics from '../../components/JobPostings/JobPostingStatistics';
+import { PERMISSIONS } from "../../constants/permissions";
 
 // Material UI Icons
 import {
@@ -89,6 +90,33 @@ function JobPostingDetail() {
   const [jdText, setJdText] = useState("");
   const [initialJdLoaded, setInitialJdLoaded] = useState(false); // ensure JD is initialized only once
 
+  const { hasPermission } = useAuth();
+
+  const canViewJob =
+    hasPermission(PERMISSIONS.JOB_VIEW) ||
+    hasPermission(PERMISSIONS.JOB_VIEW_ALL) ||
+    hasPermission(PERMISSIONS.JOB_VIEW_ASSIGNED);
+
+  const canChangeStatus = hasPermission(PERMISSIONS.JOB_POSTING_STATUS);
+  const canEditJD = hasPermission(PERMISSIONS.UPDATE_JOB_DESCRIPTION);
+  const canScreenResume = hasPermission(PERMISSIONS.RESUME_SCREEN);
+  const canUploadResume = hasPermission(PERMISSIONS.RESUME_UPLOAD);
+  const canScheduleInterview = hasPermission(PERMISSIONS.INTERVIEW_SCHEDULE);
+  const canViewInterviews = hasPermission(PERMISSIONS.INTERVIEW_VIEW);
+  const canViewAssessments = hasPermission(PERMISSIONS.ASSESSMENT_VIEW);
+  const canViewStatistics = hasPermission(PERMISSIONS.REPORT_VIEW);
+  const canCreateInterview = hasPermission(PERMISSIONS.INTERVIEW_SCHEDULE);
+
+  const TABS = [
+    { id: 'details', label: 'Details', icon: DescriptionIcon, show: true },
+    { id: 'screening', label: 'Resume Screening', icon: AssessmentIcon, show: canScreenResume },
+    { id: 'interviews', label: 'Interviews', icon: GroupIcon, show: canViewInterviews },
+    { id: 'assessments', label: 'Assessment Reports', icon: AssessmentIcon, show: canViewAssessments },
+    { id: 'statistics', label: 'Statistics', icon: AssessmentIcon, show: canViewStatistics },
+  ];
+
+
+  
   // Fetch job posting on component mount or id change
   useEffect(() => {
     fetchJobPosting();
@@ -852,6 +880,19 @@ const handleDropResume = (e) => {
     }, 150);
   };
 
+  if (!canViewJob) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800">Access Denied</h2>
+          <p className="text-gray-500 mt-2">
+            You do not have permission to view this job posting.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4 animate-fadeIn">
@@ -907,6 +948,7 @@ const handleDropResume = (e) => {
     </div>
 
     {/* Right: New Interview */}
+    {canCreateInterview && (
     <Link
       to={`/interviews/new?job_role=${encodeURIComponent(
         jobPosting?.job_posting_name || jobPosting?.job_title || ""
@@ -918,6 +960,7 @@ const handleDropResume = (e) => {
       <AddIcon className="-ml-1 mr-2 h-4 w-4" />
       New Interview
     </Link>
+    )}
   </div>
 
   {/* JOB INFO */}
@@ -979,11 +1022,18 @@ const handleDropResume = (e) => {
           {stat.isStatus ? (
             <div className="flex flex-col">
               <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
-              <StatusDropdown
-                jobId={id}
-                currentStatus={jobPosting?.status || 'active'}
-                onStatusChange={handleStatusChange}
-              />
+              
+              {canChangeStatus ? (
+                <StatusDropdown
+                  jobId={id}
+                  currentStatus={jobPosting?.status || "active"}
+                  onStatusChange={handleStatusChange}
+                />
+              ) : (
+                <span className="text-sm font-semibold text-gray-700">
+                  {jobPosting?.status}
+                </span>
+              )}
             </div>
           ) : (
             <div>
@@ -1000,33 +1050,29 @@ const handleDropResume = (e) => {
       {/* Enhanced Tabs */}
       <div className="bg-white rounded-xl shadow-xl border border-gray-100 p-3 animate-slideInUp">
         <nav className="flex space-x-9">
-          {[
-            { id: 'details', label: 'Details', icon: DescriptionIcon },
-            { id: 'screening', label: 'Resume Screening', icon: AssessmentIcon },
-            { id: 'interviews', label: 'Interviews', icon: GroupIcon },
-            { id: 'assessments', label: 'Assessment Reports', icon: AssessmentIcon },
-            { id: 'statistics', label: 'Statistics', icon: AssessmentIcon }
-
-          ].map(tab => (
+          {TABS.filter(tab => tab.show).map(tab => (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`
-                flex-1 flex items-center justify-center px-4 py-3 rounded-lg font-medium
-                transition-all duration-300 transform
-                ${activeTab === tab.id 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl scale-105' 
+          flex-1 flex items-center justify-center px-4 py-3 rounded-lg font-medium
+          transition-all duration-300 transform
+          ${activeTab === tab.id
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl scale-105'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }
-              `}
+        `}
             >
               <tab.icon className="h-5 w-5 mr-2" />
               <span>{tab.label}</span>
+
+              {/* Badges */}
               {tab.id === 'screening' && screeningResults.length > 0 && (
                 <span className="ml-2 px-2 py-1 text-xs rounded-full bg-white/20">
                   {screeningResults.length}
                 </span>
               )}
+
               {tab.id === 'interviews' && scheduledInterviews.length > 0 && (
                 <span className="ml-2 px-2 py-1 text-xs rounded-full bg-white/20">
                   {scheduledInterviews.length}
@@ -1036,6 +1082,7 @@ const handleDropResume = (e) => {
           ))}
         </nav>
       </div>
+
 
       {/* Tab Content with Animation */}
       <div className={`tab-content transition-all duration-300 ${tabAnimation ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
@@ -1094,6 +1141,7 @@ const handleDropResume = (e) => {
                   </h2>
                   <div className="flex items-center gap-2">
                     {/* EDIT BUTTON */}
+                    {canEditJD && (
                     <button
                       onClick={() => {
                         setIsEditingJD(true);
@@ -1109,6 +1157,7 @@ const handleDropResume = (e) => {
                       <EditIcon className="h-4 w-4 mr-1" />
                       Edit
                     </button>
+                    )}
 
                     {/* DOWNLOAD BUTTON (unchanged) */}
                     <button
@@ -1158,7 +1207,7 @@ const handleDropResume = (e) => {
           </div>
         )}
         
-        {activeTab === 'screening' && (
+        {activeTab === 'screening' && canScreenResume && (
           <div className="space-y-8">
             <div className="card bg-white shadow-xlrounded-lg overflow-hidden border border-gray-200">
               <div className="p-6">
@@ -1365,7 +1414,7 @@ const handleDropResume = (e) => {
 </div>
 
                 {/* Schedule Interviews Section */}
-                {selectedCandidates.length > 0 && (
+                {canScheduleInterview && selectedCandidates.length > 0 && (
                   <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <h4 className="text-lg font-medium text-gray-900 mb-4">Schedule Interviews for Selected Candidates</h4>
                     
@@ -1767,7 +1816,7 @@ const handleDropResume = (e) => {
           </div>
         )}
         
-        {activeTab === 'interviews' && (
+        {activeTab === 'interviews' && canViewInterviews && (
           <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
             <div className="p-6">
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">

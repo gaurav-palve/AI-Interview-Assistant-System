@@ -24,6 +24,7 @@ const authService = {
         // Use the shared utility to store token and update expiry time
         updateStoredToken(response.data.access_token);
         localStorage.setItem('user_email', email);
+        
       }
       return response.data;
     } catch (error) {
@@ -192,7 +193,22 @@ const authService = {
     }
     
     return token;
+  },
+
+  /**
+ * Fetch logged-in user's permissions
+ * @returns {Promise<string[]>}
+ */
+getUserPermissions: async () => {
+  try {
+    const response = await api.get("/permissions/user/permissions");
+    return response.data.permissions || [];
+  } catch (error) {
+    console.error("Failed to fetch permissions:", error);
+    throw error.response?.data || { detail: "Failed to fetch permissions" };
   }
+},
+
 };
 
 export default authService;
