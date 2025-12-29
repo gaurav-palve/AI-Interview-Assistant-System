@@ -20,7 +20,7 @@ class UserService:
         last_name: str,
         email: str,
         phone: str,
-        password: str,
+        hashed_password: str,
         role_id: str,
         employee_id: str,
         department: str,
@@ -50,7 +50,7 @@ class UserService:
                 "last_name": last_name.strip(),
                 "email": email.strip().lower(),
                 "phone": phone.strip(),
-                "hashed_password": hash_password(password),
+                "hashed_password": hash_password(hashed_password),
                 "role_id": role_id,
                 "employee_id": employee_id,
                 "department": department.strip(),
@@ -71,9 +71,11 @@ class UserService:
 
             logger.info(f"User created successfully: {user_id}")
 
-            await EmailService().send_user_credentials_email(user_email=email,
-                                            user_name=f"{first_name} {last_name}",
-                                            temp_password=password)
+            await EmailService().send_user_credentials_email(\
+                user_email=email,
+                user_name=f"{first_name} {last_name}",
+                temp_password=hashed_password
+            )
             return user_id
 
         except HTTPException:
@@ -92,7 +94,7 @@ class UserService:
         middle_name: Optional[str] = None,
         last_name: Optional[str] = None,
         phone: Optional[str] = None,
-        password: Optional[str] = None,
+        hashed_password: Optional[str] = None,
         role_id: Optional[str] = None,
         employee_id: Optional[str] = None,
         department: Optional[str] = None,
@@ -142,8 +144,8 @@ class UserService:
             if is_active is not None:
                 update_fields["is_active"] = is_active
 
-            if password is not None:
-                update_fields["password"] = hash_password(password)
+            if hashed_password is not None:
+                update_fields["hashed_password"] = hash_password(hashed_password)
 
             if updated_by is not None:
                 update_fields["updated_by"] = updated_by

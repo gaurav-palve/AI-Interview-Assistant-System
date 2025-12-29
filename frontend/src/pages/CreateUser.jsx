@@ -68,7 +68,7 @@ function CreateUser() {
     last_name: "",
     email: "",
     phone: "",
-    password: "",
+    hashed_password: "",
     employee_id: "",
     department: "",
     location: "",
@@ -89,7 +89,7 @@ function CreateUser() {
           last_name: res.last_name || "",
           email: res.email || "",
           phone: res.phone || "",
-          password: "",
+          hashed_password: "",
           employee_id: res.employee_id || "",
           department: res.department || "",
           location: res.location || "",
@@ -187,7 +187,7 @@ function CreateUser() {
           <Input label="Last Name *" name="last_name" icon={PersonOutlined} value={formData.last_name} onChange={handleChange} />
           <Input label="Email Address *" name="email" icon={EmailOutlined} type="email" disabled={isEdit} value={formData.email} onChange={handleChange} />
           <Input label="Phone Number *" name="phone" icon={PhoneOutlined} value={formData.phone} onChange={handleChange} />
-          <Input label="Temporary Password *" name="password" icon={LockOutlined} type="password" value={formData.password} onChange={handleChange} />
+          <Input label="Temporary Password *" name="hashed_password" icon={LockOutlined} type="password" value={formData.hashed_password} onChange={handleChange} />
           <Input label="Employee ID" name="employee_id" icon={BadgeOutlined} value={formData.employee_id} onChange={handleChange} />
         </div>
       </section>
