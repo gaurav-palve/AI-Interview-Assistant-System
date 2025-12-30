@@ -82,7 +82,7 @@ async def create_account(request: CreateAccountRequest):
         raise HTTPException(status_code=400, detail="Email not verified")
     
 
-     ## create SUPER_ADMIN role if not exists
+    ## create SUPER_ADMIN role if not exists
     id = await create_role(
         role_name="SUPER_ADMIN",
         description="System owner with full access"

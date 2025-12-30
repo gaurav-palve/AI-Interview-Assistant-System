@@ -135,7 +135,7 @@ export default function MainLayout({ children }) {
       <div
         className={`fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out overflow-hidden ${
           isSidebarVisible ? 'w-64' : 'w-16'
-        } bg-gradient-to-b from-primary-700 via-primary-800 to-primary-900 shadow-2xl border-r border-primary-600/50`}
+        } bg-gray-800 shadow-2xl border-r border-gray-700`}
         style={{ margin: 0, padding: 0 }}
         onMouseEnter={() => !isSidebarExpanded && setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
@@ -335,7 +335,7 @@ export default function MainLayout({ children }) {
           className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}
           onClick={() => setSidebarOpen(false)}
         />
-        <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-primary-700 via-primary-800 to-primary-900 shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-gray-800 shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
               className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
@@ -391,7 +391,7 @@ export default function MainLayout({ children }) {
       {/* Main Content */}
       <div className={`flex flex-col w-0 flex-1 overflow-hidden transition-all duration-300 ${isSidebarVisible ? 'md:ml-64' : 'md:ml-16'}`}>
         {/* Header */}
-        <div className="sticky h-[70px] top-0 z-10 bg-gradient-to-r from-primary-700 via-primary-800 to-primary-700 shadow-lg border-b border-primary-600/50 backdrop-blur-sm transition-all duration-300 w-full" style={{ margin: 0, padding: 0 }}>
+        <div className="sticky h-[70px] top-0 z-10 bg-gray-800 shadow-lg border-b border-gray-700 backdrop-blur-sm transition-all duration-300 w-full" style={{ margin: 0, padding: 0 }}>
           {/* Mobile Header */}
           <div className="md:hidden h-full flex items-center justify-center">
             <button
@@ -406,37 +406,22 @@ export default function MainLayout({ children }) {
           </div>
  
           {/* Desktop Header */}
-       <div
-  className="hidden md:flex items-center justify-between px-6 h-full relative transition-all duration-300"
->
-  {/* Greeting centered vertically & aligned left */}
-  <div className="flex items-center h-full ml-6">
-    <h1 className="text-xl font-semibold text-white font-serif">
-      {greeting},{" "}
-      <span className="font-bold text-white">
-        {user?.email?.split("@")[0]}
-      </span>
-    </h1>
-  </div>
- 
-            <div className="flex items-center space-x-3">
-            
-              {/* Notification fixed at top right */}
-<div className="fixed top-4 right-4 z-50">
-  <button className="relative btn-icon">
-    <NotificationsIcon className="h-6 w-6 text-white" />
-    {notificationCount > 0 && (
-      <span
-        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500
-                   text-xs text-white font-bold flex items-center justify-center
-                   animate-pulse-slow"
-      >
-        {notificationCount}
-      </span>
-    )}
-  </button>
-</div>
-            </div>
+       <div className="hidden md:flex items-center justify-between px-6 h-full relative transition-all duration-300">
+         {/* Left side - Dashboard title */}
+         <div className="flex items-center h-full">
+           
+         </div>
+         
+         {/* Right side - User info and profile */}
+         <div className="flex items-center space-x-4">
+           <div className="flex items-center" style={{flexDirection: 'column', alignItems: 'flex-end'}}>
+             <span className="text-sm text-white">Hello, {user?.email?.split('@')[0] || 'Sumeet'}</span>
+             <span className="text-xs text-gray-300 ml-1">Super Admin</span>
+           </div>
+           <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+             <span className="text-white">{user?.email?.split('@')[0]?.substring(0, 2).toUpperCase() || 'SP'}</span>
+           </div>
+         </div>
           </div>
         </div>
  
