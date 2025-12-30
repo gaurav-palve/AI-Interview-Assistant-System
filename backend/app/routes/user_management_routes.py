@@ -11,7 +11,6 @@ from bson import ObjectId
 logger = get_logger(__name__)
 
 router = APIRouter(
-    prefix="/user-management",
     tags=["Users"]
 )
 
@@ -165,7 +164,7 @@ async def get_all_users(
         created_by = current_user.get("email")
         users = []
         cursor = db["users"].find(
-            {"created_by": created_by},
+            {},
             {
                 "password": 0  # never expose password
             }

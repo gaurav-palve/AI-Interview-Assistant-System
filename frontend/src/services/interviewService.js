@@ -450,37 +450,33 @@ const interviewService = {
   },
 
   /**
-  * Get jobs statistics
-  * @returns {Promise}
-  */
-  getJobsStatistics: async () => {
-    try {
-      const response = await api.get('/job-postings/statistics');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred while fetching jobs statistics' };
-    }
-  },
-
-
-/**
- * Get total users, total roles, and role-wise user counts
- * @returns {Promise}
- */
-getUserRoleStatistics: async () => {
-  try {
-    const response = await api.get('/job-postings/user-role-statistics');
-    return response.data;
-  } catch (error) {
-    throw (
-      error.response?.data || {
-        detail: 'An error occurred while fetching user role statistics'
+     * Get job statistics (status-wise counts)
+     * @returns {Promise}
+     */
+    getJobStatistics: async () => {
+      try {
+        const response = await api.get('/dashboard-stats/job-statistics');
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || { detail: 'An error occurred while fetching job statistics' };
       }
-    );
-  }
-},
-
-
+    },
+  
+    /**
+     * Get total users, total roles, and role-wise user counts
+     * @returns {Promise}
+     */
+    getUserRoleStatistics: async () => {
+      try {
+        const response = await api.get('/dashboard-stats/user-role-statistics');
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || {
+          detail: 'An error occurred while fetching user role statistics'
+        };
+      }
+    },
+  
 
 };
 

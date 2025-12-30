@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
@@ -32,10 +32,11 @@ import {
  * Displays a list of job postings with filtering options
  */
 function JobPostingsList() {
+  const location = useLocation();
   const [jobPostings, setJobPostings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState(location.state?.filterActive ? 'active' : 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({});
   const [sortOption, setSortOption] = useState('newest');
@@ -49,6 +50,13 @@ function JobPostingsList() {
   useEffect(() => {
     fetchJobPostings();
   }, [activeTab, searchQuery, filters, sortOption]);
+
+  // Handle navigation from dashboard with filterActive state
+  useEffect(() => {
+    if (location.state?.filterActive) {
+      setActiveTab('active');
+    }
+  }, [location.state]);
 
   const { hasPermission } = useAuth();
 

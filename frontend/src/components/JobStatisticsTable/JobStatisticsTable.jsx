@@ -85,19 +85,13 @@ function JobStatisticsTable() {
   };
 
   return (
-    <div className="relative overflow-hidden card shadow-xl border-t-4 border-blue-500 animate-fadeIn hover:shadow-2xl transition-all duration-500 bg-white">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold flex items-center">
             <span className="mr-2">Job-wise Statistics</span>
           </h2>
-          <Link 
-            to="/statistics"
-            className="text-blue-600 hover:text-blue-800 flex items-center text-sm font-medium transition-all duration-200"
-          >
-            View All
-            <ViewAllIcon className="ml-1 h-4 w-4" />
-          </Link>
+          <a href="#" className="text-blue-500 text-sm">View All</a>
         </div>
 
         {loading ? (
@@ -116,25 +110,25 @@ function JobStatisticsTable() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <table className="min-w-full">
+              <thead>
+                <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2">
                     Job Title
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2">
                     Posted
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2">
                    Applications
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2">
                     Shortlisted
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2">
                     Interviewed
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2">
                     Status
                   </th>
                 </tr>
@@ -142,23 +136,28 @@ function JobStatisticsTable() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {statistics.map((job, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{job.job_title}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-500">{job.posted_days_ago} days ago</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <div className="text-sm font-medium text-gray-900">{job.number_of_applications}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="text-sm font-medium text-indigo-600">{job.shortlisted}</div>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <div className="text-sm font-medium text-blue-600">{job.shortlisted}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <div className="text-sm font-medium text-green-600">{job.interviewed}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(job.status)}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        ${job.status === 'Active' ? 'bg-green-100 text-green-800' :
+                        job.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-blue-100 text-blue-800'}`}>
+                        {job.status}
+                      </span>
                     </td>
                   </tr>
                 ))}
