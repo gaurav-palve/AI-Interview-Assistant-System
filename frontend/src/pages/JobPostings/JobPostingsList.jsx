@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
+import AssignedUsersModal from '../../components/JobPostings/AssignedUsersModal';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
 // Material UI Icons
 import {
@@ -21,7 +22,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
-  Business as BusinessIcon
+  Business as BusinessIcon,
+  PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
 
 /**
@@ -41,6 +43,10 @@ function JobPostingsList() {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
+  const [showActionMenu, setShowActionMenu] = useState(null);
+  const [showAssignedUsersModal, setShowAssignedUsersModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showAssignPanel, setShowAssignPanel] = useState(false);
 
   // Fetch job postings on component mount and when filters change
   useEffect(() => {
@@ -129,6 +135,48 @@ function JobPostingsList() {
     setJobToDelete(jobId);
     setShowDeleteConfirm(true);
   };
+
+  // Handle 3-dots menu
+  const handleMenuToggle = (e, jobId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowActionMenu(showActionMenu === jobId ? null : jobId);
+  };
+
+  // Handle view assigned users click
+  const handleViewAssignedUsersClick = (e, job) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedJob(job);
+    setShowAssignedUsersModal(true);
+    setShowActionMenu(null);
+    setShowAssignPanel(false); // Open in view mode
+  };
+
+  // Handle assign users click
+  const handleAssignUsersClick = (e, job) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedJob(job);
+    setShowAssignedUsersModal(true);
+    setShowActionMenu(null);
+    setShowAssignPanel(true); // Open directly in assign mode
+  };
+  
+  // Close action menu when clicking outside
+  const actionMenuRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
+        setShowActionMenu(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
@@ -367,7 +415,7 @@ function JobPostingsList() {
                   
                   
                 </div>
-                
+
                 <div className="p-6 relative">
                   {/* Header with company avatar */}
                   <div className="flex items-start mb-4">
@@ -451,17 +499,47 @@ function JobPostingsList() {
                     </div>
                   </div>
                   
-                  {/* Delete button at bottom right */}
-                  <div
-                    className="absolute bottom-4 right-4 z-10"
-                    onClick={(e) => handleDeleteClick(e, job.id)}
-                  >
-                    <button
-                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors duration-300"
-                      aria-label="Delete job posting"
-                    >
-                      <DeleteIcon className="h-5 w-5" />
-                    </button>
+                  {/* Action buttons at bottom right */}
+                  <div className="absolute bottom-4 right-4 z-10 flex space-x-2">
+                    {/* 3-dot menu */}
+                    <div onClick={(e) => handleMenuToggle(e, job.id)}>
+                      <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-300">
+                        <MoreIcon className="h-5 w-5" />
+                      </button>
+
+                      {/* Action menu dropdown */}
+                      {showActionMenu === job.id && (
+                        <div
+                          ref={actionMenuRef}
+                          className="absolute bottom-12 right-0 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fadeIn"
+                        >
+                          <button
+                            onClick={(e) => handleViewAssignedUsersClick(e, job)}
+                            className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
+                          >
+                            <GroupIcon className="h-4 w-4 mr-2 text-primary-500" />
+                            <span>View Assigned Users</span>
+                          </button>
+                          <button
+                            onClick={(e) => handleAssignUsersClick(e, job)}
+                            className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
+                          >
+                            <PersonAddIcon className="h-4 w-4 mr-2 text-primary-500" />
+                            <span>Assign Users</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Delete button */}
+                    <div onClick={(e) => handleDeleteClick(e, job.id)}>
+                      <button
+                        className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors duration-300"
+                        aria-label="Delete job posting"
+                      >
+                        <DeleteIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -485,6 +563,17 @@ function JobPostingsList() {
             Create Your First Job
           </Link>
         </div>
+      )}
+      
+      {/* Assigned Users Modal */}
+      {showAssignedUsersModal && selectedJob && (
+        <AssignedUsersModal
+          isOpen={showAssignedUsersModal}
+          onClose={() => setShowAssignedUsersModal(false)}
+          jobId={selectedJob.id}
+          jobTitle={selectedJob.job_title}
+          initialShowAssignPanel={showAssignPanel}
+        />
       )}
       
       {/* Delete Confirmation Dialog */}
