@@ -69,6 +69,7 @@ def require_permission(permission: str) -> Callable:
         if not role_id:
             raise HTTPException(status_code=403, detail="Role not assigned")
 
+        role_id = role_id["_id"] if isinstance(role_id, dict) else role_id
         db = get_database()
         role = await db.roles.find_one({"_id": ObjectId(role_id)})
 
@@ -95,4 +96,3 @@ def require_permission(permission: str) -> Callable:
         raise HTTPException(status_code=403, detail="Access denied")
 
     return check_permission
-
