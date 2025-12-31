@@ -209,6 +209,20 @@ getUserPermissions: async () => {
   }
 },
 
+/**
+ * Fetch logged-in user's role
+ * @returns {Promise<string>}
+ */
+getUserRole: async () => {
+  try {
+    const response = await api.get("/permissions/user/role");
+    return response.data.role_name;
+  } catch (error) {
+    console.error("Failed to fetch role:", error);
+    throw error.response?.data || { detail: "Failed to fetch user role" };
+  }
+},
+
 };
 
 export default authService;

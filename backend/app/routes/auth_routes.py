@@ -3,7 +3,7 @@ from typing import Optional, Dict
 import logging
 from app.utils.otp_verification import verify_otp
 from app.utils.email_domain_validator import validate_domain
-from app.database import USERS_COLLECTION, OTP_COLLECTION, get_database
+from app.database import USERS_COLLECTION, OTP_COLLECTION, get_database,PERMISSIONS_COLLECTION
 import random
 from datetime import datetime, timedelta
 from app.services.email_service import EmailService
@@ -82,10 +82,19 @@ async def create_account(request: CreateAccountRequest):
         raise HTTPException(status_code=400, detail="Email not verified")
     
 
-    ## create SUPER_ADMIN role if not exists
+    # 🔥 Fetch all permissions from DB
+    permissions_cursor = db[PERMISSIONS_COLLECTION].find({})
+    permissions = []
+
+    async for perm in permissions_cursor:
+        permissions.append(perm["code"])
+    
+
+     ## create SUPER_ADMIN role if not exists
     id = await create_role(
         role_name="SUPER_ADMIN",
-        description="System owner with full access"
+        description="System owner with full access",
+        permissions= permissions
     )
 
     super_admin_id = await create_super_admin_account(
