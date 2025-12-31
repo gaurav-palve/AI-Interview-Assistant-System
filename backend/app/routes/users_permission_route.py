@@ -14,6 +14,10 @@ router = APIRouter()
 class GetUserPermissionsResponse(BaseModel):
     permissions: List[str] | None = []
 
+class GetUserRoleResponse(BaseModel):
+    role_name: str
+
+
 
 @router.get("/user/permissions", response_model=GetUserPermissionsResponse)
 async def get_user_permissions(
@@ -51,3 +55,28 @@ async def get_user_permissions(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve user permissions"
         )
+    
+
+@router.get("/user/role", response_model=GetUserRoleResponse)
+async def get_user_role(
+    current_user: dict = Depends(get_current_user)
+):
+    try:
+        db = get_database()
+
+        role_id = current_user.get("role_id")
+        role = await db[ROLES_COLLECTION].find_one(
+            {"_id": ObjectId(role_id)}
+        )
+
+        if not role:
+            raise HTTPException(status_code=404, detail="Role not found")
+
+        return GetUserRoleResponse(
+            role_name=role.get("role_name")
+        )
+
+    except Exception as e:
+        logger.error(f"Error in get_user_role: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve role")
+
