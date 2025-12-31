@@ -90,6 +90,11 @@ function JobPostingDetail() {
   const [jdText, setJdText] = useState("");
   const [initialJdLoaded, setInitialJdLoaded] = useState(false); // ensure JD is initialized only once
 
+  // upload resume button
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const { hasPermission } = useAuth();
 
   const canViewJob =
@@ -114,6 +119,24 @@ function JobPostingDetail() {
     { id: 'assessments', label: 'Assessment Reports', icon: AssessmentIcon, show: canViewAssessments },
     { id: 'statistics', label: 'Statistics', icon: AssessmentIcon, show: canViewStatistics },
   ];
+
+
+  // upload button dummy
+  const handleDummyFiles = (files) => {
+    setSelectedFiles(Array.from(files));
+  };
+
+  const handleDropDummy = (e) => {
+    e.preventDefault();
+    handleDummyFiles(e.dataTransfer.files);
+  };
+
+  const handleDummyUpload = () => {
+    if (selectedFiles.length === 0) return;
+    setShowSuccess(true);
+  };
+
+
 
 
   
@@ -946,6 +969,22 @@ const handleDropResume = (e) => {
       </button>
       <span className="text-sm text-gray-500">Back to Job Postings</span>
     </div>
+    {/* RIGHT SIDE ACTIONS */}
+  <div className="flex items-center gap-2 ml-auto">
+    {/* Upload Resumes (LEFT of New Interview) */}
+    {canUploadResume && (
+    <button
+      onClick={() => {
+        setShowUploadModal(true);
+        setShowSuccess(false);
+        setSelectedFiles([]);
+      }}
+      className="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-primary-700"
+    >
+      <UploadIcon className="h-4 w-4 mr-2" />
+      Upload Resumes
+    </button>
+    )}
 
     {/* Right: New Interview */}
     {canCreateInterview && (
@@ -961,6 +1000,7 @@ const handleDropResume = (e) => {
       New Interview
     </Link>
     )}
+    </div>
   </div>
 
   {/* JOB INFO */}
@@ -1916,6 +1956,78 @@ const handleDropResume = (e) => {
           </div>
         )}
       </div>
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Upload Resumes</h3>
+              <button onClick={() => setShowUploadModal(false)}>
+                <CloseIcon />
+              </button>
+            </div>
+
+            {/* Drop Area */}
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDropDummy}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
+            >
+              <CloudUploadIcon className="mx-auto h-10 w-10 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-600">
+                Drag & drop resume files here
+              </p>
+
+              <label className="text-primary-600 text-sm cursor-pointer">
+                Browse files
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.zip"
+                  className="hidden"
+                  onChange={(e) => handleDummyFiles(e.target.files)}
+                />
+              </label>
+            </div>
+
+            {/* Selected Files */}
+            {selectedFiles.length > 0 && (
+              <ul className="mt-3 text-sm text-gray-700">
+                {selectedFiles.map((file, index) => (
+                  <li key={index}>• {file.name}</li>
+                ))}
+              </ul>
+            )}
+
+            {/* Success Message */}
+            {showSuccess && (
+              <div className="mt-4 bg-green-50 border-l-4 border-green-500 p-3 text-sm text-green-700">
+                ✅ Resume uploaded successfully
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="btn btn-outline btn-sm"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleDummyUpload}
+                disabled={selectedFiles.length === 0}
+                className="btn btn-primary btn-sm"
+              >
+                Upload
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
