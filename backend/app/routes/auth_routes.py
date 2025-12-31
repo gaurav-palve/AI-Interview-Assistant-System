@@ -148,13 +148,15 @@ async def user_signin(
         logger.error(f"Error during login: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error during login")
 
-    # Construct a valid response that matches the AdminSigninResponse model
-    return {
+    data ={
+        "user_name": token_response["user_name"],
         "access_token": token_response["access_token"],
         "token_type": token_response["token_type"],
         "refresh_token": token_response["refresh_token"],
         "message": "Login successful"  # Make sure this required field is included
     }
+    # Construct a valid response that matches the AdminSigninResponse model
+    return data
 
 
 # --- Verify JWT (Protected Route) ---

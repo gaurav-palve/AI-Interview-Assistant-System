@@ -18,7 +18,6 @@ const StatusDropdown = ({ jobId, currentStatus, onStatusChange }) => {
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  console.log(`StatusDropdown rendering with currentStatus: ${currentStatus} for job: ${jobId}`);
   
   // Status configuration with labels and colors
   const statusConfig = {

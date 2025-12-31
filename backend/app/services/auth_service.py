@@ -66,37 +66,7 @@ async def create_super_admin_account(
         logger.error(f"Error creating super admin account: {e}")
         raise
 
-# async def verify_session(session_token: str = Query(None)):
-#     """
-#     DEPRECATED: Use verify_token_from_header instead with Authorization header.
-    
-#     This is a compatibility function that will be removed in future versions.
-#     Only used for backward compatibility with old code.
-#     """
-#     logger.warning("verify_session is deprecated and will be removed. Use get_current_user dependency instead.")
-    
-#     if not session_token:
-#         raise HTTPException(status_code=401, detail="Not authenticated")
-    
-#     try:
-#         # Decode and validate the JWT token
-#         payload = decode_jwt_token(session_token)
-        
-#         # Extract user information from the token
-#         user_id = payload.get("user_id")
-        
-#         if not user_id:
-#             raise HTTPException(status_code=401, detail="Invalid token structure")
-        
-#         # Return session data in the format expected by existing code
-#         return {
-#             "user_id": user_id
-#         }
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         logger.error(f"Error in deprecated verify_session: {e}")
-#         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
 
 async def authenticate_admin(
     email: str,
@@ -144,6 +114,7 @@ async def authenticate_admin(
         logger.info(f"Admin authenticated successfully: {email}")
         
         return {
+            "user_name":user.get("first_name")+' '+user.get("last_name"),
             "access_token": access_token,
             "token_type": "bearer",
             "refresh_token": refresh_token,

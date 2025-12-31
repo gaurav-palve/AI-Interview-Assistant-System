@@ -5,12 +5,15 @@ import jobPostingService from '../services/jobPostingService';
 import interviewService from '../services/interviewService';
 import StatCard from '../components/Dashboard/StatCard';
 import JobStatisticsTable from '../components/JobStatisticsTable/JobStatisticsTable';
-import { Doughnut } from 'react-chartjs-2';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { PERMISSIONS } from "../constants/permissions";
 import {
   Chart as ChartJS,
   ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
   Tooltip,
   Legend
 } from 'chart.js';
@@ -85,7 +88,6 @@ const buildJobDonut = (stats) => ({
     },
   ],
 });
-
 // For user-role statistics - donut chart
 const buildRoleDonut = (stats) => {
   // Extract role names and counts
@@ -109,6 +111,67 @@ const buildRoleDonut = (stats) => {
   };
 };
 
+// For role statistics - donut chart
+const buildRoleStatsDonut = (stats) => {
+  // Extract role names and counts
+  const roleNames = stats?.roles?.map(role => role.role) || [];
+  const roleCounts = stats?.roles?.map(role => role.count) || [];
+  
+  // Generate colors dynamically based on number of roles
+  const backgroundColors = roleNames.map((_, index) => {
+    const hue = (index * 137) % 360; // Golden ratio to distribute colors
+    return `hsla(${hue}, 70%, 60%, 0.6)`;
+  });
+  
+  return {
+    labels: roleNames,
+    datasets: [
+      {
+        data: roleCounts,
+        backgroundColor: backgroundColors,
+      },
+    ],
+  };
+};
+
+// For interview statistics from dashboard stats - donut chart
+const buildInterviewStatsDonut = (stats) => ({
+  labels: ['Scheduled', 'In Progress', 'Completed', 'Draft'],
+  datasets: [
+    {
+      data: [
+        stats?.scheduled_count || 0,
+        stats?.in_progress_count || 0,
+        stats?.completed_count || 0,
+        stats?.draft_count || 0,
+      ],
+      backgroundColor: [
+        'rgba(54, 162, 235, 0.6)',  // Blue for scheduled
+        'rgba(234, 179, 8, 0.6)',   // Yellow for in progress
+        'rgba(34, 197, 94, 0.6)',   // Green for completed
+        'rgba(156, 163, 175, 0.6)', // Gray for draft
+      ],
+    },
+  ],
+});
+
+// For user statistics - donut chart
+const buildUserStatsDonut = (stats) => ({
+  labels: ['Active Users', 'Inactive Users'],
+  datasets: [
+    {
+      data: [
+        stats?.active_users || 0,
+        stats?.inactive_users || 0,
+      ],
+      backgroundColor: [
+        'rgba(34, 197, 94, 0.6)',  // Green for active
+        'rgba(239, 68, 68, 0.6)',   // Red for inactive
+      ],
+    },
+  ],
+});
+
 function Dashboard() {
   const { user, hasPermission, loading} = useAuth();
   const navigate = useNavigate();
@@ -120,6 +183,7 @@ function Dashboard() {
     totalJobPostings: 0,
     activeJobs: 0,
     rolesUsers: { roles: 0, users: 0 },
+    interviews: { total: 0, completed: 0 },
   });
 
   const [activeMetric, setActiveMetric] = useState('interviews');
@@ -131,7 +195,7 @@ function Dashboard() {
     { id: 2, title: 'Job Role Name', candidate: 'Sumeet Patil', time: '11:00AM - 12:00PM' }
   ]);
 
-  const sidebarMetrics = ['Interviews', 'Jobs', 'Roles', 'Users','Roles & Users'];
+  const sidebarMetrics = ['Interviews', 'Jobs', 'Roles', 'Users'];
 
   /* ------------------- Week Logic ------------------- */
 
@@ -152,8 +216,8 @@ function Dashboard() {
     const fetchInitialData = async () => {
       try {
         // Fetch interview stats for the chart
-        const interviewStats = await interviewService.getInterviewStatistics();
-        setChartData(buildInterviewDonut(interviewStats.data));
+        const interviewStats = await interviewService.getInterviewsStats();
+        setChartData(buildInterviewStatsDonut(interviewStats));
         
         // Fetch job stats for the dashboard cards
         const jobStats = await interviewService.getJobStatistics();
@@ -169,6 +233,10 @@ function Dashboard() {
             roles: userRoleStats.total_roles || 0,
             users: userRoleStats.total_users || 0
           },
+          interviews: {
+            total: interviewStats.total_interviews || 0,
+            completed: interviewStats.completed_count || 0
+          }
         });
       } catch (err) {
         console.error('Error fetching initial dashboard data:', err);
@@ -191,8 +259,17 @@ function Dashboard() {
 
     try {
       if (metric === 'interviews') {
-        const res = await interviewService.getInterviewStatistics();
-        setChartData(buildInterviewDonut(res.data));
+        const res = await interviewService.getInterviewsStats();
+        setChartData(buildInterviewStatsDonut(res));
+        
+        // Update dashboard stats with the latest interview data
+        setDashboardStats(prevStats => ({
+          ...prevStats,
+          interviews: {
+            total: res.total_interviews || 0,
+            completed: res.completed_count || 0
+          }
+        }));
       }
       else if (metric === 'jobs') {
         const res = await interviewService.getJobStatistics();
@@ -205,7 +282,26 @@ function Dashboard() {
           activeJobs: res.active || 0,
         }));
       }
-      else if (metric === 'roles' || metric === 'users') {
+      else if (metric === 'roles') {
+        // Use the new method to fetch role statistics
+        const res = await interviewService.getRoleStatistics();
+        setChartData(buildRoleStatsDonut(res));
+      }
+      else if (metric === 'users') {
+        // Use the new method to fetch user statistics
+        const res = await interviewService.getUserStatistics();
+        setChartData(buildUserStatsDonut(res));
+        
+        // Update dashboard stats with the latest data
+        setDashboardStats(prevStats => ({
+          ...prevStats,
+          rolesUsers: {
+            ...prevStats.rolesUsers,
+            users: res.total_users || 0
+          },
+        }));
+      }
+      else if (metric === 'roles & users') {
         const res = await interviewService.getUserRoleStatistics();
         setChartData(buildRoleDonut(res));
         

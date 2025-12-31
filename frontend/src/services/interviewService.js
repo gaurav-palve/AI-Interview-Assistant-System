@@ -455,7 +455,7 @@ const interviewService = {
      */
     getJobStatistics: async () => {
       try {
-        const response = await api.get('/dashboard-stats/job-statistics');
+        const response = await api.get('/dashboard-stats/get-job-statistics');
         return response.data;
       } catch (error) {
         throw error.response?.data || { detail: 'An error occurred while fetching job statistics' };
@@ -477,6 +477,50 @@ const interviewService = {
       }
     },
   
+    /**
+     * Get role statistics
+     * @returns {Promise}
+     */
+    getRoleStatistics: async () => {
+      try {
+        const response = await api.get('/dashboard-stats/get-roles-stats');
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || {
+          detail: 'An error occurred while fetching role statistics'
+        };
+      }
+    },
+
+    /**
+     * Get user statistics (total, active, inactive)
+     * @returns {Promise}
+     */
+    getUserStatistics: async () => {
+      try {
+        const response = await api.get('/dashboard-stats/get-users-stats');
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || {
+          detail: 'An error occurred while fetching user statistics'
+        };
+      }
+    },
+
+    /**
+     * Get interview statistics from dashboard stats
+     * @returns {Promise}
+     */
+    getInterviewsStats: async () => {
+      try {
+        const response = await api.get('/dashboard-stats/get-interviews-stats');
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || {
+          detail: 'An error occurred while fetching interview statistics'
+        };
+      }
+    },
 
 };
 

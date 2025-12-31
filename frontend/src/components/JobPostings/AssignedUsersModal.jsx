@@ -62,7 +62,7 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
       
       // Reset selection and refresh data
       setSelectedUserIds([]);
-      setShowAssignPanel(false);
+      setShowAssignPanel(true);
       await fetchData();
     } catch (err) {
       console.error('Error assigning users:', err);
@@ -92,7 +92,7 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-900">
-            {showAssignPanel ? 'Assign Users' : 'Users Assigned to Job'}
+            {!showAssignPanel ? 'Assign Users' : 'Users Assigned to Job'}
           </h3>
           <button
             onClick={onClose}
@@ -116,7 +116,7 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
         )}
 
         {/* Content */}
-        {showAssignPanel ? (
+        {!showAssignPanel ? (
           <div>
             {/* Search input for assign panel */}
             <div className="relative mb-4">
@@ -174,7 +174,7 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
             {/* Action buttons */}
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setShowAssignPanel(false)}
+                onClick={() => setShowAssignPanel(true)}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Cancel
@@ -233,7 +233,7 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
             {/* Action button to assign users */}
             <div className="mt-6 flex justify-end">
               <button
-                onClick={() => setShowAssignPanel(true)}
+                onClick={() => setShowAssignPanel(false)}
                 className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center"
               >
                 <PersonAddIcon className="h-5 w-5 mr-2" />
