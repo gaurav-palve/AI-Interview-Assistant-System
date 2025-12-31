@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import AssignedUsersModal from '../../components/JobPostings/AssignedUsersModal';
+import JobPostingCard from '../../components/JobPostings/JobPostingCard';
 import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
 import { useAuth } from "../../contexts/AuthContext";
 import { PERMISSIONS } from "../../constants/permissions";
@@ -47,7 +48,7 @@ function JobPostingsList() {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
-  const [showActionMenu, setShowActionMenu] = useState(null);
+  const [showActionMenu, setShowActionMenu] = useState(null); // Kept for backward compatibility
   const [showAssignedUsersModal, setShowAssignedUsersModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [showAssignPanel, setShowAssignPanel] = useState(false);
@@ -119,15 +120,10 @@ function JobPostingsList() {
   const handleStatusChange = async (jobId, newStatus) => {
     console.log(`Updating job ${jobId} status to ${newStatus} in list view`);
     
-    // Show error message for demonstration
+    // Show loading state
     setStatusUpdateError({
       [jobId]: true
     });
-    
-    // Clear error after 3 seconds
-    setTimeout(() => {
-      setStatusUpdateError({});
-    }, 3000);
     
     try {
       // Update locally first for better UX
@@ -136,6 +132,12 @@ function JobPostingsList() {
           job.id === jobId ? { ...job, status: newStatus } : job
         )
       );
+      
+      // Call the API to update the status
+      const response = await jobPostingService.changeJobPostingStatus(jobId, newStatus);
+      
+      // Clear error/loading state after successful update
+      setStatusUpdateError({});
       
       // Try to refresh the list to get the latest data, but don't override local state if it fails
       try {
@@ -146,19 +148,33 @@ function JobPostingsList() {
       }
     } catch (err) {
       console.error('Error in handleStatusChange:', err);
+      
+      // Show error message for 3 seconds
+      setStatusUpdateError({
+        [jobId]: true,
+        isError: true
+      });
+      
+      // Clear error after 3 seconds
+      setTimeout(() => {
+        setStatusUpdateError({});
+      }, 3000);
+      
       // Even on error, keep the local state updated for better UX
     }
   };
   
   // Handle delete button click
   const handleDeleteClick = (e, jobId) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setJobToDelete(jobId);
     setShowDeleteConfirm(true);
   };
 
-  // Handle 3-dots menu
+  // Handle 3-dots menu (kept for backward compatibility)
   const handleMenuToggle = (e, jobId) => {
     e.preventDefault();
     e.stopPropagation();
@@ -167,25 +183,29 @@ function JobPostingsList() {
 
   // Handle view assigned users click
   const handleViewAssignedUsersClick = (e, job) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSelectedJob(job);
-    setShowAssignedUsersModal(true);
+    // setShowAssignedUsersModal(true);
     setShowActionMenu(null);
-    setShowAssignPanel(false); // Open in view mode
+    setShowAssignPanel(true); // Open in view mode
   };
 
   // Handle assign users click
   const handleAssignUsersClick = (e, job) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSelectedJob(job);
     setShowAssignedUsersModal(true);
     setShowActionMenu(null);
     setShowAssignPanel(true); // Open directly in assign mode
   };
   
-  // Close action menu when clicking outside
+  // Close action menu when clicking outside (kept for backward compatibility)
   const actionMenuRef = useRef(null);
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -262,39 +282,35 @@ function JobPostingsList() {
   const [statusUpdateError, setStatusUpdateError] = useState({});
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight animate-slideInLeft">Job Postings</h1>
-          <p className="text-gray-600 mt-2 animate-slideInLeft animation-delay-100">Manage and track all your job openings in one place</p>
-        </div>
-        {canCreateJob && (
-        <Link
-          to="/job-postings/new"
-          className="btn btn-primary group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
-        >
-          <span className="relative z-10 flex items-center">
-            <AddIcon className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-90" />
-            Create Job
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-        </Link>
-        )}
+    <div className="space-y-6 animate-fadeIn">
+  <div className="flex mb-16 items-end">
+    
+    {/* Left content – takes only needed width */}
+    <span className="flex flex-shrink-0">
+      <div
+        style={{
+          borderRightColor: "black",
+          borderRightWidth: 1,
+          whiteSpace: "nowrap",
+          paddingRight: 12,
+        }}
+      >
+        <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight animate-slideInLeft">
+          Job Postings
+        </h1>
       </div>
 
-      {error && (
-        <div className="bg-danger-50 border-l-4 border-danger-500 p-4 rounded-r-md animate-slideIn">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-danger-700">{error}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      <div style={{ paddingLeft: 6, maxWidth: 300 }}>
+        <p className="text-gray-600 mt-2 animate-slideInLeft animation-delay-100 pr-1">
+          Manage and track all your job openings in one place
+        </p>
+      </div>
+    </span>
 
-      {/* Search and Filters */}
-      <div className="bg-gradient-to-r from-gray-50 to-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-slideInUp">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    {/* Right content – fills remaining space */}
+    <div className="flex flex-1 justify-end">
+
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4" style={{alignSelf:"flex-end",flex:1,flexDirection:"row"}}>
           <div className="relative flex-grow max-w-xl group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <SearchIcon className="h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-primary-500" />
@@ -303,8 +319,8 @@ function JobPostingsList() {
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              placeholder="Search jobs by title, skills, or company..."
-              className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all duration-300 placeholder-gray-400"
+              placeholder="Search ..."
+              className="w-full flex items-center space-x-3 pl-12 pr-4 py-2 border-2 border-gray-200 rounded-full focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all duration-300 placeholder-gray-400"
             />
             {searchQuery && (
               <button
@@ -330,39 +346,35 @@ function JobPostingsList() {
                   </span>
                 )}
               </button>
-            </div>
-            
-            <div className="relative">
-              <button 
-                onClick={() => setShowSortMenu(!showSortMenu)}
-                className="btn btn-outline btn-sm group hover:bg-primary-50 hover:border-primary-500 transition-all duration-300"
-              >
-                <SortIcon className="h-4 w-4 mr-1 group-hover:text-primary-600" />
-                Sort
-              </button>
-              
-              {showSortMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-slideInDown">
-                  {['newest', 'oldest', 'title', 'company'].map(option => (
-                    <button
-                      key={option}
-                      onClick={() => {
-                        setSortOption(option);
-                        setShowSortMenu(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left hover:bg-primary-50 transition-colors duration-200 ${
-                        sortOption === option ? 'bg-primary-100 text-primary-700 font-medium' : 'text-gray-700'
-                      }`}
-                    >
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              )}
+            </div>   
+      {canCreateJob && (   
+        <Link
+          to="/job-postings/new"
+          className="btn btn-primary group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
+        >
+          <span className="relative z-10 flex items-center">
+            <AddIcon className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" style={{marginLeft:-6}} />
+            Create Job
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+        </Link>
+      )}
+          </div>
+        </div>
+      </div> 
+    </div>
+
+      {error && (
+        <div className="bg-danger-50 border-l-4 border-danger-500 p-4 rounded-r-md animate-slideIn">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-danger-700">{error}</p>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+     
 
       {/* Status Tabs */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1">
@@ -403,198 +415,23 @@ function JobPostingsList() {
           <p className="text-gray-500 animate-pulse">Loading job postings...</p>
         </div>
       ) : jobPostings.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">    
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {jobPostings.map((job, index) => (
-            <Link
+            <div
               key={job.id}
-              to={`/job-postings/${job.id}`}
-              className={`
-                group relative bg-white rounded-2xl overflow-hidden border border-gray-100
-                transform transition-all duration-500 hover:scale-105 hover:shadow-2xl
-                animate-slideInUp cursor-pointer
-              `}
               style={{ animationDelay: `${index * 100}ms` }}
-              onMouseEnter={() => setHoveredCard(job.id)}
-              onMouseLeave={() => setHoveredCard(null)}
+              className="animate-slideInUp h-full w-full"
             >
-              <div className="relative">
-                {/* Gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Status dropdown */}
-                <div
-                  className="absolute top-4 right-4 z-10"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  data-testid={`status-dropdown-${job.id}`}
-                >
-                  {canChangeStatus && (
-                  <StatusDropdown
-                    key={`status-${job.id}-${job.status}`}
-                    jobId={job.id}
-                    currentStatus={job.status || 'active'}
-                    onStatusChange={(newStatus) => handleStatusChange(job.id, newStatus)}
-                  />
-                  )}
-                  
-                </div>
-
-                <div className="p-6 relative">
-                  {/* Header with company avatar */}
-                  <div className="flex items-start mb-4">
-                     <div className="flex-shrink-0 rounded-xl
-    text-white flex items-center justify-center font-bold text-lg
-    shadow-md transform transition-all duration-300 bg-white">
-                        <div className="h-11 w-11 flex items-center">
-                          <img
-                            src={Nts_logo}
-                            alt="NTSLOGO"f
-                            className="h-11 w-11 object-contain"
-                          />
-                        </div>
-                      </div>
-                     
-                   
-                    <div className="ml-2  flex-grow">
-                      <h3 className="text-2xl font-bold text-blue-600 group-hover:text-primary-700 transition-colors duration-300 -mt-1.5">
-                        {job.job_title}
-                      </h3>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <BusinessIcon className="h-3 w-3 mr-1" />
-                        {job.company}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Job details with icons */}
-                  <div className="space-y-1 mb-4">
-                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                      <WorkIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                      <span className="font-medium">{job.job_type || 'Full-time'}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                      <LocationIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                      <span>{job.location || 'Remote'}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                      <TimeIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                      <span>{job.experience_level || 'Entry Level'}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600 group-hover:text-gray-800 transition-colors duration-300">
-                      <CalendarIcon className="h-4 w-4 mr-2 text-primary-400 group-hover:text-primary-500" />
-                      <span>Posted {new Date().toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Skills tags */}
-                  {job.required_skills && job.required_skills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {job.required_skills.slice(0, 3).map((skill, idx) => (
-                        <span 
-                          key={idx} 
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg group-hover:bg-primary-100 group-hover:text-primary-700 transition-colors duration-300"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {job.required_skills.length > 3 && (
-                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-lg">
-                          +{job.required_skills.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Footer with stats */}
-                  <div className="pt-4 border-t border-gray-100 flex items-center">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <GroupIcon className="h-4 w-4 mr-1" />
-                        <span className="font-medium">0</span> applicants
-                      </span>
-                      <span className="flex items-center">
-                        <ViewIcon className="h-4 w-4 mr-1" />
-                        <span className="font-medium">0</span> views
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Action buttons at bottom right */}
-<div className="absolute bottom-4 right-4 z-10 flex space-x-2">
-
-  {/* 3-dot menu */}
-  <div
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleMenuToggle(e, job.id);
-    }}
-  >
-    <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-300">
-      <MoreIcon className="h-5 w-5" />
-    </button>
-
-    {/* Action menu dropdown */}
-    {showActionMenu === job.id && (
-      <div
-        ref={actionMenuRef}
-        className="absolute bottom-12 right-0 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fadeIn"
-      >
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleViewAssignedUsersClick(e, job);
-          }}
-          className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
-        >
-          <GroupIcon className="h-4 w-4 mr-2 text-primary-500" />
-          <span>View Assigned Users</span>
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleAssignUsersClick(e, job);
-          }}
-          className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
-        >
-          <PersonAddIcon className="h-4 w-4 mr-2 text-primary-500" />
-          <span>Assign Users</span>
-        </button>
-      </div>
-    )}
-  </div>
-
-  {/* Delete button */}
-  {canDeleteJob && (
-    <div
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleDeleteClick(e, job.id);
-      }}
-    >
-      <button
-        className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-colors duration-300"
-        aria-label="Delete job posting"
-      >
-        <DeleteIcon className="h-5 w-5" />
-      </button>
-    </div>
-  )}
-</div>
-
- 
-                </div>
-              </div>
-            </Link>
+              <JobPostingCard
+                job={job}
+                onDelete={(jobId) => handleDeleteClick(null, jobId)}
+                onAssign={(job) => handleAssignUsersClick(null, job)}
+                onChangeStatus={(jobId, newStatus) => handleStatusChange(jobId, newStatus)}
+                canEdit={canEditJob}
+                canDelete={canDeleteJob}
+                canChangeStatus={canChangeStatus}
+              />
+            </div>
           ))}
         </div>
       ) : (

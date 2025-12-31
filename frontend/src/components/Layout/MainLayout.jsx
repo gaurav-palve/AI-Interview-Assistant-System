@@ -152,7 +152,7 @@ export default function MainLayout({ children }) {
         {/* Professional Toggle Button - Top right of drawer when expanded */}
         <button
           onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-          className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-primary-700 shadow-lg border border-white/10"
+          className=" ml-2 hidden md:flex items-center justify-center w-12 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-primary-700 shadow-lg border border-white/10"
           aria-label="Collapse sidebar"
         >
           <ChevronLeftIcon className="h-5 w-5" />
@@ -301,31 +301,24 @@ export default function MainLayout({ children }) {
 </nav>
  
           {/* User Info */}
-          <div
-            className={`p-4 border-t border-white/10 transition-all duration-300 overflow-hidden ${
-              isSidebarVisible ? 'opacity-100 max-h-32' : 'opacity-0 max-h-0 p-0'
-            }`}
-          >
+          <div className="p-4 border-t border-white/10">
             <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 flex items-center justify-center text-white shadow-xl flex-shrink-0 ring-2 ring-white/20">
-                <PersonIcon />
-              </div>
-              <div className={`ml-3 transition-all duration-300 ${
-                isSidebarVisible
-                  ? 'opacity-100 max-w-[200px]'
-                  : 'opacity-0 max-w-0 overflow-hidden'
-              }`}>
-                <p className="text-sm font-semibold text-white whitespace-nowrap">{user?.email?.split('@')[0]}</p>
-                <button
-                  onClick={handleLogout}
-                  className="text-xs font-medium text-white/70 hover:text-white flex items-center transition-colors mt-1 whitespace-nowrap hover:underline"
-                >
-                  <LogoutIcon className="h-4 w-4 mr-1" />
-                  Logout
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="text-xs font-medium text-white/70 hover:text-white flex items-center transition-colors whitespace-nowrap hover:underline"
+              >
+                <LogoutIcon className="h-4 w-4" />
+                <span
+                  className={`ml-1 transition-all duration-300 ${isSidebarVisible
+                      ? 'opacity-100 max-w-[100px]'
+                      : 'opacity-0 max-w-0 overflow-hidden'
+                    }`}
+                > Logout
+                </span>
+              </button>
             </div>
           </div>
+
         </div>
       </div>
  
@@ -415,11 +408,11 @@ export default function MainLayout({ children }) {
          {/* Right side - User info and profile */}
          <div className="flex items-center space-x-4">
            <div className="flex items-center" style={{flexDirection: 'column', alignItems: 'flex-end'}}>
-             <span className="text-sm text-white">Hello, {user?.email?.split('@')[0] || 'Sumeet'}</span>
+             <span className="text-sm text-white">Hello, {localStorage.getItem('user_name')}</span>
              <span className="text-xs text-gray-300 ml-1">Super Admin</span>
            </div>
            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
-             <span className="text-white">{user?.email?.split('@')[0]?.substring(0, 2).toUpperCase() || 'SP'}</span>
+             <PersonIcon className="text-white" />
            </div>
          </div>
           </div>

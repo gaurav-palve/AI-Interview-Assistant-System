@@ -173,31 +173,61 @@ async def get_job_postings(
     skip: int = Query(0, ge=0),
     current_user: dict = Depends(require_permission("JOB_VIEW"))
 ):
-    """
-    Get all job postings with optional filters
-    """
     try:
         db = get_database()
-        
-        # Build query
-        query = {}
-        if status:
-            query["status"] = status
-        
-        if search:
-            # Search in multiple fields
-            search_query = {
+        user_id = ObjectId(current_user["_id"])
+
+        # Fetch role
+        role_doc = await db[ROLES_COLLECTION].find_one(
+            {"_id": ObjectId(current_user.get("role_id"))},
+            {"role_name": 1}
+        )
+
+        if not role_doc:
+            raise HTTPException(status_code=403, detail="Invalid role")
+
+        # -------------------------
+        # BASE QUERY
+        # -------------------------
+        if role_doc["role_name"] == "SUPER_ADMIN":
+            query = {}
+        else:
+            # Fetch assigned job IDs
+            assignments = await db["job_assignments"].find(
+                {
+                    "user_id": user_id,
+                    "status": "active"
+                },
+                {"job_id": 1}
+            ).to_list(length=None)
+
+            assigned_job_ids = [a["job_id"] for a in assignments]
+
+            query = {
                 "$or": [
-                    {"job_title": {"$regex": search, "$options": "i"}},
-                    {"company": {"$regex": search, "$options": "i"}},
-                    {"location": {"$regex": search, "$options": "i"}},
-                    {"required_skills": {"$elemMatch": {"$regex": search, "$options": "i"}}},
-                    {"job_description": {"$regex": search, "$options": "i"}}
+                    {"created_by": str(user_id)},
+                    {"_id": {"$in": assigned_job_ids}}
                 ]
             }
-            query["$or"] = [search_query]
-        
-        # Determine sort order
+
+        # -------------------------
+        # FILTERS
+        # -------------------------
+        if status:
+            query["status"] = status
+
+        if search:
+            query["$or"] = query.get("$or", []) + [
+                {"job_title": {"$regex": search, "$options": "i"}},
+                {"company": {"$regex": search, "$options": "i"}},
+                {"location": {"$regex": search, "$options": "i"}},
+                {"job_description": {"$regex": search, "$options": "i"}},
+                {"required_skills": {"$elemMatch": {"$regex": search, "$options": "i"}}}
+            ]
+
+        # -------------------------
+        # SORTING
+        # -------------------------
         sort_options = {
             "newest": [("created_at", -1)],
             "oldest": [("created_at", 1)],
@@ -205,48 +235,54 @@ async def get_job_postings(
             "title_desc": [("job_title", -1)]
         }
         sort_order = sort_options.get(sort, sort_options["newest"])
-        
-        # Fetch job postings
-        cursor = db[JOB_POSTINGS_COLLECTION].find(query).sort(sort_order).skip(skip).limit(limit)
-        job_postings = await cursor.to_list(length=limit)
-        
-        # Get total count for pagination
-        total_count = await db[JOB_POSTINGS_COLLECTION].count_documents(query)
-        
-        # Convert ObjectId to string and datetime to ISO format
+
+        # -------------------------
+        # FETCH DATA
+        # -------------------------
+        cursor = (
+            db[JOB_POSTINGS_COLLECTION]
+            .find(query)
+            .sort(sort_order)
+            .skip(skip)
+            .limit(limit)
+        )
+
+        jobs = await cursor.to_list(length=limit)
+        total = await db[JOB_POSTINGS_COLLECTION].count_documents(query)
+
+        # -------------------------
+        # RESPONSE
+        # -------------------------
         result = []
-        for job in job_postings:
+        for job in jobs:
             result.append({
                 "id": str(job["_id"]),
                 "job_title": job.get("job_title"),
                 "company": job.get("company"),
-                "job_type": job.get("job_type"),
-                "work_location": job.get("work_location"),
-                "location": job.get("location"),
-                "experience_level": job.get("experience_level"),
-                "department": job.get("department"),
-                "required_skills": job.get("required_skills", []),
-                "requirements": job.get("requirements", []),
-                "responsibilities": job.get("responsibilities", []),
-                "qualifications": job.get("qualifications"),
-                "company_description": job.get("company_description"),
-                "job_description": job.get("job_description"),
                 "status": job.get("status"),
-                "created_by": str(job.get("created_by")) if job.get("created_by") else None,
-                "created_at": job.get("created_at", datetime.now(timezone.utc)).isoformat(),
-                "updated_at": job.get("updated_at", datetime.now(timezone.utc)).isoformat(),
+                "created_by": job.get("created_by"),
+                "created_at": job.get("created_at").isoformat(),
+                "updated_at": job.get("updated_at").isoformat(),
                 "applicants_count": job.get("applicants_count", 0),
-                "views_count": job.get("views_count", 0)
+                "experience" : job.get('experience_level'),
+                'skills': job.get("required_skills"),
+                "work_location": job.get("location"),
+                "job_type": job.get("job_type"),
+
+
             })
+
         return {
             "job_postings": result,
-            "total": total_count,
+            "total": total,
             "limit": limit,
             "skip": skip
         }
+
     except Exception as e:
         logger.error(f"Error listing job postings: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/get_job_posting_by_id/{job_id}")
 async def get_job_posting(job_id: str, current_user: dict = Depends(require_permission("JOB_VIEW"))):

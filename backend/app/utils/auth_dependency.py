@@ -9,7 +9,7 @@ from fastapi import Depends, Request, HTTPException
 from typing import Callable, Dict, Any, Optional
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from ..services.auth_service import verify_token_from_header
-from app.database import get_database, USERS_COLLECTION
+from app.database import get_database, USERS_COLLECTION , ROLES_COLLECTION
 from bson import ObjectId
 logger = logging.getLogger(__name__)
 
@@ -59,8 +59,9 @@ async def get_current_user(
 def require_permission(permission: str) -> Callable:
     """
     Dependency to check if the current user has the required permission.
-    SuperAdmin is identified via role.
+    SUPER_ADMIN has full access.
     """
+
     async def check_permission(
         current_user: Dict[str, Any] = Depends(get_current_user)
     ) -> Dict[str, Any]:
@@ -71,28 +72,30 @@ def require_permission(permission: str) -> Callable:
 
         role_id = role_id["_id"] if isinstance(role_id, dict) else role_id
         db = get_database()
-        role = await db.roles.find_one({"_id": ObjectId(role_id)})
+
+        # Fetch role
+        role = await db[ROLES_COLLECTION].find_one(
+            {"_id": ObjectId(role_id)},
+            {"role_name": 1, "permissions": 1}
+        )
 
         if not role:
             raise HTTPException(status_code=403, detail="Role not found")
 
-        permissions = role.get("permissions", [])
-
-        # SUPERADMIN → FULL ACCESS
+        # SUPER_ADMIN → FULL ACCESS
         if role.get("role_name") == "SUPER_ADMIN":
             return current_user
 
-        # Normal permission check
-        permission_docs = await db["role_permissions"].find({"role_id":role["_id"]}).to_list(length=None)
-        permissions = [doc["permission_code"] for doc in permission_docs]
+        role_permissions = role.get("permissions", [])
 
-        
-        # Check if user has required permission
-        if permission in permissions:
+        # Permission check
+        if permission in role_permissions:
             return current_user
+
         logger.warning(
-            f"Access denied | user={current_user['_id']} | permission={permission}"
+            f"Access denied | user={current_user.get('_id')} | permission={permission}"
         )
+
         raise HTTPException(status_code=403, detail="Access denied")
 
     return check_permission

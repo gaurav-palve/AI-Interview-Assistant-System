@@ -24,6 +24,7 @@ const authService = {
         // Use the shared utility to store token and update expiry time
         updateStoredToken(response.data.access_token);
         localStorage.setItem('user_email', email);
+        localStorage.setItem('user_name', response.data.user_name);
         
       }
       return response.data;

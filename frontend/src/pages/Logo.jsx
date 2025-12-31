@@ -13,7 +13,7 @@ export default function Logo({ expanded }) {
       {/* Animated name — only when expanded */}
       {expanded && (
         <span className="ml-3 text-white text-xl font-bold font-display whitespace-nowrap tracking-wide relative overflow-hidden transition-all duration-300 translate-x-0 opacity-90">
-          Interview.AI
+          Hirepool.AI
  
           {/* Sparkle effect */}
           <span className="absolute top-0 left-0 w-full h-full pointer-events-none">

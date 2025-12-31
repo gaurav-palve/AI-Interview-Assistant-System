@@ -70,7 +70,7 @@ async def assign_job_to_users(
 @router.get("/get-assigned-users-of-job/{job_id}")
 async def get_job_assignments_by_job(
     job_id: str,
-    current_user: dict = Depends(require_permission("view_job_assignments"))
+    current_user: dict = Depends(require_permission("ASSIGN_USERS"))
 ):
     db = get_database()
     

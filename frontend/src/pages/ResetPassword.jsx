@@ -90,7 +90,7 @@ export default function ResetPassword() {
               </div>
               <div>
                 <p className="text-lg font-extrabold text-white drop-shadow-lg">Neutrino</p>
-                <p className="text-[10px] opacity-90 tracking-widest text-gray-200">Interview.AI</p>
+                <p className="text-[10px] opacity-90 tracking-widest text-gray-200">Hirepool.AI</p>
               </div>
             </div>
 
