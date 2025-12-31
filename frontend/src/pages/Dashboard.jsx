@@ -7,6 +7,7 @@ import StatCard from '../components/Dashboard/StatCard';
 import JobStatisticsTable from '../components/JobStatisticsTable/JobStatisticsTable';
 import { Doughnut } from 'react-chartjs-2';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { PERMISSIONS } from "../constants/permissions";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -109,8 +110,11 @@ const buildRoleDonut = (stats) => {
 };
 
 function Dashboard() {
-  const { user } = useAuth();
+  const { user, hasPermission, loading} = useAuth();
   const navigate = useNavigate();
+
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isTAAdmin = user?.role === "TA Admin";
 
   const [dashboardStats, setDashboardStats] = useState({
     totalJobPostings: 0,
@@ -223,8 +227,6 @@ function Dashboard() {
     }
   };
 
-  /* ------------------- UI ------------------- */
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -234,6 +236,7 @@ function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {isSuperAdmin && (
         <StatCard
           icon={<JobIcon />}
           count={dashboardStats.totalJobPostings}
@@ -242,6 +245,9 @@ function Dashboard() {
           textColor="text-black"
           onClick={() => navigate('/job-postings')}
         />
+        )}
+
+        {isSuperAdmin && (
         <StatCard
           icon={<JobIcon />}
           count={dashboardStats.activeJobs}
@@ -250,8 +256,19 @@ function Dashboard() {
           textColor="text-black"
           onClick={() => navigate('/job-postings', { state: { filterActive: true } })}
         />
+        )}
+
+        {isSuperAdmin && (
         <StatCard icon={<PeopleIcon />} count={`${dashboardStats.rolesUsers.roles}/${dashboardStats.rolesUsers.users}`} label="Roles / Users" backgroundColor="bg-white" textColor="text-black" />
+        )}
+
+        {isSuperAdmin | isTAAdmin && (
         <StatCard icon={<JobIcon />} count="20 / 10" label="Interviews / Completed" backgroundColor="bg-white" textColor="text-black" hasArrow />
+        )}
+
+        {isTAAdmin && (
+        <StatCard icon={<JobIcon />} count="35" label="Resumes Uploaded" backgroundColor="bg-white" textColor="text-black" hasArrow />
+        )}
       </div>
 
       {/* Main Section */}

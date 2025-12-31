@@ -6,6 +6,8 @@ import authService from "../services/authService";
 // ==================
 const LS_EMAIL_KEY = "auth_email";
 const LS_PERMS_KEY = "auth_permissions";
+const LS_ROLE_KEY = "auth_role";
+
 
 // ==================
 // Create Context
@@ -35,8 +37,10 @@ export function AuthProvider({ children }) {
             localStorage.getItem(LS_PERMS_KEY) || "[]"
           );
 
+          const role = localStorage.getItem(LS_ROLE_KEY);
+
           if (email) {
-            setUser({ email, permissions });
+            setUser({ email, role, permissions });
           }
         }
       } catch (err) {
@@ -64,11 +68,15 @@ export function AuthProvider({ children }) {
     // 2️⃣ Fetch permissions from separate API
     const permissions = await authService.getUserPermissions();
 
+    // 3️⃣ Fetch role
+    const role_name = await authService.getUserRole();
+
     // 3️⃣ Persist
     localStorage.setItem(LS_EMAIL_KEY, email);
+    localStorage.setItem(LS_ROLE_KEY, role_name);
     localStorage.setItem(LS_PERMS_KEY, JSON.stringify(permissions));
 
-    setUser({ email, permissions });
+    setUser({ email, role: role_name, permissions});
 
   } catch (err) {
     console.error("Login failed:", err);
@@ -109,6 +117,7 @@ export function AuthProvider({ children }) {
 
       // Clear storage
       localStorage.removeItem(LS_EMAIL_KEY);
+      localStorage.removeItem(LS_ROLE_KEY);
       localStorage.removeItem(LS_PERMS_KEY);
 
       setUser(null);
