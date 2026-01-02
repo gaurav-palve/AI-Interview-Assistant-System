@@ -44,50 +44,52 @@ const JobPostingCard = ({
   return (
     <Link
       to={`/job-postings/${job.id}`}
-      className="group relative bg-white border border-gray-100 rounded-xl
+      className="group relative bg-white border border-gray-100 rounded-lg
                  transform transition-all duration-500 hover:scale-105 hover:shadow-2xl
                  animate-slideInUp cursor-pointer w-full h-full block"
     >
-      <div className="p-6 h-full flex flex-col relative">
+      <div className="p-2 h-full flex flex-col relative">
 
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between ">
           <div className="flex items-start">
-            <div className="flex-shrink-0 rounded-xl bg-orange-100 text-orange-500 p-2.5 mr-3">
-              <FolderIcon className="h-6 w-6" />
+            <div className="flex-shrink-0 rounded-lg bg-orange-100 text-orange-500 p-2.5 mr-3">
+              <FolderIcon className="h-4 w-4" />
             </div>
 
             <div>
              
 
-<Tooltip
-  title={job.job_title || 'Job Posting Name'}
-  placement="top"
-  arrow={false}   // no arrow = no border feel
-  sx={{
-    '& .MuiTooltip-tooltip': {
-      backgroundColor: '#111827',
-      color: '#ffffff',
-      fontSize: '12px',
-      fontWeight: 500,
-      padding: '6px 10px',
-      borderRadius: '6px',
-      boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
-      border: 'none', // explicitly no border
-    },
-  }}
->
-  <h3 className="text-lg font-bold text-gray-800 line-clamp-1 cursor-pointer">
-    {job.job_title || 'Job Posting Name'}
-  </h3>
-</Tooltip>
+              <Tooltip
+                title={job.job_title || 'Job Posting Name'}
+                placement="top"
+                arrow={false}   // no arrow = no border feel
+                sx={{
+                  '& .MuiTooltip-tooltip': {
+                    backgroundColor: '#111827',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    boxShadow: '0px 4px 12px rgba(0,0,0,0.2)',
+                    border: 'none', // explicitly no border
+                  },
+                }}
+              >
+                <h3 className="text-lg font-bold text-gray-800 line-clamp-1 cursor-pointer">
+                  {job.job_title || 'Job Posting Name'}
+                </h3>
+              </Tooltip>
 
 
 
-              <div className="flex items-center mt-1.5">
-                <span className="text-xs text-blue-500">
+              <div className="flex items-center">
+                <span className="text-xs text-blue-500 whitespace-nowrap overflow-hidden text-ellipsis block max-w-[160px]">
                   {job.company || 'Name of the org'}
                 </span>
+
+
 
                 <div className={`flex items-center ml-2 ${statusConfig.textColor} text-[12px]`}>
                   {statusConfig.label === 'Active' ? (
@@ -137,7 +139,7 @@ const JobPostingCard = ({
        
 
         {/* Job Details */}
-        <div className="flex items-center mt-2 mb-4 w-full justify-between pr-8">
+        <div className="flex items-center mt-2 mb-2 w-full justify-between pr-8">
 
           <div className="flex items-center whitespace-nowrap">
             <TimeIcon className="h-4 w-4 text-gray-400 mr-1" />
@@ -171,27 +173,29 @@ const JobPostingCard = ({
 
 
         {/* Skills */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-2 flex-nowrap overflow-hidden">
           {job.skills?.slice(0, 4).map((skill, idx) => (
             <span
               key={idx}
-              className="px-2 py-1 text-[10px] bg-gray-100 text-gray-700 rounded-lg"
+              className="px-2 py-1 text-[10px] bg-gray-100 text-gray-700 rounded-lg whitespace-nowrap flex-shrink-0"
             >
               {skill}
             </span>
           ))}
-          <span
-              className="px-2 py-1 text-[10px] bg-gray-100 text-gray-700 rounded-lg"
-            >
-             {job.skills?.length -4}+ more
+
+          {job.skills?.length > 4 && (
+            <span className="px-2 py-1 text-[10px] bg-gray-100 text-gray-700 rounded-lg whitespace-nowrap flex-shrink-0">
+              +{job.skills.length - 4} more
             </span>
+          )}
         </div>
+
 
         {/* Bottom Section */}
         <div className="mt-auto w-full">
-          <div className="border-t border-black" />
+          <div className="border-t border-gray-500" />
 
-          <div className="flex items-center justify-between text-xs text-gray-500 mt-3">
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
             <div className="flex items-center">
               <GroupIcon className="h-4 w-4 mr-1" />
               <span className="font-medium">{job.applicants_count || 0}</span>
