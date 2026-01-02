@@ -78,11 +78,9 @@ export default function MainLayout({ children }) {
       ],
     },
 
-    {
-      path: '/statistics', label: 'Statistics', icon: <StatsIcon />, permissions: [
-        PERMISSIONS.REPORT_VIEW,
-      ],
-    },
+    { path: '/statistics', label: 'Statistics', icon: <StatsIcon />, permissions: [
+      PERMISSIONS.INTERVIEW_VIEW,
+    ], },
 
     {
       path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon />, permissions: [

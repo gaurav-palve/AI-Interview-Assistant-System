@@ -61,7 +61,7 @@ export const NAV_ITEMS = [
     label: "Statistics",
     icon: BarChartOutlined,
     permissions: [
-      PERMISSIONS.REPORT_VIEW,
+      PERMISSIONS.INTERVIEW_VIEW,
     ],
   },
 

@@ -75,6 +75,7 @@ function JobPostingsList() {
   const canChangeStatus = hasPermission(PERMISSIONS.JOB_POSTING_STATUS);
   const canDeleteJob = hasPermission(PERMISSIONS.JOB_DELETE);
   const canEditJob = hasPermission(PERMISSIONS.JOB_EDIT);
+  const canAssign = hasPermission(PERMISSIONS.JOB_ASSIGN);
 
   const fetchJobPostings = async () => {
   try {
@@ -430,6 +431,7 @@ function JobPostingsList() {
                 canEdit={canEditJob}
                 canDelete={canDeleteJob}
                 canChangeStatus={canChangeStatus}
+                canAssign = {canAssign}
               />
             </div>
           ))}
@@ -443,6 +445,7 @@ function JobPostingsList() {
           <p className="text-gray-500 mb-6 max-w-md mx-auto">
             Start building your talent pipeline by creating your first job posting
           </p>
+          {canCreateJob && (
           <Link
             to="/job-postings/new"
             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
@@ -450,6 +453,7 @@ function JobPostingsList() {
             <AddIcon className="-ml-1 mr-2 h-5 w-5" />
             Create Your First Job
           </Link>
+          )}
         </div>
       )}
       
