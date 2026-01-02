@@ -89,7 +89,7 @@ function JobStatisticsTable() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center">
-            <span className="mr-2">Job-wise Statistics</span>
+            <span className="mr-2">Job Posting Statistics</span>
           </h2>
           <a href="#" className="text-blue-500 text-sm">View All</a>
         </div>
@@ -105,8 +105,7 @@ function JobStatisticsTable() {
         ) : statistics.length === 0 ? (
           <div className="text-center py-8">
             <JobIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No job statistics available</h3>
-            <p className="text-gray-500">Create job postings to see statistics here</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">No statistics available</h3>
           </div>
         ) : (
           <div className="overflow-x-auto">

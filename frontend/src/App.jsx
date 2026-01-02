@@ -44,13 +44,27 @@ import RoleManagement from './pages/SuperAdmin/RoleManagement';
 // import UsersList from './pages/Users/UsersList';
 import CreateUser from './pages/CreateUser';
 import UsersList from './pages/UserList';
-
+import { refreshPermissions } from './contexts/AuthContext';
+import { useEffect } from 'react';
 
 /**
  * Main App component
  * Routing and authentication setup
  */
 function App() {
+
+ useEffect(() => {
+  const navigationType =
+    performance.getEntriesByType("navigation")[0]?.type;
+
+  if (navigationType === "reload") {
+    console.log("Page was refreshed");
+    refreshPermissions();
+    // Your refresh-specific logic
+  }
+}, []);
+
+
   return (
     <Routes>
         {/* Public routes */}

@@ -95,7 +95,6 @@ export default function MainLayout({ children }) {
     if (hour < 12) setGreeting('Good morning');
     else if (hour < 18) setGreeting('Good afternoon');
     else setGreeting('Good evening');
-
     const interval = setInterval(() => {
       const greetings = ['Hello', 'Welcome', 'Hi there'];
       setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
@@ -153,7 +152,7 @@ export default function MainLayout({ children }) {
       >
         <div className="flex flex-col w-full h-full">
           {/* Logo and Toggle Button */}
-          <div className="px-4 pt-4" style={{ backgroundColor: '#515151' }}>
+          <div className="px-4 pt-4 h-[55px]" style={{ backgroundColor: '#000000' }}>
             <div className="flex items-center justify-between w-full h-10">
               {isSidebarVisible ? (
                 <>
@@ -163,7 +162,7 @@ export default function MainLayout({ children }) {
                   {/* Professional Toggle Button - Top right of drawer when expanded */}
                   <button
                     onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                    className=" ml-2 hidden md:flex items-center justify-center w-12 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-primary-700 shadow-lg border border-white/10"
+                    className=" ml-2 hidden md:flex items-center justify-center w-7 h-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-primary-700 shadow-lg border border-white/10"
                     aria-label="Collapse sidebar"
                   >
                     <ChevronLeftIcon className="h-5 w-5" />
@@ -384,7 +383,7 @@ export default function MainLayout({ children }) {
       {/* Main Content */}
       <div className={`flex flex-col w-0 flex-1 overflow-hidden transition-all duration-300 ${isSidebarVisible ? 'md:ml-64' : 'md:ml-16'}`}>
         {/* Header */}
-        <div className="sticky h-[70px] top-0 z-10 bg-gray-800  border-b border-gray-400" style={{ margin: 0, padding: 0, backgroundColor: '#D9D9D9' }}>
+        <div className="sticky top-0 z-10 h-[55px] border-b border-gray-100 bg-gradient-to-r from-black via-black via-70% to-[#0F2962]">
           {/* Mobile Header */}
           <div className="md:hidden h-full flex items-center justify-center">
             <button
@@ -393,7 +392,7 @@ export default function MainLayout({ children }) {
             >
               <MenuIcon className="h-6 w-6" />
             </button>
-            <h1 className="text-base font-semibold text-white font-serif">
+            <h1 className="text-base font-semibold text-white font-Inter">
               {greeting},<span className="font-bold text-white">{user?.email?.split('@')[0]}</span>
             </h1>
           </div>
@@ -408,10 +407,10 @@ export default function MainLayout({ children }) {
             {/* Right side - User info and profile */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center" style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-                <span className="text-sm text-black">Hello, {localStorage.getItem('user_name')}</span>
-                <span className="text-xs text-black ml-1">Super Admin</span>
+                <span className="text-sm text-white">Hello, {localStorage.getItem('user_name')}</span>
+                <span className="text-xs text-white ml-1">{localStorage.getItem('auth_role')}</span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
                 <PersonIcon className="text-white" />
               </div>
             </div>

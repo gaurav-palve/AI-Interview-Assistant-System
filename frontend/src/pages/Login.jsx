@@ -117,7 +117,7 @@ function Login() {
               {/* SPACER TO PUSH TO CENTER */}
               <div className="flex-grow" />
 
-              {/* HIREGENIX SECTION CENTERED VERTICALLY */}
+              {/* Hirepool.AI SECTION CENTERED VERTICALLY */}
               <div className="pb-20">
                 <h1 className="
                   text-5xl font-extrabold 
@@ -125,7 +125,7 @@ function Login() {
                   bg-clip-text text-transparent 
                   drop-shadow-xl
                 ">
-                  HireGenix
+                  Hirepool.AI
                 </h1>
 
                 <p className="mt-5 text-indigo-100 text-sm leading-relaxed max-w-xs">
@@ -157,7 +157,7 @@ function Login() {
             </h2>
 
             <p className="text-sm text-gray-500 mb-6">
-              Login to access your HireGenix dashboard
+              Login to access your Hirepool.AI dashboard
             </p>
 
             {/* API ERROR */}

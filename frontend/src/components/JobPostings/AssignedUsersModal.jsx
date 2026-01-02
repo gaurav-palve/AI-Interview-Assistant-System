@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchUsers } from '../../services/userManagementService';
-import { getJobAssignments, assignJob } from '../../services/jobAssignmentService';
+import { getJobAssignments, assignJob, removeAssignedUser } from '../../services/jobAssignmentService';
 
 // Material UI Icons
 import {
@@ -8,7 +8,8 @@ import {
   Close as CloseIcon,
   Check as CheckIcon,
   Search as SearchIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 
 /**
@@ -20,6 +21,8 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [userBeingRemoved, setUserBeingRemoved] = useState(null);
   const [error, setError] = useState(null);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [showAssignPanel, setShowAssignPanel] = useState(initialShowAssignPanel);
@@ -69,6 +72,25 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
       setError('Failed to assign users. Please try again.');
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleRemoveUser = async (userId) => {
+    try {
+      setRemoving(true);
+      setUserBeingRemoved(userId);
+      setError(null);
+
+      await removeAssignedUser(jobId, userId);
+      
+      // Refresh data after successful removal
+      await fetchData();
+    } catch (err) {
+      console.error('Error removing user:', err);
+      setError('Failed to remove user. Please try again.');
+    } finally {
+      setRemoving(false);
+      setUserBeingRemoved(null);
     }
   };
 
@@ -215,10 +237,26 @@ function AssignedUsersModal({ isOpen, onClose, jobId, jobTitle, initialShowAssig
                       <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">
                         {user.first_name?.[0]}{user.last_name?.[0]}
                       </div>
-                      <div className="ml-3">
+                      <div className="ml-3 flex-grow">
                         <div className="font-medium">{user.first_name} {user.last_name}</div>
                         <div className="text-sm text-gray-500">{user.email}</div>
                       </div>
+                      <button
+                        onClick={() => handleRemoveUser(user._id)}
+                        disabled={removing && userBeingRemoved === user._id}
+                        className={`p-2 rounded-full ${
+                          removing && userBeingRemoved === user._id
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-red-500 hover:bg-red-50"
+                        }`}
+                        title="Remove user from job"
+                      >
+                        {removing && userBeingRemoved === user._id ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
+                        ) : (
+                          <DeleteIcon className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
                   ))}
                 </div>

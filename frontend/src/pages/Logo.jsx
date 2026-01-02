@@ -6,8 +6,8 @@ export default function Logo({ expanded }) {
       {/* Animated icon container */}
       <div className="relative h-10 w-10 rounded-full bg-white flex items-center justify-center shadow-lg group">
         {/* Ping ripple */}
-        <div className="absolute inset-0 rounded-full bg-primary-100 opacity-0 group-hover:opacity-20 animate-ping" />
-        <PsychologyIcon className="h-6 w-6 text-primary-600 transition-transform duration-300 group-hover:scale-110 animate-pulse-slow" />
+        <div className="absolute inset-0 rounded-full bg-primary-100 opacity-0 group-hover:opacity-20 " />
+        <PsychologyIcon className="h-4 w-4 text-primary-600 transition-transform duration-300 group-hover:scale-110" />
       </div>
  
       {/* Animated name — only when expanded */}

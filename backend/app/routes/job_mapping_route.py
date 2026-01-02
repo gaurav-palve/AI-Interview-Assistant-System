@@ -15,11 +15,16 @@ class AssignJobRequest(BaseModel):
     job_id: str
     user_ids: List[str]
 
+class RemoveAssignedUserRequest(BaseModel):
+    job_id: str
+    user_id: str
+
+
 
 @router.post("/job-assignments/assign")
 async def assign_job_to_users(
     payload: AssignJobRequest,
-    current_user: dict = Depends(require_permission("assign_job"))
+    current_user: dict = Depends(require_permission("JOB_MAPPING_ASSIGNMENT"))
 ):
     
     db = get_database()
@@ -70,7 +75,7 @@ async def assign_job_to_users(
 @router.get("/get-assigned-users-of-job/{job_id}")
 async def get_job_assignments_by_job(
     job_id: str,
-    current_user: dict = Depends(require_permission("ASSIGN_USERS"))
+    current_user: dict = Depends(require_permission("JOB_MAPPING_VIEW"))
 ):
     db = get_database()
     
@@ -99,4 +104,50 @@ async def get_job_assignments_by_job(
         "job_id": job_id,
         "assigned_users": assigned_users,
         "total_assigned": len(assigned_users)
+    }
+
+
+
+@router.delete("/job-assignments/remove")
+async def remove_assigned_user_from_job(
+    payload: RemoveAssignedUserRequest,
+    current_user: dict = Depends(require_permission("JOB_MAPPING_REMOVE"))
+):
+    db = get_database()
+
+    # Validate ObjectIds
+    try:
+        job_object_id = ObjectId(payload.job_id)
+        user_object_id = ObjectId(payload.user_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid job_id or user_id")
+
+    # Check assignment exists
+    assignment = await db["job_assignments"].find_one({
+        "job_id": job_object_id,
+        "user_id": user_object_id
+    })
+
+    if not assignment:
+        raise HTTPException(
+            status_code=404,
+            detail="User is not assigned to this job"
+        )
+
+    # Remove assignment
+    result = await db["job_assignments"].delete_one({
+        "job_id": job_object_id,
+        "user_id": user_object_id
+    })
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to remove assigned user"
+        )
+
+    return {
+        "message": "User removed from job successfully",
+        "job_id": payload.job_id,
+        "user_id": payload.user_id
     }
