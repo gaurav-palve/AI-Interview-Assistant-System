@@ -25,7 +25,9 @@ const JobPostingActions = ({
   onAssign, 
   onChangeStatus,
   canEdit,
-  canDelete
+  canDelete,
+  canChangeStatus,
+  canAssign
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -99,6 +101,7 @@ const JobPostingActions = ({
   return (
     <div className="relative" style={{zIndex:50}} ref={menuRef}>
       {/* Action button (three dots) */}
+      {(canEdit || canDelete || canChangeStatus || canAssign) && (
       <button 
         onClick={(e) => {
           e.preventDefault();
@@ -110,6 +113,7 @@ const JobPostingActions = ({
       >
         <MoreIcon className="h-5 w-5" />
       </button>
+      )}
 
       {/* Dropdown menu */}
       {isOpen && (
@@ -134,6 +138,7 @@ const JobPostingActions = ({
             </button>
           )}
 
+          {/* {canAssign && ( */}
           <button
             onClick={handleAssign}
             className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
@@ -141,7 +146,9 @@ const JobPostingActions = ({
             <AssignIcon className="h-4 w-4 mr-2 text-primary-500" />
             <span>Assign</span>
           </button>
+          {/* )} */}
 
+          {canChangeStatus && (
           <button
             onClick={handleChangeStatus}
             className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
@@ -149,6 +156,7 @@ const JobPostingActions = ({
             <StatusIcon className="h-4 w-4 mr-2 text-primary-500" />
             <span>Change Status</span>
           </button>
+          )}
         </div>
       )}
 

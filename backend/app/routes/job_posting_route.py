@@ -396,7 +396,7 @@ async def delete_job_posting(job_id: str, current_user: dict = Depends(require_p
 async def update_job_posting_status(
     job_id: str,
     status_update: JobPostingStatusUpdate,
-    current_user: dict = Depends(require_permission("JOB_EDIT"))
+    current_user: dict = Depends(require_permission("JOB_POSTING_STATUS_UPDATE"))
 ):
     """
     Update the status of a job posting

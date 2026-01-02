@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
           const role = localStorage.getItem(LS_ROLE_KEY);
 
           if (email) {
-            setUser({ email, role, permissions });
+            setUser({ email, role: role, permissions });
           }
         }
       } catch (err) {
@@ -53,6 +53,58 @@ export function AuthProvider({ children }) {
 
     initializeAuth();
   }, []);
+
+
+  // ==================
+  // Permission Polling (30s)
+  // ==================
+  useEffect(() => {
+    if (!user) return;
+
+    // initial sync
+    refreshPermissions();
+
+    const interval = setInterval(() => {
+      refreshPermissions();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [user?.email]);
+
+
+
+  // ==================
+  // Refresh Permissions (POLLING TARGET)
+  // ==================
+  const refreshPermissions = async () => {
+    try {
+      if (!authService.isAuthenticated()) return;
+
+      const permissions = await authService.getUserPermissions();
+      const role_name = await authService.getUserRole();
+
+      setUser(prev => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          role: role_name,
+          permissions
+        };
+      });
+
+      localStorage.setItem(LS_ROLE_KEY, role_name);
+      localStorage.setItem(
+        LS_PERMS_KEY,
+        JSON.stringify(permissions)
+      );
+
+      console.log("Permissions refreshed");
+    } catch (err) {
+      console.error("Permission refresh failed", err);
+    }
+  };
+
 
   // ==================
   // Sign In
@@ -148,6 +200,7 @@ export function AuthProvider({ children }) {
     signUp,
     logout,
     hasPermission,
+    refreshPermissions 
   };
 
   return (
