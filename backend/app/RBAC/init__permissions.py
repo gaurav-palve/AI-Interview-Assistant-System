@@ -41,6 +41,11 @@ SYSTEM_PERMISSIONS = [
     {"code": "REPORT_DOWNLOAD", "module": "Report", "description": "Download reports"},
     {"code": "LIST_CANDIDATE_REPORTS", "module": "Report", "description": "List reports of all candidates"},
     {"code": "JOB_POSTING_CANDIDATES_REPORT", "module": "Report", "description": "View candidate report by job"},
+
+    ## Job Mapping module
+    {"code": "JOB_MAPPING_ASSIGNMENT", "module": "Job Mapping", "description": "Job Post Mapping Assignment"},
+    {"code": "JOB_MAPPING_REMOVE", "module": "Job Mapping", "description": "Remove Job Post Mapping"},
+    {"code": "JOB_MAPPING_VIEW", "module": "Job Mapping", "description": "View Job Post Mappings"},
 ]
 
 

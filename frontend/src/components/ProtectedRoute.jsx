@@ -30,7 +30,7 @@ function ProtectedRoute({ children }) {
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
+  console.log("✅ ProtectedRoute: User is authenticated, granting access to protected route.");
   // Render protected content
   return children;
 }

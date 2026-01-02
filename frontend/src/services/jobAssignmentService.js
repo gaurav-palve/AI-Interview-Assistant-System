@@ -35,7 +35,29 @@ export const assignJob = async (jobId, userIds) => {
   }
 };
 
+/**
+ * Remove a user assigned to a job posting
+ * @param {string} jobId - ID of the job posting
+ * @param {string} userId - ID of the user to remove
+ * @returns {Promise<Object>} - Response from the API
+ */
+export const removeAssignedUser = async (jobId, userId) => {
+  try {
+    const response = await api.delete(`/job-assignments/remove`, {
+      data: {
+        job_id: jobId,
+        user_id: userId
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error removing assigned user:`, error);
+    throw error;
+  }
+};
+
 export default {
   getJobAssignments,
-  assignJob
+  assignJob,
+  removeAssignedUser
 };

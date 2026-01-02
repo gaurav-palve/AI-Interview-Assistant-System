@@ -150,6 +150,7 @@ async def user_signin(
 
     data ={
         "user_name": token_response["user_name"],
+        "role_name": token_response["role_name"],
         "access_token": token_response["access_token"],
         "token_type": token_response["token_type"],
         "refresh_token": token_response["refresh_token"],

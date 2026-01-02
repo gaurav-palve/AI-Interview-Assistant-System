@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        'sidebar-blue': '#0F2962', // New sidebar color
         primary: {
           50: '#eef2ff',
           100: '#dce4ff',
@@ -87,9 +88,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Inter'],
+        display: ['Inter'],
+        mono: ['Inter'],
       },
       boxShadow: {
         card: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',

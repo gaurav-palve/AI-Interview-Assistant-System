@@ -34,6 +34,7 @@ class UserSigninRequest(BaseModel):
 
 class UserSigninResponse(BaseModel):
     user_name: str
+    role_name: str
     access_token: str
     token_type: str = "bearer"
     refresh_token: Optional[str] = None  # Optional to support both cookie and response body

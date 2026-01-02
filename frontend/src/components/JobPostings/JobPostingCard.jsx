@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import JobPostingActions from './JobPostingActions';
 import Tooltip from '@mui/material/Tooltip';
+import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
+
 
 // MUI Icons
 import {
@@ -86,9 +88,12 @@ const JobPostingCard = ({
 
 
               <div className="flex items-center">
-                <span className="text-xs text-blue-500 whitespace-nowrap overflow-hidden text-ellipsis block max-w-[160px]">
-                  {job.company || 'Name of the org'}
-                </span>
+              <span className="text-xs text-blue-500 whitespace-nowrap">
+                {(job.company || "Name of the org").length > 15
+                  ? `${job.company.slice(0, 15)}...`
+                  : job.company}
+              </span>
+            
 
 
 
@@ -142,10 +147,11 @@ const JobPostingCard = ({
        
 
         {/* Job Details */}
-        <div className="flex items-center mt-2 mb-2 w-full justify-between pr-8">
+        <div className="flex items-center mt-2 mb-2 w-full justify-start gap-0 pr-8">
+
 
           <div className="flex items-center whitespace-nowrap">
-            <TimeIcon className="h-4 w-4 text-gray-400 mr-1" />
+            <BusinessCenterOutlinedIcon className="h-4 w-4 text-gray-500 mr-1" />
             <span className="text-xs text-gray-600">
               {job.experience || "Not Defined"}
             </span>
@@ -155,7 +161,7 @@ const JobPostingCard = ({
           <div className="h-4 w-px bg-gray-400 mx-3 flex-shrink-0" />
 
           <div className="flex items-center whitespace-nowrap">
-            <WorkIcon className="h-4 w-4 text-gray-400 mr-1" />
+            <TimeIcon className="h-4 w-4 text-gray-500 mr-1" />
             <span className="text-xs text-gray-600">
               {job.job_type}
             </span>
@@ -165,7 +171,7 @@ const JobPostingCard = ({
           <div className="h-4 w-px bg-gray-400 mx-3 flex-shrink-0" />
 
           <div className="flex items-center whitespace-nowrap">
-            <LocationIcon className="h-4 w-4 text-gray-400 mr-1" />
+            <LocationIcon className="h-4 w-4 text-gray-500 mr-1" />
             <span className="text-xs text-gray-600">
               {job.work_location}
             </span>
@@ -196,17 +202,17 @@ const JobPostingCard = ({
 
         {/* Bottom Section */}
         <div className="mt-auto w-full">
-          <div className="border-t border-gray-500" />
+          <div className="border-t border-gray-200" />
 
           <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
-            <div className="flex items-center">
-              <GroupIcon className="h-4 w-4 mr-1" />
-              <span className="font-medium">{job.applicants_count || 0}</span>
-              &nbsp;Applicants
+            <div className="flex items-center text-gray-600">
+              <GroupIcon className="h-4 w-4 mr-1 text-gray-500" />
+              <span className="font-medium text-gray-600">{job.applicants_count || 0}</span>
+              &nbsp;Applicants 
             </div>
 
-            <div className="flex items-center">
-              {/* <CalendarIcon className="h-4 w-4 mr-1" /> */}
+            <div className="flex items-center text-gray-600">
+              <CalendarIcon className="h-3 w-3 mr-1 text-gray-500" />
               {formatDate(job.created_at)}
             </div>
           </div>

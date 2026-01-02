@@ -1,4 +1,4 @@
-from ..database import get_database, USERS_COLLECTION
+from ..database import get_database, USERS_COLLECTION,ROLES_COLLECTION
 from ..models.user_model import admin_dict
 from ..utils.password_handler import hash_password, verify_password
 from ..utils.token import (
@@ -81,7 +81,11 @@ async def authenticate_admin(
     try:
         db = get_database()
         user = await db[USERS_COLLECTION].find_one({"email": email})
-        print(user)
+
+        role_name = await db[ROLES_COLLECTION].find_one(
+            {"_id": ObjectId(user["role_id"])},{"role_name":1}
+        )
+
         if not user or not verify_password(password, user["hashed_password"]):
             return None
         
@@ -115,6 +119,7 @@ async def authenticate_admin(
         
         return {
             "user_name":user.get("first_name")+' '+user.get("last_name"),
+            "role_name":role_name.get("role_name"),
             "access_token": access_token,
             "token_type": "bearer",
             "refresh_token": refresh_token,

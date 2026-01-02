@@ -192,7 +192,7 @@ function Dashboard() {
 
   const [scheduleEvents] = useState([
     { id: 1, title: 'Job Role Name', candidate: 'Gaurav Palve', time: '11:00AM - 12:00PM' },
-    { id: 2, title: 'Job Role Name', candidate: 'Sumeet Patil', time: '11:00AM - 12:00PM' }
+    { id: 2, title: 'Job Role Name', candidate: 'Aakankhsa Bhavsar', time: '11:00AM - 12:00PM' }
   ]);
 
   const sidebarMetrics = ['Interviews', 'Jobs', 'Roles', 'Users'];
@@ -327,7 +327,7 @@ function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-4xl font-bold text-gray-900 font-Inter tracking-tight animate-slideInLeft">Dashboard</h1>
       </div>
 
       {/* Stats */}
@@ -359,7 +359,7 @@ function Dashboard() {
         )}
 
         {isSuperAdmin | isTAAdmin && (
-        <StatCard icon={<JobIcon />} count="20 / 10" label="Interviews / Completed" backgroundColor="bg-white" textColor="text-black" hasArrow />
+        <StatCard icon={<JobIcon />} count="0 / 0" label="Interviews / Completed" backgroundColor="bg-white" textColor="text-black" hasArrow />
         )}
 
         {isTAAdmin && (
@@ -460,7 +460,7 @@ function Dashboard() {
     ))}
   </div>
 
-  {/* Events */}
+  Events
   <div className="space-y-3">
     {scheduleEvents.map(event => (
       <div

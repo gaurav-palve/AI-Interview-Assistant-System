@@ -56,57 +56,6 @@ export function AuthProvider({ children }) {
 
 
   // ==================
-  // Permission Polling (30s)
-  // ==================
-  useEffect(() => {
-    if (!user) return;
-
-    // initial sync
-    refreshPermissions();
-
-    const interval = setInterval(() => {
-      refreshPermissions();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [user?.email]);
-
-
-
-  // ==================
-  // Refresh Permissions (POLLING TARGET)
-  // ==================
-  const refreshPermissions = async () => {
-    try {
-      if (!authService.isAuthenticated()) return;
-
-      const permissions = await authService.getUserPermissions();
-      const role_name = await authService.getUserRole();
-
-      setUser(prev => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          role: role_name,
-          permissions
-        };
-      });
-
-      localStorage.setItem(LS_ROLE_KEY, role_name);
-      localStorage.setItem(
-        LS_PERMS_KEY,
-        JSON.stringify(permissions)
-      );
-
-      console.log("Permissions refreshed");
-    } catch (err) {
-      console.error("Permission refresh failed", err);
-    }
-  };
-
-
-  // ==================
   // Sign In
   // ==================
   const signIn = async (email, password) => {
@@ -220,5 +169,27 @@ export function useAuth() {
   }
   return context;
 }
+
+  // ==================
+  // Refresh Permissions (POLLING TARGET)
+  // ==================
+  export const refreshPermissions = async () => {
+    try {
+      if (!authService.isAuthenticated()) return;
+
+      const permissions = await authService.getUserPermissions();
+      const role_name = await authService.getUserRole();
+
+      localStorage.setItem(LS_ROLE_KEY, role_name);
+      localStorage.setItem(
+        LS_PERMS_KEY,
+        JSON.stringify(permissions)
+      );
+
+      console.log("Permissions refreshed");
+    } catch (err) {
+      console.error("Permission refresh failed", err);
+    }
+  };
 
 export default AuthContext;

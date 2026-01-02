@@ -296,7 +296,7 @@ function JobPostingsList() {
           paddingRight: 12,
         }}
       >
-        <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight animate-slideInLeft">
+        <h1 className="text-4xl font-bold text-gray-900 font-Inter tracking-tight animate-slideInLeft">
           Job Postings
         </h1>
       </div>

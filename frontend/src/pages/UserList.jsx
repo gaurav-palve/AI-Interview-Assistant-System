@@ -71,7 +71,6 @@ function UsersList() {
       {/* ================= Page Header ================= */}
       <div className="flex justify-between items-center">
         <h1 className="flex items-center gap-3 text-3xl font-bold text-gray-900">
-          <PeopleOutlined className="text-primary-600" />
           All Users
         </h1>
 
@@ -91,56 +90,58 @@ function UsersList() {
       )}
 
       {/* ================= USER STATISTICS (VERTICAL) ================= */}
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Users */}
-        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
-          <div>
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <PeopleOutlined className="text-blue-600" />
             <p className="text-sm text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">{users.length}</p>
           </div>
-          <PeopleOutlined className="text-blue-600" />
+          <p className="text-2xl font-bold text-gray-900 ml-8">{users.length}</p>
         </div>
 
         {/* Active Users */}
-        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
-          <div>
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircleOutline className="text-green-600" />
             <p className="text-sm text-gray-500">Active Users</p>
-            <p className="text-2xl font-bold text-green-600">
-              {users.filter((u) => u.is_active).length}
-            </p>
           </div>
-          <CheckCircleOutline className="text-green-600" />
+          <p className="text-2xl font-bold text-green-600 ml-8">
+            {users.filter((u) => u.is_active).length}
+          </p>
         </div>
 
         {/* Inactive Users */}
-        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
-          <div>
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <PersonOutline className="text-red-600" />
             <p className="text-sm text-gray-500">Inactive Users</p>
-            <p className="text-2xl font-bold text-red-600">
-              {users.filter((u) => !u.is_active).length}
-            </p>
           </div>
-          <PersonOutline className="text-red-600" />
+          <p className="text-2xl font-bold text-red-600 ml-8">
+            {users.filter((u) => !u.is_active).length}
+          </p>
         </div>
 
         {/* New This Month */}
-        <div className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
-          <div>
-            <p className="text-sm text-gray-500">New This Month</p>
-            <p className="text-2xl font-bold text-purple-600">
-              {users.filter((u) => {
-                const created = new Date(u.created_at);
-                const now = new Date();
-                return (
-                  created.getMonth() === now.getMonth() &&
-                  created.getFullYear() === now.getFullYear()
-                );
-              }).length}
-            </p>
-          </div>
-          <AddIcon className="text-purple-600" />
-        </div>
-      </div>
+  <div className="bg-white rounded-xl shadow-sm p-5">
+    <div className="flex items-center gap-2 mb-3">
+      <AddIcon className="text-purple-600" />
+      <p className="text-sm text-gray-500">New This Month</p>
+    </div>
+    <p className="text-2xl font-bold text-purple-600 ml-8">
+      {users.filter((u) => {
+        const created = new Date(u.created_at);
+        const now = new Date();
+        return (
+          created.getMonth() === now.getMonth() &&
+          created.getFullYear() === now.getFullYear()
+        );
+      }).length}
+    </p>
+  </div>
+</div>
+
+      
 
       {/* ================= Users Table ================= */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">

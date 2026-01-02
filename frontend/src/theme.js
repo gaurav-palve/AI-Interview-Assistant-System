@@ -8,8 +8,8 @@ const config = {
 const theme = extendTheme({ 
   config,
   fonts: {
-    heading: `'Inter', sans-serif`,
-    body: `'Inter', sans-serif`,
+    heading: `'Inter'`,
+    body: `'Inter'`,
   },
   components: {
     Button: {
