@@ -23,6 +23,7 @@ const JobPostingCard = ({
   canEdit,
   canDelete,
   canChangeStatus,
+  canAssign,
 }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString || Date.now());
@@ -130,6 +131,8 @@ const JobPostingCard = ({
               onChangeStatus={onChangeStatus}
               canEdit={canEdit}
               canDelete={canDelete}
+              canChangeStatus={canChangeStatus}
+              canAssign={canAssign}
             />
           </div>
         </div>

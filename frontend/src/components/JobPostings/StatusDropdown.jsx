@@ -114,6 +114,7 @@ const StatusDropdown = ({ jobId, currentStatus, onStatusChange }) => {
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
       {/* Status Button */}
+      
       <button
         onClick={(e) => {
           e.preventDefault();
