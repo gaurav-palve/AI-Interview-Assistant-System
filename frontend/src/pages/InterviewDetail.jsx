@@ -232,7 +232,7 @@ function InterviewDetail() {
                 <div className="flex-1">
                   <div className="flex items-center mb-4">
                     <JobIcon className="h-6 w-6 text-white mr-2" />
-                    <h2 className="text-2xl font-bold text-white font-serif">{interview.job_role}</h2>
+                    <h2 className="text-2xl font-bold text-white">{interview.job_role}</h2>
                   </div>
                   <div className="flex items-center text-white/90 mb-4">
                     <PersonIcon className="h-5 w-5 mr-1" />
@@ -279,7 +279,7 @@ function InterviewDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* File Status */}
             <div className="card shadow-lg border border-gray-700 rounded-xl p-6 animate-fadeIn transform hover:scale-[1.01] transition-all duration-300" style={{ animationDelay: '0.2s' }}>
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 font-serif border-b border-gray-200 dark:border-gray-700 pb-2 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                 File Status
               </h3>
               <div className="space-y-4">
@@ -342,7 +342,7 @@ function InterviewDetail() {
 
             {/* Metadata */}
             <div className="card shadow-lg border border-gray-700 rounded-xl p-6 animate-fadeIn transform hover:scale-[1.01] transition-all duration-300" style={{ animationDelay: '0.3s' }}>
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 font-serif border-b border-gray-200 dark:border-gray-700 pb-2 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
                 Interview Metadata
               </h3>
               <div className="space-y-3">

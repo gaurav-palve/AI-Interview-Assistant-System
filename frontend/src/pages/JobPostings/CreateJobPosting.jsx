@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 
 // Material UI Icons
 import {
   Work as WorkIcon,
-  AttachMoney as CompensationIcon,
   Assignment as RequirementsIcon,
   Description as DescriptionIcon,
-  CardGiftcard as BenefitsIcon,
-  ArrowBack as BackIcon,
   ArrowForward as NextIcon,
   Save as SaveIcon,
-  Check as CheckIcon
+  Check as CheckIcon,
+  ArrowBack as BackIcon
+  
 } from '@mui/icons-material';
 
 // Form Steps Components
@@ -29,13 +28,12 @@ function CreateJobPosting() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [stepAnimation, setStepAnimation] = useState(false);
 
   const [formData, setFormData] = useState({
     job_title: '',
     company: '',
-    job_type: 'Full-time',
-    work_location: 'On-site',
+    job_type: 'Full Time',
+    work_location: 'On Site',
     location: '',
     experience_level: '',
     department: '',
@@ -52,7 +50,12 @@ function CreateJobPosting() {
 
   // Steps configuration
   const steps = [
-    { id: 1, title: 'Basic Information', icon: <WorkIcon />, component: BasicInformation },
+    {
+      id: 1,
+      title: 'Basic Details',
+      icon: <WorkIcon />,
+      component: BasicInformation
+    },
     {
       id: 2,
       title: 'Requirements & Responsibilities',
@@ -67,36 +70,24 @@ function CreateJobPosting() {
     }
   ];
 
-  // -----------------------------
   // Handlers
-  // -----------------------------
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleNext = () => {
     if (currentStep < steps.length) {
-      setStepAnimation(true);
-      setTimeout(() => {
-        setCurrentStep(prev => prev + 1);
-        setStepAnimation(false);
-      }, 200);
+      setCurrentStep(prev => prev + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setStepAnimation(true);
-      setTimeout(() => {
-        setCurrentStep(prev => prev - 1);
-        setStepAnimation(false);
-      }, 200);
+      setCurrentStep(prev => prev - 1);
     }
   };
 
-  // -----------------------------
   // Helpers
-  // -----------------------------
   const extractExperienceFromRequirements = () => {
     if (!Array.isArray(formData.requirements) || formData.requirements.length === 0) {
       return 'Not specified';
@@ -116,9 +107,7 @@ function CreateJobPosting() {
           .filter(item => item.trim() !== '')
   });
 
-  // -----------------------------
-  // Submit (single source of truth)
-  // -----------------------------
+  // Submit handler
   const submitJobPosting = async (status) => {
     try {
       setLoading(true);
@@ -131,7 +120,6 @@ function CreateJobPosting() {
     } catch (err) {
       console.error('Error saving job posting:', err);
       
-      // Check if this is a permission error
       if (err.isPermissionError) {
         setError(err.detail || 'You do not have permission to create job postings.');
       } else {
@@ -147,108 +135,156 @@ function CreateJobPosting() {
 
   const CurrentStepComponent = steps[currentStep - 1].component;
 
-  // -----------------------------
-  // Render
-  // -----------------------------
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary-50 via-white to-purple-50 rounded-2xl p-6 shadow-sm">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">Create New Job Posting</h1>
-            <p className="text-gray-600 mt-2">
-              Fill in the details to create a new job opportunity
-            </p>
+    <div className="w-full  px-2 sm:px-6 md:px-2">
+      {/* Header Section */}
+      <div className="border-b border-gray-300 pb-5">
+        <div className="max-w-7xl mx-auto">
+          {/* Title and Buttons Row */}
+          <div className="flex items-center justify-between mb-2">
+            {/* Left content – takes only needed width */}
+            <span className="flex flex-shrink-0">
+              <div className="border-r border-black pr-3">
+                <h1 className="text-4xl font-bold text-gray-900 font-Inter tracking-tight leading-none animate-slideInLeft">
+                  Create Job Posting
+                </h1>
+              </div>
+
+              <div className="pl-2 max-w-[300px]">
+                <p className="text-gray-600 mt-1 animate-slideInLeft animation-delay-100 pr-1">
+                  Fill in the details to create a new job opportunity.
+                </p>
+              </div>
+            </span>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={saveAsDraft}
+                disabled={loading}
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                <SaveIcon className="h-4 w-4 mr-2" />
+                Save as Draft
+              </button>
+
+              <button
+                onClick={publishJobPosting}
+                disabled={loading}
+                className="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                <CheckIcon className="h-4 w-4 mr-2" />
+                Create Job
+              </button>
+            </div>
           </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={() => navigate('/job-postings')}
-              className="btn btn-outline"
-            >
-              <BackIcon className="mr-2" />
-              Cancel
-            </button>
-            <button
-              onClick={saveAsDraft}
-              disabled={loading}
-              className="btn btn-outline"
-            >
-              <SaveIcon className="mr-2" />
-              Save as Draft
-            </button>
+
+          {/* Breadcrumb */}
+          <div className="text-xs text-gray-500">
+            <Link to="/" className="text-gray-600 hover:underline">Home</Link>
+            <span className="mx-2">/</span>
+            <Link to="/job-postings" className="text-blue-600 hover:underline">
+              Total Job Posting
+            </Link>
           </div>
         </div>
       </div>
 
+
+      {/* Error Message */}
       {error && (
-        <div className="bg-danger-50 border-l-4 border-danger-500 p-4 rounded">
-          <p className="text-danger-700">{error}</p>
+        <div className="max-w-7xl mx-auto py-4">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
         </div>
       )}
 
-      {/* Progress Steps */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="flex justify-between">
-          {steps.map((step) => (
-            <div key={step.id} className="flex-1 text-center">
-              <div
-                className={`h-12 w-12 mx-auto rounded-xl flex items-center justify-center
-                  ${currentStep >= step.id
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 text-gray-400'}
-                `}
-              >
-                {currentStep > step.id ? <CheckIcon /> : step.icon}
-              </div>
-              <p className="mt-2 text-sm font-medium">{step.title}</p>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto py-8 ">
+        <div className="flex gap-8">
+          {/* Left Sidebar - Steps */}
+          <div className="w-56 flex-shrink-0">
+            <div className="space-y-6">
+              {steps.map((step, index) => (
+                <div key={step.id} className="relative">
+                  {/* Connecting Line */}
+                  {index < steps.length - 1 && (
+                    <div className="absolute left-5 top-12 h-8 w-0.5 bg-gray-300"></div>
+                  )}
+
+                  {/* Step Item */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        currentStep > step.id
+                          ? 'bg-green-500 text-white'
+                          : currentStep === step.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-400'
+                      }`}
+                    >
+                      {currentStep > step.id ? (
+                        <CheckIcon className="h-5 w-5" />
+                      ) : (
+                        step.icon
+                      )}
+                    </div>
+                    <div className="pt-1">
+                      <p className="text-xs font-medium text-gray-500">Step {step.id}</p>
+                      <p className="font-medium text-gray-900 text-sm">{step.title}</p>
+                      {currentStep === step.id && (
+                        <p className="text-xs text-red-500 mt-1">In progress</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Step Form */}
-      <div className={`transition-all ${stepAnimation ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="bg-white rounded-2xl shadow-lg border">
-          <div className="p-8">
-            <CurrentStepComponent
-              formData={formData}
-              handleChange={handleChange}
-            />
           </div>
+          <div className="border-r border-gray-300 pb-5" style={{marginTop:-33 ,marginLeft:-20 , marginBottom:-135}}></div>
+          {/* Right Content - Form */}
+            <div className="flex-col">
+
+              <CurrentStepComponent
+                formData={formData}
+                handleChange={handleChange}
+                onNext={handleNext}
+              />
+
+              {/* Form Navigation */}
+              <div className="mt-10 flex justify-between items-center" >
+                <div >
+                  {currentStep > 1 && (
+                    <button
+                      onClick={handleBack}
+                      disabled={loading}
+                      className="flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-gray-400 hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      <>
+                      <BackIcon className="mr-2 h-4 w-4" />      Back 
+                    </>
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={currentStep < steps.length ? handleNext : publishJobPosting}
+                  disabled={loading}
+                  className="flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {currentStep < steps.length ? (
+                    <>
+                      Next <NextIcon className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      <CheckIcon className="mr-2 h-4 w-4" />
+                      Create Job
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
         </div>
-      </div>
-
-      {/* Footer Navigation */}
-      <div className="flex justify-between items-center">
-        <button
-          onClick={handleBack}
-          disabled={currentStep === 1 || loading}
-          className="btn btn-outline"
-        >
-          <BackIcon className="mr-2" />
-          Previous
-        </button>
-
-        {currentStep < steps.length ? (
-          <button
-            onClick={handleNext}
-            disabled={loading}
-            className="btn btn-primary"
-          >
-            Next Step
-            <NextIcon className="ml-2" />
-          </button>
-        ) : (
-          <button
-            onClick={publishJobPosting}
-            disabled={loading}
-            className="btn bg-green-600 text-white"
-          >
-            <CheckIcon className="mr-2" />
-            Publish Job Posting
-          </button>
-        )}
       </div>
     </div>
   );
