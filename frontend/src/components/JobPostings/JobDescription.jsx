@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  Description as DescriptionIcon,
-  Lightbulb as AIIcon,
-  Business as CompanyIcon,
-  Refresh as RefreshIcon,
-  CheckCircle as CheckIcon,
-  Error as AlertIcon,
-  Info as InfoIcon,
-  AutoAwesome as SparklesIcon
+  ContentCopy as CopyIcon,
+  RefreshOutlined as RefreshIcon,
 } from '@mui/icons-material';
 import jobPostingService from '../../services/jobPostingService';
 
 /**
  * JobDescription component
- * Fourth step of the job posting creation form
+ * Step 3 of the job posting creation form
  * Includes AI-powered job description generator
  */
 function JobDescription({ formData, handleChange }) {
@@ -21,25 +15,42 @@ function JobDescription({ formData, handleChange }) {
   const [error, setError] = useState(null);
   const [aiContext, setAiContext] = useState('');
   const [showAISuccess, setShowAISuccess] = useState(false);
-
-  // Toggle AI generation
-  const handleToggleAI = () => {
-    handleChange('use_ai_generation', !formData.use_ai_generation);
-  };
-
-  // Handle company description change
-  const handleCompanyDescriptionChange = (e) => {
-    handleChange('company_description', e.target.value);
-  };
-
-  // Handle job description change
-  const handleJobDescriptionChange = (e) => {
-    handleChange('job_description', e.target.value);
-  };
+  const [copied, setCopied] = useState(false);
 
   // Handle AI context change
   const handleAiContextChange = (e) => {
     setAiContext(e.target.value);
+  };
+
+  // Copy job description to clipboard
+  const copyToClipboard = async () => {
+    try {
+      const textToCopy = `${formData.job_title || 'UI/UX Designer (Senior) – B2B SaaS Products'}
+
+Experience:
+${formData.experience_level || '4+ years of relevant UI/UX design experience'}
+
+Location:
+${formData.work_location ? `${formData.work_location}${formData.location ? ' / ' + formData.location : ''}` : 'Hybrid / Onsite / Remote (as applicable)'}
+
+About the Role:
+${formData.job_description || `We are looking for a Senior UI/UX Designer to design intuitive, scalable, and high-impact user experiences for our B2B SaaS platform in the Talent Acquisition / HR Tech space. The role involves working on complex workflows, data-heavy dashboards, and enterprise user journeys while balancing usability, aesthetics, and business goals.\n\nYou will collaborate closely with Product Managers, Engineering, and Business stakeholders to translate requirements into meaningful user experiences.`}
+
+Key Responsibilities:
+${formData.responsibilities && Array.isArray(formData.responsibilities) && formData.responsibilities.length > 0
+        ? formData.responsibilities.map((r) => `• ${r}`).join('\n')
+        : `• Own end-to-end UX design for product modules—from discovery to delivery
+• Conduct user research, stakeholder interviews, and usability testing
+• Translate complex business requirements into simple, intuitive user flows
+• Create wireframes, user journeys, information architecture, and prototypes
+• Design high-fidelity UI aligned with brand and design system guidelines`}`;
+
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   // Generate job description using AI
@@ -79,6 +90,7 @@ function JobDescription({ formData, handleChange }) {
       const response = await jobPostingService.generateJobDescription(jobData);
       handleChange('job_description', response.job_description);
       setShowAISuccess(true);
+      setAiContext('');
     } catch (err) {
       console.error('Error generating job description:', err);
       setError('Access Denied.');
@@ -100,133 +112,153 @@ function JobDescription({ formData, handleChange }) {
   }, []);
 
   return (
-    <div className="space-y-6 p-6">
-      <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
-        <DescriptionIcon className="h-6 w-6 mr-2 text-primary-600" />
-        <span className="text-gray-800 font-serif">Job Description</span>
-      </h2>
-
-      {/* Toggle Switch */}
-      <button
-        onClick={handleToggleAI}
-        className={`relative w-14 h-8 rounded-full transition-all duration-300 ${
-          formData.use_ai_generation ? 'bg-white shadow-lg' : 'bg-white/30'
-        }`}
-      >
-        <div
-          className={`absolute top-1 left-1 w-6 h-6 rounded-full transition-all duration-300 ${
-            formData.use_ai_generation
-              ? 'translate-x-6 bg-gradient-to-r from-indigo-500 to-purple-600'
-              : 'translate-x-0 bg-white'
-          }`}
-        ></div>
-      </button>
-
-      {/* AI Controls - Expandable */}
-      <div
-        className={`transition-all duration-500 ease-in-out ${
-          formData.use_ai_generation
-            ? 'max-h-96 opacity-100'
-            : 'max-h-0 opacity-0 overflow-hidden'
-        }`}
-      >
-        <div className="p-6 space-y-4 bg-gradient-to-br from-indigo-50 to-purple-50">
-          <div className="flex items-start gap-2 text-sm text-indigo-900 bg-white/60 backdrop-blur-sm rounded-lg p-3">
-            <InfoIcon className="w-4 h-4 mt-0.5 text-indigo-600 flex-shrink-0" />
-            <p>
-              Provide additional context to help AI generate a tailored job description based on your
-              requirements.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Additional Context (Optional)
-            </label>
-            <textarea
-              value={aiContext}
-              onChange={handleAiContextChange}
-              placeholder="e.g., We're a fast-growing startup focusing on AI solutions..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none"
-              rows="3"
-            />
-          </div>
-
+    <div className="bg-white rounded-lg">
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-4 px-6 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900">Job Description</h2>
+        <div className="flex gap-2 items-center">
           <button
-            onClick={generateJobDescription}
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+            onClick={copyToClipboard}
+            title={copied ? "Copied!" : "Copy to clipboard"}
           >
-            {loading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Generating with AI...
-              </>
-            ) : (
-              <>
-                <SparklesIcon className="w-5 h-5" />
-                Generate Description
-              </>
-            )}
+            <CopyIcon className="w-5 h-5" />
           </button>
-
-          {showAISuccess && (
-            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3 ">
-              <CheckIcon className="w-2 h-4" />
-              Description generated successfully!
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
-              <AlertIcon className="w-4 h-4" />
-              {error}
-            </div>
-          )}
+          <button
+            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+            onClick={() => handleChange('currentStep', 1)}
+          >
+            ← Back
+          </button>
+          <button
+            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+            onClick={() => handleChange('use_ai_generation', !formData.use_ai_generation)}
+          >
+            ✎ Edit
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Company Description */}
-        <div className="form-control">
-         
-          
-        </div>
-
-        {/* Job Description */}
-        <div className="form-control">
-          <label className="label">
-            <span className="label-text font-medium text-gray-700 flex items-center">
-              <DescriptionIcon className="h-5 w-5 mr-1 text-gray-500" />
-              Job Description
-            </span>
-          </label>
-          <div className="border rounded-lg overflow-hidden">
-            {/* Rich Text Editor Toolbar (simplified for this example) */}
-            <div className="flex items-center bg-gray-50 border-b p-2 space-x-2">
-              <select className="select select-sm select-bordered">
-                <option>Normal</option>
-                <option>Heading 1</option>
-                <option>Heading 2</option>
-                <option>Heading 3</option>
-              </select>
-              <div className="border-r h-6 mx-1"></div>
-              <button className="btn btn-sm btn-ghost btn-square">•••</button>
-              <button className="btn btn-sm btn-ghost btn-square">♥</button>
-            </div>
-            {/* Text Area for Job Description */}
-            <textarea
-              name="job_description"
-              value={formData.job_description}
-              onChange={handleJobDescriptionChange}
-              placeholder="Enter a detailed job description..."
-              className="textarea border-0 rounded-none h-64 w-full"
-            ></textarea>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Provide a comprehensive description of the job role, responsibilities, and what a typical day looks like.
+      {/* Job Description Preview Box */}
+      <div className="border border-gray-300 rounded-lg p-6 mx-6 mb-4 bg-white">
+        {/* Job Title Section */}
+        <div className="mb-5">
+          <h3 className="text-xs font-semibold text-gray-700 uppercase mb-1">Job Title</h3>
+          <p className="text-sm text-gray-900 font-medium">
+            {formData.job_title || 'UI/UX Designer (Senior) – B2B SaaS Products'}
           </p>
         </div>
+
+        {/* Experience Section */}
+        <div className="mb-5">
+          <h3 className="text-xs font-semibold text-gray-700 uppercase mb-1">Experience</h3>
+          <p className="text-sm text-gray-900">
+            {formData.experience_level || '4+ years of relevant UI/UX design experience'}
+          </p>
+        </div>
+
+        {/* Location Section */}
+        <div className="mb-5">
+          <h3 className="text-xs font-semibold text-gray-700 uppercase mb-1">Location</h3>
+          <p className="text-sm text-gray-900">
+            {formData.work_location
+              ? `${formData.work_location}${formData.location ? ' / ' + formData.location : ''}`
+              : 'Hybrid / Onsite / Remote (as applicable)'}
+          </p>
+        </div>
+
+        {/* About the Role Section */}
+        <div className="mb-5">
+          <h3 className="text-xs font-semibold text-gray-700 uppercase mb-2">About the Role</h3>
+          <p className="text-sm text-gray-800 leading-relaxed">
+            {formData.job_description ||
+              `We are looking for a Senior UI/UX Designer to design intuitive, scalable, and high-impact user experiences for our B2B SaaS platform in the Talent Acquisition / HR Tech space. The role involves working on complex workflows, data-heavy dashboards, and enterprise user journeys while balancing usability, aesthetics, and business goals.
+
+You will collaborate closely with Product Managers, Engineering, and Business stakeholders to translate requirements into meaningful user experiences.`}
+          </p>
+        </div>
+
+        {/* Key Responsibilities Section */}
+        <div>
+          <h3 className="text-xs font-semibold text-gray-700 uppercase mb-2">Key Responsibilities</h3>
+          <ul className="space-y-1 text-sm text-gray-800">
+            {formData.responsibilities && Array.isArray(formData.responsibilities) && formData.responsibilities.length > 0 ? (
+              formData.responsibilities.map((responsibility, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-3 text-gray-600">•</span>
+                  <span>{responsibility}</span>
+                </li>
+              ))
+            ) : (
+              <>
+                <li className="flex items-start">
+                  <span className="mr-3 text-gray-600">•</span>
+                  <span>Own end-to-end UX design for product modules—from discovery to delivery</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-3 text-gray-600">•</span>
+                  <span>Conduct user research, stakeholder interviews, and usability testing</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-3 text-gray-600">•</span>
+                  <span>Translate complex business requirements into simple, intuitive user flows</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-3 text-gray-600">•</span>
+                  <span>Create wireframes, user journeys, information architecture, and prototypes</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-3 text-gray-600">•</span>
+                  <span>Design high-fidelity UI aligned with brand and design system guidelines</span>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
+      </div>
+
+      {/* AI Generation Input Section */}
+      <div className="px-6 pb-6">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="e.g. Add we are fast growing startup focusing on AI solutions"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+            value={aiContext}
+            onChange={handleAiContextChange}
+            disabled={loading}
+          />
+          <button
+            className="px-6 py-2 bg-gray-700 text-white text-sm font-medium rounded-md hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            onClick={generateJobDescription}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <RefreshIcon className="w-4 h-4 animate-spin" />
+              </>
+            ) : (
+              <>
+                <RefreshIcon className="w-4 h-4" />
+                Generate
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {/* Success Message */}
+        {showAISuccess && (
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+            ✓ Job description generated successfully!
+          </div>
+        )}
       </div>
     </div>
   );
