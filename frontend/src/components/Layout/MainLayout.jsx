@@ -392,7 +392,7 @@ export default function MainLayout({ children }) {
             >
               <MenuIcon className="h-6 w-6" />
             </button>
-            <h1 className="text-base font-semibold text-white font-Inter">
+            <h1 className="text-base font-semibold text-white">
               {greeting},<span className="font-bold text-white">{user?.email?.split('@')[0]}</span>
             </h1>
           </div>
@@ -407,8 +407,8 @@ export default function MainLayout({ children }) {
             {/* Right side - User info and profile */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center" style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-                <span className="text-sm text-white">Hello, {localStorage.getItem('user_name')}</span>
-                <span className="text-xs text-white ml-1">{localStorage.getItem('auth_role')}</span>
+                <span className="text-sm text-white font-bold">Hello, {localStorage.getItem('user_name')}</span>
+                <span className="text-[10px] text-white ml-1">{localStorage.getItem('auth_role')}</span>
               </div>
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
                 <PersonIcon className="text-white" />

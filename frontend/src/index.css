@@ -28,8 +28,9 @@
     scroll-behavior: smooth;
   }
   
-  .font-serif {
-    font-family: "Inter",sans-serif;
+  /* All text should use Inter font */
+  .font-sans, .font-serif, .font-mono {
+    font-family: "Inter", sans-serif;
   }
   
   body {

@@ -118,7 +118,7 @@ async def authenticate_admin(
         logger.info(f"Admin authenticated successfully: {email}")
         
         return {
-            "user_name":user.get("first_name")+' '+user.get("last_name"),
+            "user_name":user.get("first_name"),
             "role_name":role_name.get("role_name"),
             "access_token": access_token,
             "token_type": "bearer",
