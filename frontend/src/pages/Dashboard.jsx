@@ -20,9 +20,9 @@ import {
 
 // Material UI Icons
 import {
-  Work as JobIcon,
+  WorkOutline as JobIcon,
   Assignment as AssignmentIcon,
-  People as PeopleIcon,
+  PeopleOutline as PeopleIcon,
   ArrowForward as ArrowForwardIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
@@ -338,18 +338,18 @@ function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {isSuperAdmin && (
+        {(isSuperAdmin | isTAAdmin) && (
         <StatCard
-          icon={<JobIcon />}
+          icon={<JobIcon className="text-white"/>}
           count={dashboardStats.totalJobPostings}
           label="Total Job Posting"
-          backgroundColor="bg-white"
-          textColor="text-black"
+          backgroundColor="bg-black"
+          textColor="text-white"
           onClick={() => navigate('/job-postings')}
         />
         )}
 
-        {isSuperAdmin && (
+        {(isSuperAdmin | isTAAdmin) && (
         <StatCard
           icon={<JobIcon />}
           count={dashboardStats.activeJobs}
@@ -365,12 +365,14 @@ function Dashboard() {
         )}
 
         {isSuperAdmin | isTAAdmin && (
-        <StatCard icon={<JobIcon />} count="0 / 0" label="Interviews / Completed" backgroundColor="bg-white" textColor="text-black" hasArrow />
+        <StatCard icon={<JobIcon />} count="0/0" label="Interviews / Completed" backgroundColor="bg-white" textColor="text-black" hasArrow />
         )}
 
-        {isTAAdmin && (
+        {/* {isTAAdmin && (
         <StatCard icon={<JobIcon />} count="35" label="Resumes Uploaded" backgroundColor="bg-white" textColor="text-black" hasArrow />
-        )}
+        )} */}
+
+        
       </div>
 
       {/* Main Section */}
