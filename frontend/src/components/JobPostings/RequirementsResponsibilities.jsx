@@ -58,22 +58,22 @@ function RequirementsResponsibilities({ formData, handleChange }) {
   };
 
   return (
-  <div className="p-8 space-y-8 pt-1">
+  <div className="p-4 space-y-0 pt-1">
     
 
     {/* Requirements & Responsibilities */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Requirements */}
-      <div className="bg-white border border-gray-200 rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-gray">
+        <div className="px-2 py-0">
           <h3 className="text-sm font-semibold text-gray-800">
             Overall Experience
           </h3>
         </div>
 
-        <div className="p-6">
+        <div className="p-2">
 
-          <div className="relative mb-4">
+          <div className="relative mb-1">
             <input
               type="text"
               value={newRequirement}
@@ -118,14 +118,14 @@ function RequirementsResponsibilities({ formData, handleChange }) {
       </div>
 
       {/* Responsibilities */}
-      <div className="bg-white border border-gray-200 rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-gray">
+        <div className="px-2 py-0">
           <h3 className="text-sm font-semibold text-gray-800">
             Job Responsibilities
           </h3>
         </div>
 
-        <div className="p-6">
+        <div className="p-2">
 
           <div className="relative mb-4">
             <input
@@ -162,7 +162,7 @@ function RequirementsResponsibilities({ formData, handleChange }) {
                     onClick={() => removeResponsibility(index)}
                     className="text-gray-400 hover:text-red-500"
                   >
-                    <RemoveIcon className="h-4 w-4" />
+                    <RemoveIcon className="h-2 w-2" />
                   </button>
                 </div>
               ))}
@@ -173,14 +173,14 @@ function RequirementsResponsibilities({ formData, handleChange }) {
     </div>
 
     {/* Additional Qualifications */}
-    <div className="bg-white border border-gray-200 rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className="bg-gray ">
+      <div className="px-2 py-0">
         <h3 className="text-sm font-semibold text-gray-800">
           Additional Qualifications
         </h3>
       </div>
 
-      <div className="p-6">
+      <div className="p-2">
 
         <textarea
           value={formData.qualifications}

@@ -204,16 +204,16 @@ function CreateJobPosting() {
         <div className="flex gap-8">
           {/* Left Sidebar - Steps */}
           <div className="w-56 flex-shrink-0">
-            <div className="space-y-6">
+            <div className="space-y-12">
               {steps.map((step, index) => (
                 <div key={step.id} className="relative">
                   {/* Connecting Line */}
                   {index < steps.length - 1 && (
-                    <div className="absolute left-5 top-12 h-8 w-0.5 bg-gray-300"></div>
+                    <div className="absolute left-5 top-12 h-14 w-0.5 bg-gray-300"></div>
                   )}
 
                   {/* Step Item */}
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-4 pb-2">
                     <div
                       className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                         currentStep > step.id
@@ -232,8 +232,11 @@ function CreateJobPosting() {
                     <div className="pt-1">
                       <p className="text-xs font-medium text-gray-500">Step {step.id}</p>
                       <p className="font-medium text-gray-900 text-sm">{step.title}</p>
+                      {currentStep > step.id && (
+                        <p className="text-xs text-green-600 mt-1 font-medium">Completed</p>
+                      )}
                       {currentStep === step.id && (
-                        <p className="text-xs text-red-500 mt-1">In progress</p>
+                        <p className="text-xs mt-1" style={{ color: '#FBBF24' }}>In progress</p>
                       )}
                     </div>
                   </div>
@@ -243,7 +246,7 @@ function CreateJobPosting() {
           </div>
           <div className="border-r border-gray-300 pb-5" style={{marginTop:-33 ,marginLeft:-20 , marginBottom:-135}}></div>
           {/* Right Content - Form */}
-            <div className="flex-col">
+            <div className="flex-1 min-w-0">
 
               <CurrentStepComponent
                 formData={formData}
@@ -252,7 +255,7 @@ function CreateJobPosting() {
               />
 
               {/* Form Navigation */}
-              <div className="mt-10 flex justify-between items-center" >
+              <div className="mt-10 flex justify-end items-center gap-3" >
                 <div >
                   {currentStep > 1 && (
                     <button

@@ -7,6 +7,8 @@ from ..database import get_database, USERS_COLLECTION
 from ..utils.logger import get_logger
 from ..utils.password_handler import hash_password
 from app.services.email_service import EmailService
+from pymongo.errors import DuplicateKeyError
+
 logger = get_logger(__name__)
 
 
@@ -78,12 +80,38 @@ class UserService:
             )
             return user_id
 
+        except DuplicateKeyError as e:
+            logger.warning(f"Duplicate key error while creating user {email}: {e}")
+
+            error_msg = str(e)
+
+            if "phone" in error_msg:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Phone number already exists"
+                )
+
+            if "email" in error_msg:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Email already exists"
+                )
+
+            raise HTTPException(
+                status_code=400,
+                detail="Duplicate value error"
+            )
+
         except HTTPException:
             raise
+
         except Exception as e:
             logger.error(f"Error creating user {email}: {e}")
             logger.exception("Full exception details:")
-            raise RuntimeError("Failed to create user")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to create user"
+            )
         
     
 
@@ -169,12 +197,39 @@ class UserService:
             logger.info(f"User updated successfully: {user_id}")
             return True
 
+        except DuplicateKeyError as e:
+            logger.warning(f"Duplicate key error while updating user {user_id}: {e}")
+
+            error_msg = str(e)
+
+            if "phone" in error_msg:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Phone number already exists"
+                )
+
+            if "email" in error_msg:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Email already exists"
+                )
+
+            raise HTTPException(
+                status_code=400,
+                detail="Duplicate value error"
+            )
+
         except HTTPException:
             raise
+
         except Exception as e:
             logger.error(f"Error updating user {user_id}: {e}")
             logger.exception("Full exception details:")
-            raise RuntimeError("Failed to update user")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to update user"
+            )
+
 
 
     async def delete_user(self, user_id: str) -> bool:

@@ -18,6 +18,11 @@ import {
   SupervisorAccountOutlined,
 } from "@mui/icons-material";
 
+/* ================= Validation Regex ================= */
+const NAME_REGEX = /^[A-Za-z][A-Za-z\s'-]{1,49}$/;
+const PHONE_REGEX = /^[6-9]\d{9}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /* ================= Reusable Input ================= */
 function Input({
   label,
@@ -28,13 +33,14 @@ function Input({
   placeholder,
   value,
   onChange,
+  error,
 }) {
   return (
     <div>
-      <label className="form-label">{label}</label>
-      <div className="relative">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <div className="relative mt-1">
         {Icon && (
-          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
         )}
         <input
           name={name}
@@ -43,9 +49,13 @@ function Input({
           onChange={onChange}
           disabled={disabled}
           placeholder={placeholder}
-          className={`form-input ${Icon ? "pl-10" : ""}`}
+          autoComplete={name}
+          className={`w-full h-10 rounded-lg border text-sm px-3 ${
+            Icon ? "pl-10" : ""
+          } ${error ? "border-red-500" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-blue-500`}
         />
       </div>
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   );
 }
@@ -58,9 +68,9 @@ function CreateUser() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  /* ✅ NEW STATES */
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -76,7 +86,7 @@ function CreateUser() {
     role_id: "",
   });
 
-  /* ================= Load user (Edit) ================= */
+  /* ================= Load User (Edit) ================= */
   useEffect(() => {
     if (!isEdit) return;
 
@@ -104,33 +114,72 @@ function CreateUser() {
     loadUser();
   }, [userId, isEdit]);
 
-  /* ================= Load users + roles ================= */
+  /* ================= Load Users & Roles ================= */
   useEffect(() => {
-  const loadMeta = async () => {
-    try {
-      const [usersRes, rolesRes] = await Promise.all([
-        userManagementService.fetchUsers(),
-        RoleManagementService.getRoles(),
-      ]);
+    const loadMeta = async () => {
+      try {
+        const [usersRes, rolesRes] = await Promise.all([
+          userManagementService.fetchUsers(),
+          RoleManagementService.getRoles(),
+        ]);
 
-      setUsers(usersRes);
-      setRoles(rolesRes.roles); // ✅ FIX HERE
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load users / roles");
-    }
-  };
+        setUsers(usersRes);
+        setRoles(rolesRes.roles);
+      } catch {
+        setError("Failed to load users / roles");
+      }
+    };
 
-  loadMeta();
-}, []);
-
+    loadMeta();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
+    setErrors((p) => ({ ...p, [name]: "" }));
+  };
+
+  /* ================= Validation ================= */
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!NAME_REGEX.test(formData.first_name))
+      newErrors.first_name = "Enter valid first name";
+
+    if (formData.middle_name && !NAME_REGEX.test(formData.middle_name))
+      newErrors.middle_name = "Invalid middle name";
+
+    if (!NAME_REGEX.test(formData.last_name))
+      newErrors.last_name = "Enter valid last name";
+
+    if (!EMAIL_REGEX.test(formData.email))
+      newErrors.email = "Enter valid email";
+
+    if (!PHONE_REGEX.test(formData.phone))
+      newErrors.phone = "Enter valid phone number";
+
+    if (!isEdit && formData.hashed_password.length < 8)
+      newErrors.hashed_password = "Minimum 8 characters required";
+
+    if (!formData.department.trim())
+      newErrors.department = "Department required";
+
+    if (!formData.location.trim())
+      newErrors.location = "Location required";
+
+    if (!formData.reporting_manager)
+      newErrors.reporting_manager = "Reporting manager required";
+
+    if (!formData.role_id)
+      newErrors.role_id = "Select a role";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     try {
       setLoading(true);
       setError(null);
@@ -148,145 +197,148 @@ function CreateUser() {
   };
 
   return (
-    <div className="w-full px-6 py-6 space-y-6">
+    <div className="w-full px-2 sm:px-6 md:px-2">
       {/* ================= Header ================= */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {isEdit ? "Update User" : "Create New User"}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Add a new user and assign roles & permissions
-          </p>
-        </div>
+      <div className="border-b border-gray-300 pb-5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <span className="flex">
+              <div className="border-r border-black pr-3">
+                <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                  {isEdit ? "Update User" : "Create User"}
+                </h1>
+              </div>
+              <div className="pl-2 max-w-[300px]">
+                <p className="text-gray-600 mt-1">
+                  Add a new user and assign roles & permissions
+                </p>
+              </div>
+            </span>
 
-        <button onClick={() => navigate("/users")} className="btn btn-outline">
-          <BackIcon fontSize="small" className="mr-1" />
-          Back
-        </button>
+            <button
+              onClick={() => navigate("/users")}
+              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50"
+            >
+              <BackIcon className="h-4 w-4 mr-2" />
+              Back
+            </button>
+          </div>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md text-sm">
-          {error}
+        <div className="max-w-7xl mx-auto py-4">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
         </div>
       )}
 
-      {/* ================= Basic Information ================= */}
-      <section className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-        <h2 className="flex items-center gap-3 text-base font-semibold">
-          <span className="w-7 h-7 rounded-md bg-primary-100 flex items-center justify-center">
-            <PersonOutlined fontSize="small" className="text-primary-600" />
-          </span>
-          Basic Information
-        </h2>
+      <div className="max-w-7xl mx-auto py-8 space-y-6">
+        {/* ================= Basic Information ================= */}
+        <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <PersonOutlined className="text-gray-500" />
+            Basic Information
+          </h2>
 
-        <div className="space-y-4">
-          <Input label="First Name *" name="first_name" icon={PersonOutlined} value={formData.first_name} onChange={handleChange} />
-          <Input label="Middle Name" name="middle_name" icon={PersonOutlined} value={formData.middle_name} onChange={handleChange} />
-          <Input label="Last Name *" name="last_name" icon={PersonOutlined} value={formData.last_name} onChange={handleChange} />
-          <Input label="Email Address *" name="email" icon={EmailOutlined} type="email" disabled={isEdit} value={formData.email} onChange={handleChange} />
-          <Input label="Phone Number *" name="phone" icon={PhoneOutlined} value={formData.phone} onChange={handleChange} />
-          <Input label="Temporary Password *" name="hashed_password" icon={LockOutlined} type="password" value={formData.hashed_password} onChange={handleChange} />
-          <Input label="Employee ID" name="employee_id" icon={BadgeOutlined} value={formData.employee_id} onChange={handleChange} />
-        </div>
-      </section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="First Name *" name="first_name" icon={PersonOutlined} value={formData.first_name} onChange={handleChange} error={errors.first_name} />
+            <Input label="Middle Name" name="middle_name" icon={PersonOutlined} value={formData.middle_name} onChange={handleChange} error={errors.middle_name} />
+            <Input label="Last Name *" name="last_name" icon={PersonOutlined} value={formData.last_name} onChange={handleChange} error={errors.last_name} />
+            <Input label="Email *" name="email" icon={EmailOutlined} type="email" disabled={isEdit} value={formData.email} onChange={handleChange} error={errors.email} />
+            <Input label="Phone *" name="phone" icon={PhoneOutlined} value={formData.phone} onChange={handleChange} error={errors.phone} />
+            <Input label="Temporary Password *" name="hashed_password" icon={LockOutlined} type="password" value={formData.hashed_password} onChange={handleChange} error={errors.hashed_password} />
+            <Input label="Employee ID" name="employee_id" icon={BadgeOutlined} value={formData.employee_id} onChange={handleChange} />
+          </div>
+        </section>
 
-      {/* ================= Work Information ================= */}
-      <section className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-        <h2 className="flex items-center gap-3 text-base font-semibold">
-          <span className="w-7 h-7 rounded-md bg-primary-100 flex items-center justify-center">
-            <WorkOutline fontSize="small" className="text-primary-600" />
-          </span>
-          Work Information
-        </h2>
+        {/* ================= Work Information ================= */}
+        <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <WorkOutline className="text-gray-500" />
+            Work Information
+          </h2>
 
-        <div className="space-y-4">
-          <Input label="Department" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} />
-          <Input label="Location" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Department" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} error={errors.department} />
+            <Input label="Location" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} error={errors.location} />
 
-          {/* ✅ Reporting Manager Dropdown */}
-          <div>
-            <label className="form-label">Reporting Manager</label>
-            <div className="relative">
-              <SupervisorAccountOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <select
-                name="reporting_manager"
-                value={formData.reporting_manager}
-                onChange={handleChange}
-                className="form-input pl-10"
-              >
-                <option value="">Select Manager</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.first_name} {u.last_name}
-                  </option>
-                ))}
-              </select>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Reporting Manager</label>
+              <div className="relative mt-1">
+                <SupervisorAccountOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <select
+                  name="reporting_manager"
+                  value={formData.reporting_manager}
+                  onChange={handleChange}
+                  className="w-full h-10 rounded-lg border border-gray-300 text-sm pl-10 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Manager</option>
+                  {users.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.first_name} {u.last_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {errors.reporting_manager && (
+                <p className="text-xs text-red-600 mt-1">{errors.reporting_manager}</p>
+              )}
             </div>
           </div>
+        </section>
+
+        {/* ================= Roles ================= */}
+        <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <SecurityOutlined className="text-gray-500" />
+            Roles & Permissions
+          </h2>
+
+          {errors.role_id && <p className="text-xs text-red-600">{errors.role_id}</p>}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {roles.map((r) => (
+              <label
+                key={r._id}
+                className={`flex gap-3 p-4 border rounded-lg cursor-pointer transition ${
+                  formData.role_id === r._id
+                    ? "border-blue-600 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-400"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="role_id"
+                  value={r._id}
+                  checked={formData.role_id === r._id}
+                  onChange={handleChange}
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {r.name || r.role_name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {r.permissions?.length || 0} permissions
+                  </p>
+                </div>
+              </label>
+            ))}
+          </div>
+        </section>
+
+        {/* ================= Action ================= */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+          >
+            <SaveIcon className="h-4 w-4 mr-2" />
+            {loading ? "Saving..." : isEdit ? "Update User" : "Create User"}
+          </button>
         </div>
-      </section>
-
-      {/* ================= Roles & Permissions ================= */}
-      <section className="bg-white rounded-xl shadow-sm p-6 space-y-4">
-        <h2 className="flex items-center gap-3 text-base font-semibold">
-          <span className="w-7 h-7 rounded-md bg-primary-100 flex items-center justify-center">
-            <SecurityOutlined fontSize="small" className="text-primary-600" />
-          </span>
-          Roles & Permissions
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {roles.map((r) => (
-            <label
-              key={r._id}
-              className={`flex gap-3 border rounded-lg p-4 cursor-pointer ${
-                formData.role_id === r._id
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-gray-200"
-              }`}
-            >
-              <input
-                type="radio"
-                name="role_id"
-                value={r._id}
-                checked={formData.role_id === r._id}
-                onChange={handleChange}
-                className="mt-1"
-              />
-              <div>
-                {/* <p className="font-medium">{r.name}</p>
-                <p className="text-xs text-gray-500">
-                  {r.permissions?.length || 0} permissions
-                </p> */}
-
-                      <p className="font-medium">
-                          {r.name || r.role_name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                          {Array.isArray(r.permissions)
-                              ? `${r.permissions.length} permissions`
-                              : "No permissions assigned"}
-                      </p>
-
-
-              </div>
-            </label>
-          ))}
-        </div>
-      </section>
-
-      {/* ================= Actions ================= */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="btn bg-primary-600 text-white px-6 py-2.5"
-        >
-          <SaveIcon fontSize="small" className="mr-1" />
-          {loading ? "Saving..." : isEdit ? "Update User" : "Create User"}
-        </button>
       </div>
     </div>
   );
