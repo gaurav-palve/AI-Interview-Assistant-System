@@ -105,7 +105,7 @@ function Statistics() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 font-serif animate-fadeIn">
+        <h1 className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 animate-fadeIn">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-100 dark:to-gray-300">
             INTERVIEW STATISTICS
           </span>
@@ -147,8 +147,8 @@ function Statistics() {
                     <ChartIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Total Interviews</p>
-                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.total_interviews || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Interviews</p>
+                    <p className="text-3xl font-semibold text-gray-800 dark:text-gray-200">{stats.total_interviews || 0}</p>
                   </div>
                 </div>
               </div>
@@ -161,8 +161,8 @@ function Statistics() {
                     <ScheduleIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Scheduled</p>
-                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.status_breakdown?.scheduled || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Scheduled</p>
+                    <p className="text-3xl font-semibold text-gray-800 dark:text-gray-200">{stats.status_breakdown?.scheduled || 0}</p>
                   </div>
                 </div>
               </div>
@@ -175,8 +175,8 @@ function Statistics() {
                     <CompletedIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Completed</p>
-                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.status_breakdown?.completed || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                    <p className="text-3xl font-semibold text-gray-800 dark:text-gray-200">{stats.status_breakdown?.completed || 0}</p>
                   </div>
                 </div>
               </div>
@@ -189,8 +189,8 @@ function Statistics() {
                     <DraftIcon className="h-7 w-7 text-gray-800 dark:text-gray-200 font-bold" />
                   </div>
                   <div className="ml-5">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 font-serif">Drafts</p>
-                    <p className="text-3xl font-semibold font-serif text-gray-800 dark:text-gray-200">{stats.status_breakdown?.draft || 0}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Drafts</p>
+                    <p className="text-3xl font-semibold text-gray-800 dark:text-gray-200">{stats.status_breakdown?.draft || 0}</p>
                   </div>
                 </div>
               </div>
@@ -199,7 +199,7 @@ function Statistics() {
 
           {/* Status Breakdown */}
           <div className="card shadow-lg border-t-4 border-sky-400 animate-fadeIn" style={{ animationDelay: '0.5s' }}>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center font-serif">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <PieChartIcon className="h-5 w-5 mr-2 text-sky-400" />
               Interview Status Breakdown
             </h2>
@@ -304,7 +304,7 @@ function Statistics() {
 
           {/* Visual Chart */}
           <div className="card shadow-lg border-t-4 border-sky-400 animate-fadeIn" style={{ animationDelay: '0.6s' }}>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center font-serif">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <ChartIcon className="h-5 w-5 mr-2 text-sky-400" />
               Visual Representation
             </h2>
@@ -327,8 +327,8 @@ function Statistics() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white dark:bg-gray-800 rounded-full w-40 h-40 flex items-center justify-center shadow-inner">
                     <div className="text-center">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 font-serif">Total</p>
-                      <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-200 font-serif">{stats.total_interviews || 0}</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total</p>
+                      <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-200">{stats.total_interviews || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -339,23 +339,23 @@ function Statistics() {
               {/* Legend items */}
               <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '0.7s' }}>
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-teal-400 to-green-200 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Completed</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Completed</span>
               </div>
               <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '0.8s' }}>
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-400 to-indigo-200 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Scheduled</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Scheduled</span>
               </div>
               <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '0.9s' }}>
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-400 to-yellow-200 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">In Progress</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">In Progress</span>
               </div>
               <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '1s' }}>
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-400 to-pink-200 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Cancelled</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Cancelled</span>
               </div>
               <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 animate-fadeIn" style={{ animationDelay: '1.1s' }}>
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-200 mr-2"></div>
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-serif">Draft</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">Draft</span>
               </div>
             </div>
           </div>

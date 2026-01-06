@@ -182,7 +182,7 @@ function InterviewDetail() {
           >
            
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-Inter animate-fadeIn" style={{ fontFamily: "Inter", textTransform: 'capitalize' }}>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white animate-fadeIn" style={{ textTransform: 'capitalize' }}>
             <AssignmentIcon className="h-8 w-8 mr-2 text-primary-500 animate-pulse-slow" />
             Interview Details
           </h1>
