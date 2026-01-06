@@ -1023,7 +1023,7 @@ const handleDropResume = (e) => {
       </div>
 
       <div className="ml-6">
-        <h1 className="text-4xl font-bold text-gray-900 font-serif tracking-tight">
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
           {jobPosting?.job_posting_name || jobPosting?.job_title || "Job Posting"}
         </h1>
 
@@ -1133,7 +1133,7 @@ const handleDropResume = (e) => {
               <div className="p-6">
                 <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                   <WorkIcon className="h-6 w-6 mr-2 text-primary-600" />
-                  <span className="text-gray-800 font-serif">Job Details</span>
+                  <span className="text-gray-800">Job Details</span>
                 </h2>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Basic Information</h3>
@@ -1177,7 +1177,7 @@ const handleDropResume = (e) => {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
                     <DescriptionIcon className="h-6 w-6 mr-2 text-primary-600" />
-                    <span className="text-gray-800 font-serif">Job Description</span>
+                    <span className="text-gray-800">Job Description</span>
                   </h2>
                   <div className="flex items-center gap-2">
                     {/* EDIT BUTTON */}
@@ -1253,7 +1253,7 @@ const handleDropResume = (e) => {
               <div className="p-6">
                 <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                   <AssignmentIcon className="h-6 w-6 mr-2 text-primary-600" />
-                  <span className="text-gray-800 font-serif">Resume Screening</span>
+                  <span className="text-gray-800">Resume Screening</span>
                 </h2>
                 
                 <p className="text-gray-700 mb-6">
@@ -1861,7 +1861,7 @@ const handleDropResume = (e) => {
             <div className="p-6">
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                 <PersonIcon className="h-6 w-6 mr-2 text-primary-600" />
-                <span className="text-gray-800 font-serif">Scheduled Interviews</span>
+                <span className="text-gray-800">Scheduled Interviews</span>
               </h2>
 
               {scheduledInterviews.length === 0 ? (
@@ -1948,7 +1948,7 @@ const handleDropResume = (e) => {
             <div className="p-6">
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                 <AssessmentIcon className="h-6 w-6 mr-2 text-primary-600" />
-                <span className="text-gray-800 font-serif">Job Posting Statistics</span>
+                <span className="text-gray-800">Job Posting Statistics</span>
               </h2>
               
                 <JobPostingStatistics jobPostingId={id} />
