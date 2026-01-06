@@ -763,12 +763,12 @@ const handleDropResume = (e) => {
             width: "*",
             stack: [
               { text: "NEUTRINO", bold: true, fontSize: 24, color: "#222" },
-              {
-                text: "RECRUITING SOLUTIONS",
-                fontSize: 10,
-                color: "#777",
-                margin: [0, -3]
-              }
+              // {
+              //   // text: "Tech Systems",
+              //   fontSize: 10,
+              //   color: "#777",
+              //   margin: [0, -3]
+              // }
             ],
             margin: [10, 0]
           },
@@ -826,7 +826,7 @@ const handleDropResume = (e) => {
           ]
         },
         {
-          text: `© ${new Date().getFullYear()} Neutrino Recruiting Solutions. All rights reserved.`,
+          text: `© ${new Date().getFullYear()} Neutrino Tech Systems. All rights reserved.`,
           alignment: "center",
           fontSize: 9,
           color: "#555",
