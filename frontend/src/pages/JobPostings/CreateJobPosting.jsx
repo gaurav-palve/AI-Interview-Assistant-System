@@ -145,7 +145,7 @@ function CreateJobPosting() {
             {/* Left content – takes only needed width */}
             <span className="flex flex-shrink-0">
               <div className="border-r border-black pr-3">
-                <h1 className="text-4xl font-bold text-gray-900 font-Inter tracking-tight leading-none animate-slideInLeft">
+                <h1 className="text-4xl font-bold text-gray-900 tracking-tight leading-none animate-slideInLeft">
                   Create Job Posting
                 </h1>
               </div>
