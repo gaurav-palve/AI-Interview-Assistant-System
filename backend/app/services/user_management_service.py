@@ -29,6 +29,7 @@ class UserService:
         location: str,
         reporting_manager: str,
         created_by: str,
+        assignable_role_ids = [],
         middle_name: Optional[str] = None
     ) -> str:
         """
@@ -54,6 +55,7 @@ class UserService:
                 "phone": phone.strip(),
                 "hashed_password": hash_password(hashed_password),
                 "role_id": role_id,
+                "assignable_role_ids": assignable_role_ids,
                 "employee_id": employee_id,
                 "department": department.strip(),
                 "location": location.strip(),

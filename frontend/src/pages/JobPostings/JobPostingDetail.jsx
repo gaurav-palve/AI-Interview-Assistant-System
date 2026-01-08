@@ -99,7 +99,7 @@ function JobPostingDetail() {
 
   const canViewJob =
     hasPermission(PERMISSIONS.JOB_VIEW) ||
-    hasPermission(PERMISSIONS.JOB_VIEW_ALL) ||
+    hasPermission(PERMISSIONS.JOB_VIEW) ||
     hasPermission(PERMISSIONS.JOB_VIEW_ASSIGNED);
 
   const canChangeStatus = hasPermission(PERMISSIONS.JOB_POSTING_STATUS);
@@ -108,7 +108,7 @@ function JobPostingDetail() {
   const canUploadResume = hasPermission(PERMISSIONS.RESUME_UPLOAD);
   const canScheduleInterview = hasPermission(PERMISSIONS.INTERVIEW_SCHEDULE);
   const canViewInterviews = hasPermission(PERMISSIONS.INTERVIEW_VIEW);
-  const canViewAssessments = hasPermission(PERMISSIONS.ASSESSMENT_VIEW);
+  const canViewAssessments = hasPermission(PERMISSIONS.RESUME_SCREENING_RESULT);
   const canViewStatistics = hasPermission(PERMISSIONS.REPORT_VIEW);
   const canCreateInterview = hasPermission(PERMISSIONS.INTERVIEW_SCHEDULE);
 

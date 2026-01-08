@@ -33,7 +33,7 @@ export const NAV_ITEMS = [
     icon: WorkOutlined,
     permissions: [
       PERMISSIONS.JOB_VIEW,
-      PERMISSIONS.JOB_VIEW_ALL,
+      PERMISSIONS.JOB_VIEW,
       PERMISSIONS.JOB_VIEW_ASSIGNED,
       PERMISSIONS.JOB_EDIT,
       PERMISSIONS.JOB_DELETE,
@@ -71,8 +71,7 @@ export const NAV_ITEMS = [
     label: "Assessment Reports",
     icon: GradingOutlined,
     permissions: [
-      PERMISSIONS.ASSESSMENT_VIEW,
-      PERMISSIONS.ASSESSMENT_CREATE,
+      PERMISSIONS.REPORT_VIEW,
     ],
   },
 ];

@@ -65,7 +65,7 @@ export default function MainLayout({ children }) {
         PERMISSIONS.JOB_CREATE,
         PERMISSIONS.JOB_EDIT,
         PERMISSIONS.JOB_DELETE,
-        PERMISSIONS.JOB_VIEW_ALL,
+        PERMISSIONS.JOB_VIEW,
         PERMISSIONS.JOB_VIEW_ASSIGNED,
       ],
     },
@@ -84,8 +84,7 @@ export default function MainLayout({ children }) {
 
     {
       path: '/candidate-assessment-reports', label: 'Assessment Reports', icon: <GradingIcon />, permissions: [
-        PERMISSIONS.ASSESSMENT_VIEW,
-        PERMISSIONS.ASSESSMENT_CREATE,
+        PERMISSIONS.REPORT_VIEW,
       ],
     }
   ];

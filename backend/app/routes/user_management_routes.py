@@ -25,6 +25,7 @@ class UserCreate(BaseModel):
     phone: str = Field(..., description="10 digit Indian mobile number")
     hashed_password: str = Field(..., min_length=8)
     role_id: str
+    assignable_role_ids: list[str] = []
     employee_id: str
     department: str
     location: str
@@ -101,6 +102,7 @@ async def create_user(
             location=payload.location,
             reporting_manager=payload.reporting_manager,
             created_by=user_email,
+            assignable_role_ids=payload.assignable_role_ids,
         )
 
         return {
