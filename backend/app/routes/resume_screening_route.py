@@ -56,12 +56,15 @@ async def resume_screening_endpoint(
 
 
 @router.get("/get-resume-screening/results")
-async def get_resume_screening_results(job_posting_id: str, current_user: dict = Depends(require_permission("RESUME_SCREENING_RESULTS"))):
+async def get_resume_screening_results(job_posting_id: str, min_ats_score: float | None = None,current_user: dict = Depends(require_permission("RESUME_SCREENING_RESULTS"))):
     """
     Fetch all saved resume screening results (up to 1000 records).
     """
     db = get_database()
     query = {"job_posting_id": job_posting_id}
+    
+    if min_ats_score is not None:
+        query["ATS_Score"] = {"$gte": min_ats_score}
 
     cursor = db[SCREENING_COLLECTION].find(query)
     results = await cursor.to_list(length=1000)

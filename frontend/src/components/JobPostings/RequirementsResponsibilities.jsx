@@ -127,7 +127,7 @@ function RequirementsResponsibilities({ formData, handleChange }) {
 
         <div className="p-2">
 
-          <div className="relative mb-4">
+          <div className="relative mb-1">
             <input
               type="text"
               value={newResponsibility}

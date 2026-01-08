@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
+import { useRef } from 'react';
+
 
 // Material UI Icons
 import {
@@ -130,6 +132,8 @@ function CreateJobPosting() {
     }
   };
 
+  const basicInfoNextRef = useRef(null);
+
   const saveAsDraft = () => submitJobPosting('draft');
   const publishJobPosting = () => submitJobPosting('active');
 
@@ -248,11 +252,21 @@ function CreateJobPosting() {
           {/* Right Content - Form */}
             <div className="flex-1 min-w-0">
 
+            {currentStep === 1 ? (
+              <BasicInformation
+                formData={formData}
+                handleChange={handleChange}
+                goNext={handleNext}
+              />
+            ) : (
               <CurrentStepComponent
                 formData={formData}
                 handleChange={handleChange}
-                onNext={handleNext}
+                goNext={handleNext}
               />
+
+            )}
+
 
               {/* Form Navigation */}
               <div className="mt-10 flex justify-end items-center gap-3" >
@@ -269,8 +283,18 @@ function CreateJobPosting() {
                     </button>
                   )}
                 </div>
-                <button
-                  onClick={currentStep < steps.length ? handleNext : publishJobPosting}
+              <button
+                onClick={() => {
+                  if (currentStep === 1) {
+                    document.getElementById('basic-info-next')?.click();
+                  } else if (currentStep < steps.length) {
+                    handleNext();
+                  } else {
+                    publishJobPosting();
+                  }
+                }}
+
+
                   disabled={loading}
                   className="flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >

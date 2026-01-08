@@ -16,6 +16,8 @@ function ResumeScreening() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [minAtsScore, setMinAtsScore] = useState('');
+
 
   const handleZipFileChange = (e) => {
     if (e.target.files[0]) {
@@ -69,6 +71,14 @@ function ResumeScreening() {
   useEffect(() => {
     load();
   }, []);
+
+  const filteredResults = results
+    ? results.filter((r) => {
+      const score = r.ATS_Score ?? r.ats_score ?? 0;
+      return minAtsScore === '' || score >= Number(minAtsScore);
+    })
+    : [];
+
 
   return (
     <div className="space-y-6">
@@ -172,10 +182,29 @@ function ResumeScreening() {
           </div>
         )}
       </div>
+      {/* ✅ ATS FILTER – TOP OF ALL RESUMES */}
+      {/* ✅ ATS FILTER – ALWAYS VISIBLE WHEN RESULTS EXIST */}
+      {results && results.length > 0 && (
+        <div className="bg-white shadow-sm rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              placeholder="Minimum ATS score"
+              value={minAtsScore}
+              onChange={(e) => setMinAtsScore(e.target.value)}
+              className="border rounded px-3 py-2 w-48"
+            />
+            <span className="text-sm text-gray-500">
+              Showing {filteredResults.length} of {results.length}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Results Section */}
       {results && results.length > 0 && (
         <div className="bg-white shadow-md rounded-lg p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Screening Results</h2>
           <h2 className="text-xl font-bold text-gray-800 mb-4">Screening Results</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -196,7 +225,7 @@ function ResumeScreening() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {results.map((result, index) => (
+                {filteredResults.map((result, index) => (
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {result.resume}
