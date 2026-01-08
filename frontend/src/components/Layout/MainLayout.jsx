@@ -25,7 +25,8 @@ import {
   SettingsOutlined,
   PersonAddOutlined,
   PeopleOutlined,
-  AdminPanelSettingsOutlined
+  AdminPanelSettingsOutlined,
+  AccountTreeOutlined
 } from '@mui/icons-material';
 
 export default function MainLayout({ children }) {
@@ -105,7 +106,8 @@ export default function MainLayout({ children }) {
   useEffect(() => {
     if (
       location.pathname.startsWith("/users") ||
-      location.pathname.startsWith("/create-role")
+      location.pathname.startsWith("/create-role") ||
+      location.pathname.startsWith("/organization-tree")
     ) {
       setSettingsOpen(true);
     } else {
@@ -289,6 +291,23 @@ export default function MainLayout({ children }) {
                         >
                           <PeopleOutlined fontSize="small" className="mr-2" />
                           All Users
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* Organization Tree */}
+                    {hasPermission(PERMISSIONS.USER_VIEW) && (
+                      <Link to="/organization-tree">
+                        <div
+                          className={`h-11 w-full flex items-center pl-3 rounded-lg transition-all duration-300
+            text-white/80 hover:text-white
+            ${location.pathname === '/organization-tree'
+                              ? 'bg-white/15 shadow-lg border-l-2 border-primary-400 font-semibold'
+                              : 'hover:bg-white/10 hover:shadow-md'
+                            }`}
+                        >
+                          <AccountTreeOutlined fontSize="small" className="mr-2" />
+                          Organization Tree
                         </div>
                       </Link>
                     )}

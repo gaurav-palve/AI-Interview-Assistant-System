@@ -9,6 +9,7 @@ import {
   PeopleOutlined,
   AdminPanelSettingsOutlined,
   SettingsOutlined,
+  AccountTreeOutlined,
 } from "@mui/icons-material";
 
 /**
@@ -108,6 +109,13 @@ export const SETTINGS_MENU = {
       path: "/users",
       label: "All Users",
       icon: PeopleOutlined,
+      permissions: [PERMISSIONS.USER_VIEW],
+    },
+    {
+      key: "org-hierarchy",
+      path: "/organization-tree",
+      label: "Organization Tree",
+      icon: AccountTreeOutlined,
       permissions: [PERMISSIONS.USER_VIEW],
     },
   ],

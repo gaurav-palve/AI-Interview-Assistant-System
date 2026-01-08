@@ -44,6 +44,7 @@ import RoleManagement from './pages/SuperAdmin/RoleManagement';
 // import UsersList from './pages/Users/UsersList';
 import CreateUser from './pages/CreateUser';
 import UsersList from './pages/UserList';
+import OrganizationTree from './pages/OrganizationTree/OrganizationTree';
 import { refreshPermissions } from './contexts/AuthContext';
 import { useEffect } from 'react';
 
@@ -318,6 +319,17 @@ function App() {
           <ProtectedRoute>
             <MainLayout>
               <CreateUser />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/organization-tree"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <OrganizationTree />
             </MainLayout>
           </ProtectedRoute>
         }
