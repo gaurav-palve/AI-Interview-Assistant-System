@@ -11,7 +11,6 @@ export const PERMISSIONS = {
   JOB_EDIT: "JOB_EDIT",
   JOB_DELETE: "JOB_DELETE",
   JOB_VIEW: "JOB_VIEW",
-  JOB_VIEW_ALL: "JOB_VIEW_ALL",
   JOB_VIEW_ASSIGNED: "JOB_VIEW_ASSIGNED",
   JOB_POSTING_STATUS: "JOB_POSTING_STATUS_UPDATE",
   UPDATE_JOB_DESCRIPTION: "JOB_EDIT",
@@ -38,18 +37,12 @@ export const PERMISSIONS = {
   USER_MANAGE: "USER_MANAGE",
   USER_VIEW: "USER_VIEW",
 
-  // ======================
-  // Assessment Module
-  // ======================
-  ASSESSMENT_VIEW: "ASSESSMENT_VIEW",
-  ASSESSMENT_CREATE: "ASSESSMENT_CREATE",
+ 
 
   // ======================
   // Report Module
   // ======================
-  REPORT_GENERATE: "REPORT_GENERATE",
   REPORT_VIEW: "REPORT_VIEW",
-  REPORT_DOWNLOAD: "REPORT_DOWNLOAD",
 
   ASSIGN_USERS: "ASSIGN_USERS",
 };

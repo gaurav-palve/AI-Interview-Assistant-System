@@ -177,7 +177,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const isTAAdmin = user?.role === "TA Admin";
+  const isTAAdmin = user?.role === "TA Admin" || user?.role === "TA LEAD";
 
   const [dashboardStats, setDashboardStats] = useState({
     totalJobPostings: 0,
