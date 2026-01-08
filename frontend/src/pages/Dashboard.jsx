@@ -330,7 +330,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="px-6 space-y-6 ">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-gray-900 tracking-tight animate-slideInLeft">Dashboard</h1>
@@ -338,7 +338,7 @@ function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {(isSuperAdmin | isTAAdmin) && (
+        {(isSuperAdmin || isTAAdmin) && (
         <StatCard
           icon={<JobIcon className="text-white"/>}
           count={dashboardStats.totalJobPostings}
@@ -349,7 +349,7 @@ function Dashboard() {
         />
         )}
 
-        {(isSuperAdmin | isTAAdmin) && (
+        {(isSuperAdmin || isTAAdmin) && (
         <StatCard
           icon={<JobIcon />}
           count={dashboardStats.activeJobs}
@@ -364,13 +364,13 @@ function Dashboard() {
         <StatCard icon={<PeopleIcon />} count={`${dashboardStats.rolesUsers.roles}/${dashboardStats.rolesUsers.users}`} label="Roles / Users" backgroundColor="bg-white" textColor="text-black" />
         )}
 
-        {isSuperAdmin | isTAAdmin && (
+        {(isSuperAdmin || isTAAdmin) && (
         <StatCard icon={<JobIcon />} count="0/0" label="Interviews / Completed" backgroundColor="bg-white" textColor="text-black" hasArrow />
         )}
 
-        {/* {isTAAdmin && (
+        {isTAAdmin && (
         <StatCard icon={<JobIcon />} count="35" label="Resumes Uploaded" backgroundColor="bg-white" textColor="text-black" hasArrow />
-        )} */}
+        )}
 
         
       </div>
