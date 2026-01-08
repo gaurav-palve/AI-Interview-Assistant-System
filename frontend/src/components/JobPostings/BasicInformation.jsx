@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+
 import { 
   Work as WorkIcon,
   Business as BusinessIcon,
@@ -14,7 +15,7 @@ import {
  * BasicInformation component
  * First step of the job posting creation form
  */
-function BasicInformation({ formData, handleChange }) {
+function BasicInformation({ formData, handleChange, goNext  }) {
   const [errors, setErrors] = useState({});
   const [newSkill, setNewSkill] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -29,21 +30,29 @@ function BasicInformation({ formData, handleChange }) {
 
   // Handle next button click
   const handleNextClick = () => {
-    // Validate required fields
     const requiredFields = ['job_title', 'company', 'location'];
-    const hasErrors = requiredFields.some(field => !formData[field]);
-    
-    if (hasErrors) {
-      requiredFields.forEach(field => {
-        if (!formData[field]) {
-          setErrors(prev => ({ ...prev, [field]: 'This field is required' }));
-        }
-      });
+    const newErrors = {};
+
+    requiredFields.forEach(field => {
+      if (!formData[field]?.trim()) {
+        newErrors[field] = 'This field is required';
+      }
+
+      // ✅ REQUIRED SKILLS VALIDATION
+      if (!formData.required_skills || formData.required_skills.length === 0) {
+        newErrors.required_skills = 'At least one skill is required';
+      }
+    });
+
+    setErrors(newErrors);
+
+    // 🔴 STOP HERE if errors exist
+    if (Object.keys(newErrors).length > 0) {
       return;
     }
-    
-    // Proceed to next step
-    onNext(formData);
+
+    // ✅ Move to next page ONLY if valid
+    goNext();
   };
 
   // ----------------------------
@@ -112,6 +121,7 @@ function BasicInformation({ formData, handleChange }) {
     const updatedSkills = [...formData.required_skills, newSkill.trim()];
     updateFormData('required_skills', updatedSkills);
     setNewSkill('');
+    setErrors(prev => ({ ...prev, required_skills: null }));
   };
 
   const addSuggestedSkill = (skill) => {
@@ -120,12 +130,14 @@ function BasicInformation({ formData, handleChange }) {
     const updatedSkills = [...formData.required_skills, skill];
     updateFormData('required_skills', updatedSkills);
     setSuggestions(prev => prev.filter(s => s !== skill));
+    setErrors(prev => ({ ...prev, required_skills: null }));
   };
 
   const addAllSuggested = () => {
     const merged = Array.from(new Set([...(formData.required_skills || []), ...suggestions]));
     updateFormData('required_skills', merged);
     setSuggestions([]);
+    setErrors(prev => ({ ...prev, required_skills: null }));
   };
 
   const removeRequiredSkill = (index) => {
@@ -145,6 +157,13 @@ function BasicInformation({ formData, handleChange }) {
     const { name, value } = e.target;
     updateFormData(name, value);
   };
+
+  // useEffect(() => {
+  //   if (onNext) {
+  //     onNext.current = handleNextClick;
+  //   }
+  // }, []);
+
 
   // ----------------------------
   // JSX
@@ -286,6 +305,12 @@ function BasicInformation({ formData, handleChange }) {
           </button>
         </div>
 
+          {errors.required_skills && (
+            <p className="text-xs text-red-600 mt-1">
+              {errors.required_skills}
+            </p>
+          )}
+
         {/* ✅ Selected skills FIRST */}
         {formData.required_skills?.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
@@ -348,6 +373,13 @@ function BasicInformation({ formData, handleChange }) {
         )}
       </div>
     </div>
+    <button
+  id="basic-info-next"
+  type="button"
+  onClick={handleNextClick}
+  className="hidden"
+/>
+
   </div>
 );
 }

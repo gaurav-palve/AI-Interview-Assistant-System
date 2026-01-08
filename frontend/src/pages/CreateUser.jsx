@@ -287,11 +287,11 @@ function CreateUser() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Department" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} error={errors.department} />
-            <Input label="Location" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} error={errors.location} />
+            <Input label="Department *" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} error={errors.department} />
+            <Input label="Location *" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} error={errors.location} />
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Reporting Manager</label>
+              <label className="text-sm font-medium text-gray-700">Reporting Manager *</label>
               <div className="relative mt-1">
                 <SupervisorAccountOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <select
@@ -319,7 +319,7 @@ function CreateUser() {
         <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
             <SecurityOutlined className="text-gray-500" />
-            Roles & Permissions
+            Roles & Permissions *
           </h2>
 
           {errors.role_id && <p className="text-xs text-red-600">{errors.role_id}</p>}

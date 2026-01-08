@@ -84,6 +84,9 @@ function JobPostingDetail() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState(null);
   const [emailAttachments, setEmailAttachments] = useState([]);
+  const [minAtsScore, setMinAtsScore] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
 
   // Job Description Editing
   const [isEditingJD, setIsEditingJD] = useState(false);
@@ -337,6 +340,12 @@ function JobPostingDetail() {
       setScreeningLoading(false);
     }
   };
+
+  const filteredScreeningResults = screeningResults.filter(candidate => {
+    const score = candidate.ATS_Score ?? 0;
+    return minAtsScore === '' || score >= Number(minAtsScore);
+  });
+
 
   // Handle resume screening
   const handleScreenResumes = async () => {
@@ -1575,7 +1584,84 @@ const handleDropResume = (e) => {
                     )}
                   </div>
                 )}
-                
+
+                {/* COMPACT FILTER BAR */}
+                {screeningResults.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
+
+                    {/* Left Section */}
+                    <div className="flex items-center gap-3">
+
+                      {/* FILTER BUTTON */}
+                      <button
+                        onClick={() => setShowFilters(prev => !prev)}
+                        className="
+          flex items-center gap-2
+          px-4 py-2
+          rounded-full
+          border border-gray-300
+          bg-white
+          text-sm font-medium text-gray-700
+          hover:bg-gray-50
+          shadow-sm
+        "
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 text-gray-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M6 12h12M10 20h4" />
+                        </svg>
+                        Filters
+                      </button>
+
+                      {/* FILTER CONTROLS – APPEAR TO RIGHT */}
+                      {showFilters && (
+                        <div className="flex items-center gap-2 animate-fadeIn">
+                          <span className="text-sm text-gray-600">ATS Score Greater Than</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="70"
+                            value={minAtsScore}
+                            onChange={(e) => setMinAtsScore(e.target.value)}
+                            className="
+              w-20
+              px-2 py-1.5
+              text-sm
+              border border-gray-300
+              rounded-md
+              focus:ring-1 focus:ring-primary-500
+            "
+                          />
+
+                          {minAtsScore && (
+                            <button
+                              onClick={() => setMinAtsScore('')}
+                              className="text-sm text-primary-600 hover:underline"
+                            >
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Side Count */}
+                    <span className="text-sm text-gray-500">
+                      Showing {filteredScreeningResults.length} of {screeningResults.length}
+                    </span>
+                  </div>
+                )}
+
+
+
+
                 {/* Screening Results */}
                 {screeningResults.length > 0 && (
                   <div className="mt-8">
@@ -1596,7 +1682,7 @@ const handleDropResume = (e) => {
                     </div>
                     
                     <div className="space-y-4">
-                      {screeningResults.map((candidate, index) => (
+                      {filteredScreeningResults.map((candidate, index) => (
                         <div
                           key={index}
                           className="border border-gray-200 rounded-lg p-4 hover:shadow-xl transition-shadow duration-200"
