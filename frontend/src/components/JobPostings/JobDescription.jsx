@@ -222,12 +222,6 @@ function JobDescription({ formData, handleChange }) {
             {error}
           </div>
         )}
-
-        {showAISuccess && (
-          <div className="mt-3 p-3 bg-green-50 border text-green-700 text-sm rounded">
-            ✓ Job description generated successfully!
-          </div>
-        )}
       </div>
     </div>
   );
