@@ -24,7 +24,7 @@ class RemoveAssignedUserRequest(BaseModel):
 @router.post("/job-assignments/assign")
 async def assign_job_to_users(
     payload: AssignJobRequest,
-    current_user: dict = Depends(require_permission("JOB_MAPPING_ASSIGNMENT"))
+    current_user: dict = Depends(require_permission("MAP_USERS_TO_JOBS"))
 ):
     
     db = get_database()
@@ -75,7 +75,7 @@ async def assign_job_to_users(
 @router.get("/get-assigned-users-of-job/{job_id}")
 async def get_job_assignments_by_job(
     job_id: str,
-    current_user: dict = Depends(require_permission("JOB_MAPPING_VIEW"))
+    current_user: dict = Depends(require_permission("VIEW_MAPPED_USERS_FOR_JOBS"))
 ):
     db = get_database()
     
@@ -111,7 +111,7 @@ async def get_job_assignments_by_job(
 @router.delete("/job-assignments/remove")
 async def remove_assigned_user_from_job(
     payload: RemoveAssignedUserRequest,
-    current_user: dict = Depends(require_permission("JOB_MAPPING_REMOVE"))
+    current_user: dict = Depends(require_permission("REMOVE_MAPPED_USER_FROM_JOB"))
 ):
     db = get_database()
 

@@ -20,6 +20,7 @@ export const createUser = async (userData) => {
       phone: userData.phone,
       hashed_password: userData.hashed_password,
       role_id: userData.role_id,
+      assignable_role_ids: userData.assignable_role_ids,
       employee_id: userData.employee_id,
       department: userData.department,
       location: userData.location,

@@ -19,5 +19,6 @@ def admin_dict(
         "email": email,
         "hashed_password": hashed_pw,
         "role_id": role_id,
-        "created_at": datetime.now(timezone.utc)
+        "created_at": datetime.now(timezone.utc),
+        "is_active": True
     }
