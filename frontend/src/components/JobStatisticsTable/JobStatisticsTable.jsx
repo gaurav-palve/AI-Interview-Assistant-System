@@ -91,7 +91,7 @@ function JobStatisticsTable() {
           <h2 className="text-lg font-semibold flex items-center">
             <span className="mr-2">Job Posting Statistics</span>
           </h2>
-          <a href="#" className="text-blue-500 text-sm">View All</a>
+          {/* <a href="#" className="text-blue-500 text-sm">View All</a> */}
         </div>
 
         {loading ? (

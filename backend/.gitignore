@@ -42,5 +42,6 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-
+# ML model files
+face_landmarker.task
 yolov8n.pt
