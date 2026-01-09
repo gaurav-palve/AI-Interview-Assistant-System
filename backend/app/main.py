@@ -128,19 +128,32 @@ app.add_middleware(
 async def log_requests(request: Request, call_next):
     logger.info(f"{request.method} {request.url}")
 
+    # Store the original receive function
+    original_receive = request._receive
+    
+    # Read the body once for logging
     body = await request.body()
-
-    async def receive():
-        return {"type": "http.request", "body": body}
-    request._receive = receive
+    
     if body:
         try:
             logger.debug(f"Request Body: {json.loads(body)}")
         except Exception:
             logger.debug(f"Request Body (raw): {body}")
+    
+    # Create a new receive function that preserves the original message type
+    async def receive():
+        message = await original_receive()
+        if message["type"] == "http.request":
+            # Only modify http.request messages to include the body we've already read
+            return {"type": "http.request", "body": body, **{k: v for k, v in message.items() if k != "body" and k != "type"}}
+        # Pass through all other message types unchanged
+        return message
+    
+    request._receive = receive
+    
     response = await call_next(request)
     logger.info(f"Response: {response.status_code}")
-
+    
     return response
 
 
@@ -178,3 +191,5 @@ logger.info("All routes registered successfully.")
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "message": "AI Interview Assistant Backend running smoothly"}
+
+ 
