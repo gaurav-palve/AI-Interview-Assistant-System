@@ -107,6 +107,15 @@ export default {
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-slow': 'bounce 2s infinite',
+        'fade-in-out': 'fadeInOut 2s ease-in-out',
+      },
+      keyframes: {
+        fadeInOut: {
+          '0%': { opacity: '0' },
+          '10%': { opacity: '1' },
+          '80%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

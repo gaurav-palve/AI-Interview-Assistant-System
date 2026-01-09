@@ -34,7 +34,6 @@ PERMISSIONS_COLLECTION = "permissions"
 ROLE_PERMISSIONS_COLLECTION = "role_permissions"
 USERS_COLLECTION = "users"
 
-USERS_COLLECTION = "users"
 # ROLES_COLLECTION = "roles"
 # PERMISSIONS_COLLECTION = "permissions"
 # ROLE_PERMISSIONS_COLLECTION = "role_permissions"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import userManagementService from "../services/userManagementService";
 import { RoleManagementService } from "../services/roleManagementService";
+import authService from "../services/authService";
 
 import {
   ArrowBack as BackIcon,
@@ -67,6 +68,7 @@ function CreateUser() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -84,6 +86,7 @@ function CreateUser() {
     location: "",
     reporting_manager: "",
     role_id: "",
+    assignable_role_ids: [],
   });
 
   /* ================= Load User (Edit) ================= */
@@ -105,6 +108,7 @@ function CreateUser() {
           location: res.location || "",
           reporting_manager: res.reporting_manager || "",
           role_id: res.role_id || "",
+          assignable_role_ids: res.assignable_role_ids || [],
         });
       } catch {
         setError("Failed to load user");
@@ -118,6 +122,10 @@ function CreateUser() {
   useEffect(() => {
     const loadMeta = async () => {
       try {
+        // Check if current user is a superadmin
+        const userRole = await authService.getUserRole();
+        setIsSuperAdmin(userRole === "SUPER_ADMIN");
+
         const [usersRes, rolesRes] = await Promise.all([
           userManagementService.fetchUsers(),
           RoleManagementService.getRoles(),
@@ -137,6 +145,24 @@ function CreateUser() {
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
     setErrors((p) => ({ ...p, [name]: "" }));
+  };
+
+  // Handle checkbox changes for delegatable roles
+  const handleDelegatableRoleChange = (roleId) => {
+    setFormData((prev) => {
+      // Check if the role is already in the array
+      const isSelected = prev.assignable_role_ids.includes(roleId);
+      
+      // If selected, remove it; otherwise, add it
+      const updatedRoles = isSelected
+        ? prev.assignable_role_ids.filter(id => id !== roleId)
+        : [...prev.assignable_role_ids, roleId];
+      
+      return {
+        ...prev,
+        assignable_role_ids: updatedRoles
+      };
+    });
   };
 
   /* ================= Validation ================= */
@@ -261,11 +287,11 @@ function CreateUser() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Department" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} error={errors.department} />
-            <Input label="Location" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} error={errors.location} />
+            <Input label="Department *" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} error={errors.department} />
+            <Input label="Location *" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} error={errors.location} />
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Reporting Manager</label>
+              <label className="text-sm font-medium text-gray-700">Reporting Manager *</label>
               <div className="relative mt-1">
                 <SupervisorAccountOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <select
@@ -293,7 +319,7 @@ function CreateUser() {
         <section className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
             <SecurityOutlined className="text-gray-500" />
-            Roles & Permissions
+            Roles & Permissions *
           </h2>
 
           {errors.role_id && <p className="text-xs text-red-600">{errors.role_id}</p>}
@@ -326,6 +352,47 @@ function CreateUser() {
               </label>
             ))}
           </div>
+
+          {/* Delegatable Roles Section - Only show for superadmins after a primary role is selected */}
+          {formData.role_id && !isEdit && isSuperAdmin && (
+            <div className="col-span-full mt-6 border-t pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <SecurityOutlined className="h-4 w-4 mr-2 text-gray-500" />
+                Delegatable Roles (Optional)
+              </h3>
+              <p className="text-xs text-blue-500 mb-3">
+                Select roles that this user can assign to their sub-users. Leave empty if the user should not be able to delegate roles.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                {roles.map((role) => (
+                  <label
+                    key={`delegatable-${role._id}`}
+                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${
+                      formData.assignable_role_ids.includes(role._id)
+                        ? "border-green-600 bg-green-50"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.assignable_role_ids.includes(role._id)}
+                      onChange={() => handleDelegatableRoleChange(role._id)}
+                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {role.name || role.role_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Allow this user to assign the {role.name || role.role_name} role to their sub-users
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* ================= Action ================= */}

@@ -7,6 +7,7 @@ from app.services.user_management_service import UserService
 from app.utils.logger import get_logger
 from app.utils.auth_dependency import get_current_user, require_permission
 from bson import ObjectId
+from app.database import get_database, USERS_COLLECTION, ROLES_COLLECTION
 
 logger = get_logger(__name__)
 
@@ -25,6 +26,7 @@ class UserCreate(BaseModel):
     phone: str = Field(..., description="10 digit Indian mobile number")
     hashed_password: str = Field(..., min_length=8)
     role_id: str
+    assignable_role_ids: list[str] = []
     employee_id: str
     department: str
     location: str
@@ -101,6 +103,7 @@ async def create_user(
             location=payload.location,
             reporting_manager=payload.reporting_manager,
             created_by=user_email,
+            assignable_role_ids=payload.assignable_role_ids,
         )
 
         return {
@@ -243,3 +246,43 @@ async def get_user_by_id(
     except Exception as e:
         logger.error(f"Error fetching user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch user")
+
+
+@router.get("/user-hierarchy")
+async def get_user_hierarchy(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get hierarchical user data showing who created whom
+    """
+    try:
+        db = get_database()
+        
+        # Get all users
+        users = await db[USERS_COLLECTION].find(
+            {},
+            {"_id": 1, "first_name": 1, "last_name": 1, "email": 1, "role_id": 1, "created_by": 1}
+        ).to_list(length=None)
+        
+        # Ensure users is a list
+        if users is None:
+            users = []
+        
+        # Convert ObjectIds to strings for JSON serialization
+        for user in users:
+            user["_id"] = str(user["_id"])
+            if "role_id" in user and user["role_id"]:
+                user["role_id"] = str(user["role_id"])
+        
+        # Get role information for each user
+        for user in users:
+            if "role_id" in user and user["role_id"]:
+                role = await db[ROLES_COLLECTION].find_one({"_id": ObjectId(user["role_id"])})
+                if role:
+                    user["role_name"] = role.get("role_name")
+        
+        return users
+    
+    except Exception as e:
+        logger.error(f"Error fetching user hierarchy: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user hierarchy")
