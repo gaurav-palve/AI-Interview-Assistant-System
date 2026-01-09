@@ -9,6 +9,7 @@ import {
   PeopleOutlined,
   AdminPanelSettingsOutlined,
   SettingsOutlined,
+  AccountTreeOutlined,
 } from "@mui/icons-material";
 
 /**
@@ -33,7 +34,7 @@ export const NAV_ITEMS = [
     icon: WorkOutlined,
     permissions: [
       PERMISSIONS.JOB_VIEW,
-      PERMISSIONS.JOB_VIEW_ALL,
+      PERMISSIONS.JOB_VIEW,
       PERMISSIONS.JOB_VIEW_ASSIGNED,
       PERMISSIONS.JOB_EDIT,
       PERMISSIONS.JOB_DELETE,
@@ -71,8 +72,7 @@ export const NAV_ITEMS = [
     label: "Assessment Reports",
     icon: GradingOutlined,
     permissions: [
-      PERMISSIONS.ASSESSMENT_VIEW,
-      PERMISSIONS.ASSESSMENT_CREATE,
+      PERMISSIONS.REPORT_VIEW,
     ],
   },
 ];
@@ -109,6 +109,13 @@ export const SETTINGS_MENU = {
       path: "/users",
       label: "All Users",
       icon: PeopleOutlined,
+      permissions: [PERMISSIONS.USER_VIEW],
+    },
+    {
+      key: "org-hierarchy",
+      path: "/organization-tree",
+      label: "Organization Tree",
+      icon: AccountTreeOutlined,
       permissions: [PERMISSIONS.USER_VIEW],
     },
   ],

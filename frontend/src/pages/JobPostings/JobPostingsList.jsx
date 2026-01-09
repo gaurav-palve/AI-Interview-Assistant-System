@@ -69,7 +69,7 @@ function JobPostingsList() {
 
   const canViewJobs =
     hasPermission(PERMISSIONS.JOB_VIEW) ||
-    hasPermission(PERMISSIONS.JOB_VIEW_ALL) ||
+    hasPermission(PERMISSIONS.JOB_VIEW) ||
     hasPermission(PERMISSIONS.JOB_VIEW_ASSIGNED);
   const canCreateJob = hasPermission(PERMISSIONS.JOB_CREATE);
   const canChangeStatus = hasPermission(PERMISSIONS.JOB_POSTING_STATUS);

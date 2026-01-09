@@ -1,3 +1,4 @@
+from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.utils.auth_dependency import get_current_user, require_permission
 from fastapi.params import Depends
@@ -67,11 +68,38 @@ async def get_roles_endpoint(
     try:
         db = get_database()
         user_mail = current_user.get("email")
-
-       
-        roles = await db[ROLES_COLLECTION].find(
-            {"created_by": user_mail}
-        ).to_list(length=None)
+        role_id = current_user.get("role_id")
+        
+        # Check if user is a superadmin
+        is_superadmin = False
+        if role_id:
+            role_id_obj = role_id["_id"] if isinstance(role_id, dict) else role_id
+            role = await db[ROLES_COLLECTION].find_one(
+                {"_id": ObjectId(role_id_obj)},
+                {"role_name": 1}
+            )
+            if role and role.get("role_name") == "SUPER_ADMIN":
+                is_superadmin = True
+        
+        # Fetch roles based on user type
+        if is_superadmin:
+            # Superadmin can see all roles
+            roles = await db[ROLES_COLLECTION].find({}).to_list(length=None)
+        else:
+            # Regular users can only see roles that were delegated to them
+            assignable_role_ids = current_user.get("assignable_role_ids", [])
+            
+            # Convert string IDs to ObjectId
+            assignable_role_obj_ids = [ObjectId(role_id) for role_id in assignable_role_ids]
+            
+            if assignable_role_obj_ids:
+                # User has delegatable roles
+                roles = await db[ROLES_COLLECTION].find(
+                    {"_id": {"$in": assignable_role_obj_ids}}
+                ).to_list(length=None)
+            else:
+                # User has no delegatable roles
+                roles = []
 
         # Convert ObjectId → string
         for role in roles:

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusChangeMenu from './StatusChangeMenu';
+import Popover from "@mui/material/Popover";
 
 // MUI Icons
 import {
@@ -29,16 +30,20 @@ const JobPostingActions = ({
   canChangeStatus,
   canAssign
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
-  const menuRef = useRef(null);
+  // const menuRef = useRef(null);
   const navigate = useNavigate();
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
 
   // Handle edit post
   const handleEdit = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(false);
+    setAnchorEl(null);
     navigate(`/job-postings/${job.id}/edit`);
   };
 
@@ -46,7 +51,7 @@ const JobPostingActions = ({
   const handleDelete = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(false);
+    setAnchorEl(null);
     if (onDelete) {
       onDelete(job.id);
     }
@@ -56,7 +61,7 @@ const JobPostingActions = ({
   const handleAssign = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(false);
+    setAnchorEl(null);
     if (onAssign) {
       onAssign(job);
     }
@@ -66,7 +71,7 @@ const JobPostingActions = ({
   const handleChangeStatus = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(false);
+    setAnchorEl(null);
     setShowStatusMenu(true);
   };
 
@@ -84,81 +89,91 @@ const JobPostingActions = ({
   };
 
   // Close the dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsOpen(false);
-        setShowStatusMenu(false);
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (menuRef.current && !menuRef.current.contains(event.target)) {
+  //       setIsOpen(false);
+  //       setShowStatusMenu(false);
+  //     }
+  //   };
     
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  //   document.addEventListener('mousedown', handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener('mousedown', handleClickOutside);
+  //   };
+  // }, []);
 
   return (
-    <div className="relative" style={{zIndex:50}} ref={menuRef}>
+    <div className="relative">
       {/* Action button (three dots) */}
       {(canEdit || canDelete || canChangeStatus || canAssign) && (
-      <button 
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsOpen(!isOpen);
-        }}
-        className="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors duration-300"
-        aria-label="Job posting actions"
-      >
-        <MoreIcon className="h-5 w-5" />
-      </button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setAnchorEl(e.currentTarget);
+          }}
+          className="p-2 rounded-full text-gray-600 hover:bg-gray-200"
+        >
+          <MoreIcon />
+        </button>
+
       )}
 
       {/* Dropdown menu */}
-      {isOpen && (
-        <div className="absolute top-0 right-0 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fadeIn mt-8">
-          {canEdit && (
-            <button
-              onClick={handleEdit}
-              className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
-            >
-              <EditIcon className="h-4 w-4 mr-2 text-primary-500" />
-              <span>Edit Post</span>
-            </button>
-          )}
-
-          {canDelete && (
-            <button
-              onClick={handleDelete}
-              className="w-full px-4 py-2 text-left flex items-center hover:bg-red-50 transition-colors"
-            >
-              <DeleteIcon className="h-4 w-4 mr-2 text-red-500" />
-              <span>Delete Post</span>
-            </button>
-          )}
-
-          {/* {canAssign && ( */}
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        disablePortal={false}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            width: 200,
+            boxShadow: 6,
+          },
+        }}
+      >
+        {canEdit && (
           <button
-            onClick={handleAssign}
-            className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
+            onClick={handleEdit}
+            className="w-full px-4 py-2 flex items-center hover:bg-gray-100"
           >
-            <AssignIcon className="h-4 w-4 mr-2 text-primary-500" />
-            <span>Assign</span>
+            <EditIcon className="mr-2 text-primary-500" />
+            Edit Post
           </button>
-          {/* )} */}
+        )}
 
-          {canChangeStatus && (
+        {canDelete && (
+          <button
+            onClick={handleDelete}
+            className="w-full px-4 py-2 flex items-center hover:bg-red-50"
+          >
+            <DeleteIcon className="mr-2 text-red-500" />
+            Delete Post
+          </button>
+        )}
+
+        <button
+          onClick={handleAssign}
+          className="w-full px-4 py-2 flex items-center hover:bg-gray-100"
+        >
+          <AssignIcon className="mr-2 text-primary-500" />
+          Assign
+        </button>
+
+        {canChangeStatus && (
           <button
             onClick={handleChangeStatus}
-            className="w-full px-4 py-2 text-left flex items-center hover:bg-primary-50 transition-colors"
+            className="w-full px-4 py-2 flex items-center hover:bg-gray-100"
           >
-            <StatusIcon className="h-4 w-4 mr-2 text-primary-500" />
-            <span>Change Status</span>
+            <StatusIcon className="mr-2 text-primary-500" />
+            Change Status
           </button>
-          )}
-        </div>
-      )}
+        )}
+      </Popover>
 
       {/* Status Change Menu */}
       {showStatusMenu && (
