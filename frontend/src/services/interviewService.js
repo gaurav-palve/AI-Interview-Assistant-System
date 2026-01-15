@@ -521,6 +521,16 @@ const interviewService = {
         };
       }
     },
+  saveViolation: async (interviewId, count) => {
+    try {
+      return await api.post(`/candidate/violations/${interviewId}`, {
+        violation_count: count,
+        event_type: "fullscreen_exit"
+      });
+    } catch (err) {
+      console.error("Error saving violation:", err);
+    }
+  }
 
 };
 

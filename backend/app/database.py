@@ -38,6 +38,7 @@ USERS_COLLECTION = "users"
 # PERMISSIONS_COLLECTION = "permissions"
 # ROLE_PERMISSIONS_COLLECTION = "role_permissions"
 
+VIOLATIONS_COLLECTION = "violations"
 
 
 
@@ -656,6 +657,45 @@ async def update_admin_password(email: str, new_password: str):
         logger.error(f"Error updating admin password: {e}")
         raise RuntimeError("Failed to update password")
     
+
+
+async def save_violation(interview_id: str, count: int, event_type: str):
+    """
+    Create violation document first time and then update same document
+    by updating count only.
+    """
+    try:
+        db = get_database()
+
+        # This ensures 1 doc per interview_id
+        filter_query = {"interview_id": interview_id}
+
+        update_query = {
+            "$set": {
+                "event_type": event_type,
+                "timestamp": datetime.utcnow()
+            },
+            "$setOnInsert": {  # executed ONLY on first creation
+                "interview_id": interview_id,
+            },
+            "$inc": {  # always increment the count
+                "count": 1
+            }
+        }
+
+        await db[VIOLATIONS_COLLECTION].update_one(
+            filter_query,
+            update_query,
+            upsert=True
+        )
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Error saving violation: {e}")
+        return False
+
+
 
 
 
