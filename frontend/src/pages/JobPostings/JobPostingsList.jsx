@@ -311,57 +311,40 @@ function JobPostingsList() {
     {/* Right content – fills remaining space */}
     <div className="flex flex-1 justify-end">
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4" style={{alignSelf:"flex-end",flex:1,flexDirection:"row"}}>
-          <div className="relative flex-grow max-w-xl group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <SearchIcon className="h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-primary-500" />
+          <div className="flex items-center gap-4 justify-end w-full">
+
+            {/* Filter Icon */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="h-11 w-11 flex items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+            >
+              <FilterIcon className="text-gray-600" />
+            </button>
+
+            {/* Search Box */}
+            <div className="relative w-[160px]">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search"
+                className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
             </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search ..."
-              className="w-full flex items-center space-x-3 pl-12 pr-4 py-2 border-2 border-gray-200 rounded-full focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all duration-300 placeholder-gray-400"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center"
+
+            {/* Create Job Button */}
+            {canCreateJob && (
+              <Link
+                to="/job-postings/new"
+                className="h-11 px-6 flex items-center gap-2 bg-[#2563EB] text-white rounded-lg font-medium transition"
               >
-                <CloseIcon className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors duration-200" />
-              </button>
+                <AddIcon fontSize="small" />
+                Create Job
+              </Link>
             )}
           </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <button 
-                onClick={() => setShowFilters(!showFilters)}
-                className="btn btn-outline btn-sm group hover:bg-primary-50 hover:border-primary-500 transition-all duration-300"
-              >
-                <FilterIcon className="h-4 w-4 mr-1 group-hover:text-primary-600" />
-                Filters
-                {Object.keys(filters).length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full animate-pulse">
-                    {Object.keys(filters).length}
-                  </span>
-                )}
-              </button>
-            </div>   
-      {canCreateJob && (   
-        <Link
-          to="/job-postings/new"
-          className="btn btn-primary group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
-        >
-          <span className="relative z-10 flex items-center">
-            <AddIcon className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" style={{marginLeft:-6}} />
-            Create Job
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-        </Link>
-      )}
-          </div>
-        </div>
+
       </div> 
     </div>
 
