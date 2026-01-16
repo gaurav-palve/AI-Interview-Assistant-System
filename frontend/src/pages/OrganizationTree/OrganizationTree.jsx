@@ -14,14 +14,15 @@ const styles = {
   rootNode: {
     width: 180,
     height: 50,
+    fontSize: 20,
     background: '#FFFFFF',
-    border: '1.5px solid #240c5fff',
+    border: '1.5px solid #000000',
     borderRadius: 12,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: 600,
-    color: '#0F172A'
+    color: '#000000'
   },
 
   node: {
@@ -32,7 +33,7 @@ const styles = {
     padding: '12px 14px',
     background: '#FFFFFF',
     borderRadius: 12,
-    border: '1.5px solid #240c5fff',
+    border: '1.5px solid #000000',
     boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
   },
 
@@ -41,12 +42,12 @@ const styles = {
     height: 44,
     borderRadius: '50%',
     background: '#E0F2FE',
-    border: '1.5px solid #224e7fff',
+    border: '1.5px solid #000000',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: 600,
-    color: '#1E3A8A',
+    color: '#000000',
     flexShrink: 0
   },
 
@@ -57,19 +58,19 @@ const styles = {
   },
 
   name: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 600,
-    color: '#0F172A'
+    color: '#000000'
   },
 
   role: {
     width: 'fit-content',
-    padding: '2px 10px',
-    fontSize: 10,
+    padding: '0px',
+    fontSize: 13,
     fontWeight: 600,
-    color: '#FFFFFF',
-    background: '#1E40AF',
-    borderRadius: 999,
+    color: '#2563EB',
+    // background: '#2563EB',
+    // borderRadius: 999,
     textTransform: 'uppercase'
   }
 };
@@ -132,7 +133,7 @@ const OrganizationTree = () => {
         <g>
           <foreignObject x={-90} y={-25} width={180} height={50}>
             <div className="org-root-node" style={styles.rootNode}>
-              Organization
+              Hirepool.AI
             </div>
           </foreignObject>
         </g>
