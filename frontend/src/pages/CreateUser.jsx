@@ -17,6 +17,8 @@ import {
   BusinessOutlined,
   LocationOnOutlined,
   SupervisorAccountOutlined,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
 
 /* ================= Validation Regex ================= */
@@ -36,6 +38,12 @@ function Input({
   onChange,
   error,
 }) {
+  // Add state for password visibility (only for password fields)
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Determine the actual input type
+  const inputType = type === "password" ? (showPassword ? "text" : "password") : type;
+  
   return (
     <div>
       <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -45,7 +53,7 @@ function Input({
         )}
         <input
           name={name}
-          type={type}
+          type={inputType}
           value={value}
           onChange={onChange}
           disabled={disabled}
@@ -53,8 +61,19 @@ function Input({
           autoComplete={name}
           className={`w-full h-10 rounded-lg border text-sm px-3 ${
             Icon ? "pl-10" : ""
-          } ${error ? "border-red-500" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          } ${type === "password" ? "pr-10" : ""} ${error ? "border-red-500" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-blue-500`}
         />
+        
+        {/* Add eye button for password fields */}
+        {type === "password" && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          >
+            {showPassword ? <VisibilityOff className="h-5 w-5" /> : <Visibility className="h-5 w-5" />}
+          </button>
+        )}
       </div>
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
@@ -353,12 +372,12 @@ function CreateUser() {
             ))}
           </div>
 
-          {/* Delegatable Roles Section - Only show for superadmins after a primary role is selected */}
+          {/* Assignable Roles Section - Only show for superadmins after a primary role is selected */}
           {formData.role_id && !isEdit && isSuperAdmin && (
             <div className="col-span-full mt-6 border-t pt-4">
               <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                 <SecurityOutlined className="h-4 w-4 mr-2 text-gray-500" />
-                Delegatable Roles (Optional)
+                Sub-User Role Assignment / Allowed Role Assignments (Optional)
               </h3>
               <p className="text-xs text-blue-500 mb-3">
                 Select roles that this user can assign to their sub-users. Leave empty if the user should not be able to delegate roles.

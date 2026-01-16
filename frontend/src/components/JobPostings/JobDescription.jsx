@@ -83,15 +83,20 @@ function JobDescription({ formData, handleChange }) {
         required_skills: Array.isArray(formData.required_skills)
           ? formData.required_skills.join(', ')
           : '',
-        experience_level: Array.isArray(formData.requirements)
-          ? formData.requirements.join(', ')
+        // Use the formatted experience data
+        experience_level: formData.experience
+          ? (formData.experience.type === 'fixed'
+              ? `${formData.experience.value} years`
+              : `${formData.experience.min}-${formData.experience.max} years`)
           : '',
         responsibilities: Array.isArray(formData.responsibilities)
           ? formData.responsibilities.join('\n')
           : '',
         qualifications: formData.qualifications || '',
         job_description: '',
-        additional_context: aiContext
+        additional_context: aiContext,
+        // Also pass the raw experience data
+        experience: formData.experience
       };
 
       const response =

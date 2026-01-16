@@ -48,6 +48,7 @@ class JobPostingCreate(BaseModel):
     work_location: str
     location: str
     experience_level: Optional[str] = None
+    experience: Optional[dict] = None  # Add this line to include the raw experience data
     department: Optional[str] = None
     status: str = None
     # Skills
@@ -91,7 +92,6 @@ class JobPostingUpdate(BaseModel):
 
 class JobPostingStatusUpdate(BaseModel):
     status: str
-
 class JobDescriptionGenerate(BaseModel):
     job_title: str
     company: str
@@ -99,8 +99,10 @@ class JobDescriptionGenerate(BaseModel):
     work_location: str
     required_skills: Optional[str]
     experience_level: Optional[str]
+    experience: Optional[dict] = None  # Add this line to accept the raw experience data
     responsibilities: Optional[str]
     qualifications: Optional[str]
+    additional_context: Optional[str]
     additional_context: Optional[str]
 
 def job_posting_dict(job_posting: JobPostingCreate) -> Dict[str, Any]:

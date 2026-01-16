@@ -1,20 +1,20 @@
-import PsychologyIcon from '@mui/icons-material/Psychology';
+// No import needed for image
  
 export default function Logo({ expanded }) {
   return (
-    <div className="flex items-center h-20 pl-1 animate-fadeIn transition-all duration-300">
-      {/* Animated icon container */}
-      <div className="relative h-10 w-10 rounded-full bg-white flex items-center justify-center shadow-lg group">
-        {/* Ping ripple */}
-        <div className="absolute inset-0 rounded-full bg-primary-100 opacity-0 group-hover:opacity-20 " />
-        <PsychologyIcon className="h-4 w-4 text-primary-600 transition-transform duration-300 group-hover:scale-110" />
-      </div>
- 
+    <div className="flex items-center px-4 pt-4 h-[55px] animate-fadeIn transition-all duration-300" style={{marginLeft:-25,marginBottom:15}}>
+      {/* Logo image */}
+      <img
+        src="/Hirepool.AI White Logo.png"
+        alt="Hirepool.AI Logo"
+        className="h-[60px] w-[60px] transition-transform duration-300 hover:scale-110"
+      />
+
       {/* Animated name — only when expanded */}
       {expanded && (
-        <span className="ml-3 text-white text-xl font-bold font-display whitespace-nowrap tracking-wide relative overflow-hidden transition-all duration-300 translate-x-0 opacity-90">
+        <span className="ml-1 text-white text-xl font-bold font-display whitespace-nowrap tracking-wide relative overflow-hidden transition-all duration-300 translate-x-0 opacity-90">
           Hirepool.AI
- 
+
           {/* Sparkle effect */}
           <span className="absolute top-0 left-0 w-full h-full pointer-events-none">
             <span className="w-1 h-1 bg-white rounded-full animate-ping absolute" style={{ left: '10%', top: '30%' }} />
