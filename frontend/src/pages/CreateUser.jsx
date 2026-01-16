@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import userManagementService from "../services/userManagementService";
 import { RoleManagementService } from "../services/roleManagementService";
 import authService from "../services/authService";
+import { Autocomplete, TextField } from "@mui/material";
+
 
 import {
   ArrowBack as BackIcon,
@@ -79,7 +81,18 @@ function Input({
     </div>
   );
 }
-
+const DEPARTMENTS = [
+  "HR & Administration",
+  "Innovation and AI",
+  "Sales",
+  "Marketing",
+  "Application Development",
+  "Talent Acquisition",
+  "Quality Assurance",
+  "Devops",
+  "Others"
+];
+const MAX_VISIBLE = 3;
 function CreateUser() {
   const navigate = useNavigate();
   const { userId } = useParams();
@@ -262,7 +275,7 @@ function CreateUser() {
 
             <button
               onClick={() => navigate("/users")}
-              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50"
+              className="btn bg-primary-600 text-white px-4 py-2"
             >
               <BackIcon className="h-4 w-4 mr-2" />
               Back
@@ -306,7 +319,57 @@ function CreateUser() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input label="Department *" name="department" icon={BusinessOutlined} value={formData.department} onChange={handleChange} error={errors.department} />
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Department *
+              </label>
+
+              <Autocomplete
+                freeSolo
+                options={DEPARTMENTS}
+                value={formData.department}
+                onChange={(e, newValue) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    department: newValue || ""
+                  }));
+                  setErrors(prev => ({ ...prev, department: "" }));
+                }}
+                onInputChange={(e, newInputValue) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    department: newInputValue
+                  }));
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select or type department"
+                    error={Boolean(errors.department)}
+                    helperText={errors.department}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <BusinessOutlined
+                            style={{ marginRight: 8, color: "#9CA3AF" }}
+                          />
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        height: "40px",
+                        borderRadius: "0.5rem",
+                        fontSize: "0.875rem"
+                      }
+                    }}
+                  />
+                )}
+              />
+            </div>
+
             <Input label="Location *" name="location" icon={LocationOnOutlined} value={formData.location} onChange={handleChange} error={errors.location} />
 
             <div>
@@ -359,14 +422,55 @@ function CreateUser() {
                   value={r._id}
                   checked={formData.role_id === r._id}
                   onChange={handleChange}
+                  className="mt-1"
                 />
-                <div>
+
+                <div className="w-full">
                   <p className="text-sm font-medium text-gray-900">
                     {r.name || r.role_name}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {r.permissions?.length || 0} permissions
-                  </p>
+
+                  {/* Permission Chips */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {r.permissions?.slice(0, MAX_VISIBLE).map((perm, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                      >
+                        {perm}
+                      </span>
+                    ))}
+
+                    {r.permissions?.length > MAX_VISIBLE && (
+                      <div className="relative group">
+                        <span className="px-3 py-1 text-xs bg-gray-200 text-gray-600 rounded-full cursor-pointer">
+                          +{r.permissions.length - MAX_VISIBLE} more
+                        </span>
+
+                        {/* Tooltip */}
+                        <div className="absolute z-50 hidden group-hover:block 
+                                        bg-red text-gray-700 text-xs rounded-lg 
+                                        px-2 py-1 bottom-full left-1/2 
+                                        -translate-x-1/2 mb-2 shadow-lg">
+
+                          <div className="flex flex-wrap gap-1">
+                            {r.permissions.slice(MAX_VISIBLE).map((perm, i) => (
+                              <span
+                                key={i}
+                                className="bg-gray-100 px-2 py-1 rounded-lg"
+                              >
+                                {perm}
+                              </span>
+                            ))}
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="absolute w-2 h-2 bg-black rotate-45 
+                                          left-1/2 -translate-x-1/2 -bottom-1"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </label>
             ))}
@@ -419,7 +523,7 @@ function CreateUser() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            className="flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 "
           >
             <SaveIcon className="h-4 w-4 mr-2" />
             {loading ? "Saving..." : isEdit ? "Update User" : "Create User"}
