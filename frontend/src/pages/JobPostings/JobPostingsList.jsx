@@ -325,7 +325,7 @@ function JobPostingsList() {
   <div className="relative" ref={filtersRef}>
     <button
       onClick={() => setShowFilters(!showFilters)}
-      className={`btn btn-outline btn-sm group transition-all duration-300 ${
+      className={`btn btn-outline btn-sm group transition-all duration-300 rounded-lg ${
         showFilters
           ? 'bg-primary-50 border-primary-500 text-primary-600'
           : 'hover:bg-primary-50 hover:border-primary-500'
@@ -335,16 +335,11 @@ function JobPostingsList() {
         showFilters ? 'text-primary-600' : 'group-hover:text-primary-600'
       }`} />
       Filters
-      {activeTab !== 'all' && (
-        <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
-          1
-        </span>
-      )}
     </button>
 
     {/* Status Filter Dropdown */}
     {showFilters && (
-      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-10 py-2 border border-gray-200 animate-fadeIn overflow-hidden">
+      <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl z-10 py-2 border border-gray-200 animate-fadeIn overflow-hidden">
         <div className="px-4 py-2 text-sm font-medium text-gray-700 border-b border-gray-100 bg-gray-50">
           Filter by Status
         </div>
@@ -356,7 +351,7 @@ function JobPostingsList() {
               handleTabChange(status);
               setShowFilters(false);
             }}
-            className={`w-full text-left px-4 py-2.5 text-sm flex items-center transition-colors duration-150 ${
+            className={`w-full text-left px-4 py-1 text-sm flex items-center transition-colors duration-150 ${
               activeTab === status
                 ? 'bg-primary-50 text-primary-600 font-medium'
                 : 'text-gray-700 hover:bg-gray-50'
@@ -393,18 +388,13 @@ function JobPostingsList() {
   {canCreateJob && (
     <Link
       to="/job-postings/new"
-      className="btn btn-primary group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+      className="h-11 px-5 flex items-center gap-2 rounded-lg bg-[#2563EB] text-white font-medium transition hover:bg-[#1E4FD6] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
     >
-      <span className="relative z-10 flex items-center">
-        <AddIcon
-          className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90"
-          style={{ marginLeft: -6 }}
-        />
-        Create Job
-      </span>
-      <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+      <AddIcon fontSize="small" />
+      Create Job
     </Link>
   )}
+
 </div>
 
       </div> 
