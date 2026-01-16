@@ -206,12 +206,20 @@ function JobPostingsList() {
     setShowAssignPanel(true); // Open directly in assign mode
   };
   
-  // Close action menu when clicking outside (kept for backward compatibility)
+  // Close action menu and filters when clicking outside
   const actionMenuRef = useRef(null);
+  const filtersRef = useRef(null);
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close action menu if clicked outside
       if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
         setShowActionMenu(null);
+      }
+      
+      // Close filters dropdown if clicked outside
+      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
+        setShowFilters(false);
       }
     };
     
@@ -334,20 +342,57 @@ function JobPostingsList() {
           </div>
           
           <div className="flex items-center space-x-3">
-            <div className="relative">
-              <button 
+            <div className="relative" ref={filtersRef}>
+              <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="btn btn-outline btn-sm group hover:bg-primary-50 hover:border-primary-500 transition-all duration-300"
+                className={`btn btn-outline btn-sm group transition-all duration-300 ${
+                  showFilters ? 'bg-primary-50 border-primary-500 text-primary-600' : 'hover:bg-primary-50 hover:border-primary-500'
+                }`}
               >
-                <FilterIcon className="h-4 w-4 mr-1 group-hover:text-primary-600" />
+                <FilterIcon className={`h-4 w-4 mr-1 ${showFilters ? 'text-primary-600' : 'group-hover:text-primary-600'}`} />
                 Filters
-                {Object.keys(filters).length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full animate-pulse">
-                    {Object.keys(filters).length}
+                {activeTab !== 'all' && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
+                    1
                   </span>
                 )}
               </button>
-            </div>   
+              
+              {/* Status Filter Dropdown */}
+              {showFilters && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-10 py-2 border border-gray-200 animate-fadeIn overflow-hidden">
+                  <div className="px-4 py-2 text-sm font-medium text-gray-700 border-b border-gray-100 bg-gray-50">
+                    Filter by Status
+                  </div>
+                  {['all', 'active', 'draft', 'closed', 'archived'].map((status, index) => (
+                    <button
+                      key={status}
+                      onClick={() => {
+                        handleTabChange(status);
+                        setShowFilters(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center transition-colors duration-150 ${
+                        activeTab === status
+                          ? 'bg-primary-50 text-primary-600 font-medium'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className="flex items-center">
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                          status === 'all' ? 'bg-gray-400' :
+                          status === 'active' ? 'bg-green-500' :
+                          status === 'draft' ? 'bg-blue-500' :
+                          status === 'closed' ? 'bg-orange-500' :
+                          'bg-gray-500'
+                        }`}></span>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
       {canCreateJob && (   
         <Link
           to="/job-postings/new"
@@ -377,34 +422,7 @@ function JobPostingsList() {
 
      
 
-      {/* Status Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1">
-        <nav className="flex space-x-2">
-          {['all', 'active', 'draft', 'closed', 'archived'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => handleTabChange(tab)}
-              className={`
-                relative px-6 py-3 rounded-lg font-medium transition-all duration-300 transform
-                ${activeTab === tab 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105' 
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }
-              `}
-            >
-              <span className="relative z-10">
-                {tab.charAt(0).toUpperCase() + tab.slice(1)} 
-                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                  activeTab === tab ? 'bg-white/20' : 'bg-gray-100'
-                }`}>
-                  {getStatusCount(tab)}
-                </span>
-              </span>
-             
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* Job postings are filtered directly without indicator */}
 
       {/* Job Postings Grid */}
       {loading ? (
