@@ -206,12 +206,20 @@ function JobPostingsList() {
     setShowAssignPanel(true); // Open directly in assign mode
   };
   
-  // Close action menu when clicking outside (kept for backward compatibility)
+  // Close action menu and filters when clicking outside
   const actionMenuRef = useRef(null);
+  const filtersRef = useRef(null);
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close action menu if clicked outside
       if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
         setShowActionMenu(null);
+      }
+      
+      // Close filters dropdown if clicked outside
+      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
+        setShowFilters(false);
       }
     };
     
@@ -311,39 +319,93 @@ function JobPostingsList() {
     {/* Right content – fills remaining space */}
     <div className="flex flex-1 justify-end">
 
-          <div className="flex items-center gap-4 justify-end w-full">
+          <div className="flex items-center space-x-3 justify-end w-full">
 
-            {/* Filter Icon */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="h-11 w-11 flex items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 transition"
-            >
-              <FilterIcon className="text-gray-600" />
-            </button>
+  {/* 🔽 Filters */}
+  <div className="relative" ref={filtersRef}>
+    <button
+      onClick={() => setShowFilters(!showFilters)}
+      className={`btn btn-outline btn-sm group transition-all duration-300 ${
+        showFilters
+          ? 'bg-primary-50 border-primary-500 text-primary-600'
+          : 'hover:bg-primary-50 hover:border-primary-500'
+      }`}
+    >
+      <FilterIcon className={`h-4 w-4 mr-1 ${
+        showFilters ? 'text-primary-600' : 'group-hover:text-primary-600'
+      }`} />
+      Filters
+      {activeTab !== 'all' && (
+        <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
+          1
+        </span>
+      )}
+    </button>
 
-            {/* Search Box */}
-            <div className="relative w-[160px]">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Search"
-                className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
+    {/* Status Filter Dropdown */}
+    {showFilters && (
+      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-10 py-2 border border-gray-200 animate-fadeIn overflow-hidden">
+        <div className="px-4 py-2 text-sm font-medium text-gray-700 border-b border-gray-100 bg-gray-50">
+          Filter by Status
+        </div>
 
-            {/* Create Job Button */}
-            {canCreateJob && (
-              <Link
-                to="/job-postings/new"
-                className="h-11 px-6 flex items-center gap-2 bg-[#2563EB] text-white rounded-lg font-medium transition"
-              >
-                <AddIcon fontSize="small" />
-                Create Job
-              </Link>
-            )}
-          </div>
+        {['all', 'active', 'draft', 'closed', 'archived'].map((status, index) => (
+          <button
+            key={status}
+            onClick={() => {
+              handleTabChange(status);
+              setShowFilters(false);
+            }}
+            className={`w-full text-left px-4 py-2.5 text-sm flex items-center transition-colors duration-150 ${
+              activeTab === status
+                ? 'bg-primary-50 text-primary-600 font-medium'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+              status === 'all' ? 'bg-gray-400' :
+              status === 'active' ? 'bg-green-500' :
+              status === 'draft' ? 'bg-blue-500' :
+              status === 'closed' ? 'bg-orange-500' :
+              'bg-gray-500'
+            }`} />
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* 🔍 Search */}
+  <div className="relative w-[160px]">
+    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+    <input
+      type="text"
+      value={searchQuery}
+      onChange={handleSearchChange}
+      placeholder="Search"
+      className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+    />
+  </div>
+
+  {/* ➕ Create Job */}
+  {canCreateJob && (
+    <Link
+      to="/job-postings/new"
+      className="btn btn-primary group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+    >
+      <span className="relative z-10 flex items-center">
+        <AddIcon
+          className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90"
+          style={{ marginLeft: -6 }}
+        />
+        Create Job
+      </span>
+      <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+    </Link>
+  )}
+</div>
 
       </div> 
     </div>
@@ -360,34 +422,7 @@ function JobPostingsList() {
 
      
 
-      {/* Status Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1">
-        <nav className="flex space-x-2">
-          {['all', 'active', 'draft', 'closed', 'archived'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => handleTabChange(tab)}
-              className={`
-                relative px-6 py-3 rounded-lg font-medium transition-all duration-300 transform
-                ${activeTab === tab 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg scale-105' 
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }
-              `}
-            >
-              <span className="relative z-10">
-                {tab.charAt(0).toUpperCase() + tab.slice(1)} 
-                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                  activeTab === tab ? 'bg-white/20' : 'bg-gray-100'
-                }`}>
-                  {getStatusCount(tab)}
-                </span>
-              </span>
-             
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* Job postings are filtered directly without indicator */}
 
       {/* Job Postings Grid */}
       {loading ? (

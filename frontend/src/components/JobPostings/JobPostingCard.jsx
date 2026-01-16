@@ -187,7 +187,7 @@ const JobPostingCard = ({
             <span className="text-xs text-gray-600">
               {job.experience && String(job.experience).trim() !== ""
                 ? `${job.experience} Yrs`
-                : "Not Defined"}
+                : "N/A"}
             </span>
           </div>
 

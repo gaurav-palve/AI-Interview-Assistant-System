@@ -325,7 +325,7 @@ export default function MainLayout({ children }) {
             <div className="flex items-center">
               <button
                 onClick={handleLogout}
-                className="text-xs font-medium text-white/70 hover:text-white flex items-center transition-colors whitespace-nowrap hover:underline"
+                className="text-xs font-medium text-white hover:text-white flex items-center transition-colors whitespace-nowrap hover:underline"
               >
                 <LogoutIcon className="h-4 w-4" />
                 <span
@@ -403,7 +403,7 @@ export default function MainLayout({ children }) {
       {/* Main Content */}
       <div className={`flex flex-col w-0 flex-1 overflow-hidden transition-all duration-300 ${isSidebarVisible ? 'md:ml-64' : 'md:ml-16'}`}>
         {/* Header */}
-        <div className="sticky top-0 z-10 h-[55px] border-b border-gray-100 bg-gradient-to-r from-black via-black via-70% to-[#0F2962]">
+        <div className="sticky top-0 z-10 h-[55px] border-b border-gray-100 bg-[#FFFFFF]">
           {/* Mobile Header */}
           <div className="md:hidden h-full flex items-center justify-center">
             <button
