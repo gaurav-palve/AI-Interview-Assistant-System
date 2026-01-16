@@ -108,9 +108,9 @@ function JobStatisticsTable() {
             <h3 className="text-lg font-medium text-gray-900 mb-1">No statistics available</h3>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             <table className="min-w-full">
-              <thead>
+              <thead className="sticky top-0 bg-white z-10">
                 <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <th className="px-4 py-2">
                     Job Title
@@ -145,15 +145,17 @@ function JobStatisticsTable() {
                       <div className="text-sm font-medium text-gray-900">{job.number_of_applications}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <div className="text-sm font-medium text-blue-600">{job.shortlisted}</div>
+                      <div className="text-sm font-medium text-black-600">{job.shortlisted}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <div className="text-sm font-medium text-green-600">{job.interviewed}</div>
+                      <div className="text-sm font-medium text-black-600">{job.interviewed}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        ${job.status === 'Active' ? 'bg-green-100 text-green-800' :
-                        job.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
+                        ${job.status === 'Active' || job.status === 'active' ? 'bg-green-100 text-green-800' :
+                        job.status === 'Closed' || job.status === 'closed' ? 'bg-red-100 text-red-800' :
+                        job.status === 'Archived' || job.status === 'archived' ? 'bg-gray-100 text-gray-800' :
+                        job.status === 'Draft' || job.status === 'draft' ? 'bg-amber-100 text-amber-800' :
                         'bg-blue-100 text-blue-800'}`}>
                         {job.status}
                       </span>
