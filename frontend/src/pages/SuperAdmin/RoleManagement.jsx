@@ -1,5 +1,5 @@
 
-import { Shield, X } from "lucide-react";
+import { Shield, X, Trash2 } from "lucide-react";
 import { RoleManagementService } from "../../services/roleManagementService";
 import { useEffect, useState } from "react";
 
@@ -9,8 +9,10 @@ const RoleManagement = () => {
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [showEditRoleModal, setShowEditRoleModal] = useState(false);
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [viewingRole, setViewingRole] = useState(null);
+  const [deletingRole, setDeletingRole] = useState(null);
 
   // Form state for create role
   const [roleName, setRoleName] = useState('');
@@ -236,6 +238,10 @@ const RoleManagement = () => {
       setShowViewDetailsModal(false);
       setViewingRole(null);
     }
+    if (showDeleteConfirmModal) {
+      setShowDeleteConfirmModal(false);
+      setDeletingRole(null);
+    }
     setRoleName('');
     setDescription('');
     setSelectedPermissions([]);
@@ -270,6 +276,41 @@ const RoleManagement = () => {
     } catch (err) {
       console.error('Error fetching role details:', err);
       setError(err.message || 'Failed to fetch role details');
+    }
+  };
+
+  const handleDeleteRole = (role) => {
+    setDeletingRole(role);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteRole = async () => {
+    if (!deletingRole) return;
+    
+    setLoadingCreate(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const result = await RoleManagementService.deleteRole(deletingRole.id);
+      
+      setSuccessMessage(result.message || 'Role deleted successfully!');
+      
+      // Remove the role from the roles list
+      setRoles(prev => prev.filter(role => role.id !== deletingRole.id));
+      
+      // Auto-close modal after success
+      setTimeout(() => {
+        setShowDeleteConfirmModal(false);
+        setDeletingRole(null);
+        setSuccessMessage('');
+      }, );
+      
+    } catch (err) {
+      console.error('Error deleting role:', err);
+      setError(err.message || 'Failed to delete role. Please try again.');
+    } finally {
+      setLoadingCreate(false);
     }
   };
 
@@ -370,6 +411,13 @@ const RoleManagement = () => {
                   >
                     View Details
                   </button>
+                  <button
+                    onClick={() => handleDeleteRole(role)}
+                    className="flex-1 px-3 py-2 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-medium flex items-center justify-center gap-1"
+                  >
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -423,6 +471,69 @@ const RoleManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Role Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-800">Delete Role</h3>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                  type="button"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {successMessage && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 text-sm font-medium">{successMessage}</p>
+                </div>
+              )}
+
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm font-medium">{error}</p>
+                </div>
+              )}
+
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                <h4 className="text-lg font-bold text-gray-800 mb-2">Are you sure?</h4>
+                <p className="text-gray-600 mb-4">
+                  You are about to delete the role <span className="font-semibold">{deletingRole?.name}</span>.
+                  This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+                  disabled={loadingCreate}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteRole}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center gap-1"
+                  disabled={loadingCreate}
+                >
+                  <Trash2 size={16} />
+                  {loadingCreate ? 'Deleting...' : 'Delete Role'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Role Modal */}
       {showCreateRoleModal && (
