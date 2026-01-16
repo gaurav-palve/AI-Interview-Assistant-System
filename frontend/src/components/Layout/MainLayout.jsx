@@ -146,7 +146,7 @@ export default function MainLayout({ children }) {
         style={{
           margin: 0,
           padding: 0,
-          background: 'linear-gradient(to bottom, #000000 0%, #000000 70%, #0F2962 100%)',
+          background: 'linear-gradient(to bottom, #000000 0%, #000000 70%, #2563EB 100%)',
         }}
         onMouseEnter={() => !isSidebarExpanded && setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
@@ -323,7 +323,7 @@ export default function MainLayout({ children }) {
             <div className="flex items-center">
               <button
                 onClick={handleLogout}
-                className="text-xs font-medium text-white/70 hover:text-white flex items-center transition-colors whitespace-nowrap hover:underline"
+                className="text-xs font-medium text-white hover:text-white flex items-center transition-colors whitespace-nowrap hover:underline"
               >
                 <LogoutIcon className="h-4 w-4" />
                 <span
@@ -401,7 +401,7 @@ export default function MainLayout({ children }) {
       {/* Main Content */}
       <div className={`flex flex-col w-0 flex-1 overflow-hidden transition-all duration-300 ${isSidebarVisible ? 'md:ml-64' : 'md:ml-16'}`}>
         {/* Header */}
-        <div className="sticky top-0 z-10 h-[55px] border-b border-gray-100 bg-gradient-to-r from-black via-black via-70% to-[#0F2962]">
+        <div className="sticky top-0 z-10 h-[55px] border-b border-gray-100 bg-[#FFFFFF]">
           {/* Mobile Header */}
           <div className="md:hidden h-full flex items-center justify-center">
             <button
@@ -425,10 +425,10 @@ export default function MainLayout({ children }) {
             {/* Right side - User info and profile */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center" style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-                <span className="text-sm text-white font-bold">Hello, {localStorage.getItem('user_name')}</span>
-                <span className="text-[10px] text-white ml-1">{localStorage.getItem('auth_role')}</span>
+                <span className="text-sm text-black font-bold">Hello, {localStorage.getItem('user_name')}</span>
+                <span className="text-[10px] text-[#2563EB] ml-1">{localStorage.getItem('auth_role')}</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center">
                 <PersonIcon className="text-white" />
               </div>
             </div>
