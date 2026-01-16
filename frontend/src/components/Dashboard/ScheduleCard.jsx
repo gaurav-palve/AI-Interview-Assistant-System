@@ -62,8 +62,8 @@ const ScheduleCard = ({ events = [], currentDate = new Date() }) => {
         <div key={index} className="text-center">
           <div 
             className={`w-8 h-8 mx-auto flex items-center justify-center rounded-full cursor-pointer
-              ${isSelected ? 'bg-blue-500 text-white' : 
-                isToday ? 'bg-blue-100 text-blue-800' : 'text-gray-700 hover:bg-gray-100'}
+              ${isSelected ? 'bg-[#2563EB] text-white' : 
+                isToday ? 'bg-[#2563EB] text-blue-800' : 'text-gray-700 hover:bg-gray-100'}
               ${hasNotification ? 'ring-2 ring-blue-300' : ''}
               transition-all duration-200`}
             onClick={() => setSelectedDate(date)}

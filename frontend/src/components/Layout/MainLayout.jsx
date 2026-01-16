@@ -63,7 +63,7 @@ export default function MainLayout({ children }) {
     },
 
     {
-      path: '/job-postings', label: 'Job Postings', icon: <WorkIcon />, permissions: [
+      path: '/job-postings', label: 'Job Postings', icon: <WorkIcon className="text-white"/>, permissions: [
         PERMISSIONS.JOB_VIEW,
         PERMISSIONS.JOB_CREATE,
         PERMISSIONS.JOB_EDIT,
