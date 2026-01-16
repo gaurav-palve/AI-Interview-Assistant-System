@@ -102,12 +102,21 @@ function BasicInformation({ formData, handleChange, goNext  }) {
       return true;
     }
   };
+  const toTitleCase = (str) => {
+  return str.replace(/\b\w/g, char => char.toUpperCase());
+};
+
 
   // Handle input change
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    updateFormData(name, value);
-    validateField(name, value);
+    const { name, value, type } = e.target;
+    let formattedValue = value;
+    //Capitalize every word
+     if (type === "text") {
+    formattedValue = toTitleCase(value);
+  }
+    updateFormData(name, formattedValue);
+    validateField(name, formattedValue);
   };
 
   const handleFocus = (field) => setFocusedField(field);
@@ -288,7 +297,7 @@ function BasicInformation({ formData, handleChange, goNext  }) {
           <input
             type="text"
             value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
+            onChange={(e) => setNewSkill(toTitleCase(e.target.value))}
             onFocus={() => handleFocus('required_skill')}
             onBlur={handleBlur}
             onKeyPress={handleKeyPress}
