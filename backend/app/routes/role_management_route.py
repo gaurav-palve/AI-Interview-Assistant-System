@@ -264,3 +264,67 @@ async def get_permissions(
             detail="Failed to fetch permissions"
         )
 
+
+@router.delete("/delete-role/{role_id}", response_model=dict)
+async def delete_role_endpoint(
+    role_id: str,
+    current_user: dict = Depends(require_permission("ROLE_MANAGE"))
+):
+    """
+    Delete a role by ID.
+    Only roles created by the current user can be deleted.
+    """
+    try:
+        db = get_database()
+        
+        try:
+            role_obj_id = ObjectId(role_id)
+        except:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid role ID format"
+            )
+            
+        # Check if the role exists and belongs to the current user
+        existing_role = await db[ROLES_COLLECTION].find_one({
+            "_id": role_obj_id,
+            "created_by": current_user.get("email")
+        })
+        
+        if not existing_role:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Role not found or you don't have permission to delete it"
+            )
+        
+        # Check if any users are assigned this role
+        users_with_role = await db["users"].count_documents({"role_id": str(role_obj_id)})
+        
+        if users_with_role > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Cannot delete role: {users_with_role} users are currently assigned to this role"
+            )
+        
+        # Delete the role
+        result = await db[ROLES_COLLECTION].delete_one({"_id": role_obj_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete role"
+            )
+        
+        return {
+            "message": "Role deleted successfully",
+            "status": "success"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in delete_role_endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete role"
+        )
+

@@ -38,6 +38,7 @@ function CreateJobPosting() {
     work_location: 'On Site',
     location: '',
     experience_level: '',
+    experience: { type: 'fixed', value: '' }, // New field for experience dropdown
     department: '',
     required_skills: [],
     requirements: [],
@@ -90,18 +91,28 @@ function CreateJobPosting() {
   };
 
   // Helpers
-  const extractExperienceFromRequirements = () => {
-    if (!Array.isArray(formData.requirements) || formData.requirements.length === 0) {
-      return 'Not specified';
+  const formatExperience = () => {
+    if (!formData.experience || !formData.experience.type) {
+      return 'N/A';
     }
-    return formData.requirements.join(', ');
+    
+    if (formData.experience.type === 'fixed') {
+      return formData.experience.value ? `${formData.experience.value} years` : 'N/A';
+    } else if (formData.experience.type === 'range') {
+      return (formData.experience.min && formData.experience.max)
+        ? `${formData.experience.min}-${formData.experience.max} years`
+        : 'N/A';
+    }
+    
+    return 'N/A';
   };
 
   const buildJobPostingPayload = (status) => ({
     ...formData,
     status,
-    location: formData.location || 'Not specified',
-    experience_level: extractExperienceFromRequirements(),
+    location: formData.location || 'N/A',
+    experience: formData.experience, // Include the raw experience data
+    experience_level: formatExperience(),
     responsibilities: Array.isArray(formData.responsibilities)
       ? formData.responsibilities
       : formData.responsibilities
