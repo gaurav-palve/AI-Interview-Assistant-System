@@ -131,10 +131,36 @@ const updateRole = async (roleId, { name, description, is_active, permissions })
   }
 };
 
+/* Delete a role */
+const deleteRole = async (roleId) => {
+  try {
+    const token = localStorage.getItem("access_token");
+
+    const response = await axios.delete(
+      `${API_BASE}/delete-role/${roleId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("deleteRole error:", error);
+    throw new Error(
+      error?.response?.data?.detail ||
+        error?.response?.data?.message ||
+        "Failed to delete role"
+    );
+  }
+};
+
 export const RoleManagementService = {
   createRole,
   getRoles,
   getPermissions,
   getRole,
   updateRole,
+  deleteRole,
 };
