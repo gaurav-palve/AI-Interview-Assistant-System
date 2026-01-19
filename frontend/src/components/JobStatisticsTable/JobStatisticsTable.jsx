@@ -113,9 +113,9 @@ function JobStatisticsTable() {
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
                           ${job.status === 'active'
-                            ? 'text-green-600'
+                            ? 'text-[#28A745]'
                             : job.status === 'closed'
-                            ? 'text-red-500'
+                            ? 'text-[#DC2626]'
                             : job.status === 'draft'
                             ? 'text-yellow-700'
                             : job.status === 'archived'
