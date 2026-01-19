@@ -396,7 +396,7 @@ function JobPostingsList() {
       {canCreateJob && (   
         <Link
           to="/job-postings/new"
-          className="btn bg-primary-600 text-white group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
+          className="btn bg-[#2563EB] text-white group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
         >
           <span className="relative z-10 flex items-center">
             <AddIcon className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" style={{marginLeft:-6}} />
