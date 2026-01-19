@@ -319,94 +319,84 @@ function JobPostingsList() {
     {/* Right content – fills remaining space */}
     <div className="flex flex-1 justify-end">
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4" style={{alignSelf:"flex-end",flex:1,flexDirection:"row"}}>
-          <div className="relative flex-grow max-w-xl group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <SearchIcon className="h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-primary-500" />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search ..."
-              className="w-full flex items-center space-x-3 pl-12 pr-4 py-2 border-2 border-gray-200 rounded-full focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all duration-300 placeholder-gray-400"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center"
-              >
-                <CloseIcon className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors duration-200" />
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="relative" ref={filtersRef}>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`btn btn-outline btn-sm group transition-all duration-300 ${
-                  showFilters ? 'bg-primary-50 border-primary-500 text-primary-600' : 'hover:bg-primary-50 hover:border-primary-500'
-                }`}
-              >
-                <FilterIcon className={`h-4 w-4 mr-1 ${showFilters ? 'text-primary-600' : 'group-hover:text-primary-600'}`} />
-                Filters
-                {activeTab !== 'all' && (
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
-                    1
-                  </span>
-                )}
-              </button>
-              
-              {/* Status Filter Dropdown */}
-              {showFilters && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-10 py-2 border border-gray-200 animate-fadeIn overflow-hidden">
-                  <div className="px-4 py-2 text-sm font-medium text-gray-700 border-b border-gray-100 bg-gray-50">
-                    Filter by Status
-                  </div>
-                  {['all', 'active', 'draft', 'closed', 'archived'].map((status, index) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        handleTabChange(status);
-                        setShowFilters(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center transition-colors duration-150 ${
-                        activeTab === status
-                          ? 'bg-primary-50 text-primary-600 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <div className="flex items-center">
-                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                          status === 'all' ? 'bg-gray-400' :
-                          status === 'active' ? 'bg-green-500' :
-                          status === 'draft' ? 'bg-blue-500' :
-                          status === 'closed' ? 'bg-orange-500' :
-                          'bg-gray-500'
-                        }`}></span>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-      {canCreateJob && (   
-        <Link
-          to="/job-postings/new"
-          className="btn bg-primary-600 text-white group relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-xl animate-slideInRight"
-        >
-          <span className="relative z-10 flex items-center">
-            <AddIcon className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" style={{marginLeft:-6}} />
-            Create Job
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-        </Link>
-      )}
-          </div>
+          <div className="flex items-center space-x-3 justify-end w-full">
+
+  {/* 🔽 Filters */}
+  <div className="relative" ref={filtersRef}>
+    <button
+      onClick={() => setShowFilters(!showFilters)}
+      className={`btn btn-outline btn-sm group transition-all duration-300 rounded-lg ${
+        showFilters
+          ? 'bg-primary-50 border-primary-500 text-primary-600'
+          : 'hover:bg-primary-50 hover:border-primary-500'
+      }`}
+    >
+      <FilterIcon className={`h-4 w-4 mr-1 ${
+        showFilters ? 'text-primary-600' : 'group-hover:text-primary-600'
+      }`} />
+      Filters
+    </button>
+
+    {/* Status Filter Dropdown */}
+    {showFilters && (
+      <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl z-10 py-2 border border-gray-200 animate-fadeIn overflow-hidden">
+        <div className="px-4 py-2 text-sm font-medium text-gray-700 border-b border-gray-100 bg-gray-50">
+          Filter by Status
         </div>
+
+        {['all', 'active', 'draft', 'closed', 'archived'].map((status, index) => (
+          <button
+            key={status}
+            onClick={() => {
+              handleTabChange(status);
+              setShowFilters(false);
+            }}
+            className={`w-full text-left px-4 py-1 text-sm flex items-center transition-colors duration-150 ${
+              activeTab === status
+                ? 'bg-primary-50 text-primary-600 font-medium'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+              status === 'all' ? 'bg-gray-400' :
+              status === 'active' ? 'bg-green-500' :
+              status === 'draft' ? 'bg-blue-500' :
+              status === 'closed' ? 'bg-orange-500' :
+              'bg-gray-500'
+            }`} />
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {/* 🔍 Search */}
+  <div className="relative w-[160px]">
+    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+    <input
+      type="text"
+      value={searchQuery}
+      onChange={handleSearchChange}
+      placeholder="Search"
+      className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+    />
+  </div>
+
+  {/* ➕ Create Job */}
+  {canCreateJob && (
+    <Link
+      to="/job-postings/new"
+      className="h-11 px-5 flex items-center gap-2 rounded-lg bg-[#2563EB] text-white font-medium transition hover:bg-[#1E4FD6] focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+    >
+      <AddIcon fontSize="small" />
+      Create Job
+    </Link>
+  )}
+
+</div>
+
       </div> 
     </div>
 

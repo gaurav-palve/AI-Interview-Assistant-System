@@ -20,7 +20,7 @@ const StatCard = ({
       // onMouseEnter={() => setBgColor(hoverBackgroundColor)}
       // onMouseLeave={() => {setBgColor(backgroundColor);console.log(backgroundColor);}}
       // onMouseDown={() => setBgColor(backgroundColor)}
-      className={`rounded-xl p-4 flex flex-col justify-between h-full shadow--sm transition-colors duration-300 cursor-pointer border border-transparent hover:border-2 hover:border-blue-500 ${backgroundColor || "bg-white"} ${hoverBackgroundColor || "hover:bg-blue-500"}`}
+      className={`rounded-lg p-4 flex flex-col justify-between h-full shadow--sm transition-colors duration-300 cursor-pointer border-2 border-transparent hover:border-2 hover:border-[#2563EB] ${backgroundColor || "bg-white"} ${hoverBackgroundColor || "hover:bg-blue-500"}`}
     >
       <div className="flex justify-between items-start">
         <div className={`p-2 rounded-md ${iconColor}`}>
@@ -29,7 +29,7 @@ const StatCard = ({
 
         {hasArrow && (
           <ArrowForward
-            className={`${textColor} cursor-pointer hover:opacity-80`}
+            className={`${textColor} cursor-pointer hover:opacity-80 mt-2`}
             onClick={onClick}
           />
         )}
