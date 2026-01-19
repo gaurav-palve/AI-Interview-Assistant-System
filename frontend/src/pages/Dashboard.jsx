@@ -86,7 +86,7 @@ const buildJobDonut = (stats) => ({
       ],
       backgroundColor: [
         'rgba(34, 197, 94, 0.6)',  // Green for active
-        'rgba(156, 163, 175, 0.6)', // Gray for draft
+        'rgba(251, 192, 45, 0.85)',  // Yellow for draft
         'rgba(239, 68, 68, 0.6)',   // Red for closed
         'rgba(107, 114, 128, 0.6)',  // Dark gray for archived
       ],
@@ -388,11 +388,13 @@ function Dashboard() {
                 onClick={() => handleMetricSelection(metric.toLowerCase())}
                 className={`flex-1 w-full px-3 py-2 text-center flex items-center justify-center md:justify-between text-sm
         ${activeMetric === metric.toLowerCase()
-                    ? `border-2 border-[#2563EB] border-b-2 text-[#2563EB]
+                    ? `border-2 border-[#2563EB] border-b-2 text-[#2563EB] z-10
                       ${index === 0 ? 'rounded-tl-lg' : ''}
                       ${index === sidebarMetrics.length - 1 ? 'rounded-bl-lg' : ''}`
                     : 'text-gray-700 hover:bg-gray-50'}
-        ${index !== sidebarMetrics.length - 1 ? 'border-b border-gray-200' : ''}
+        ${index !== sidebarMetrics.length - 1 && activeMetric !== metric.toLowerCase()
+  ? 'border-b border-gray-200'
+  : ''}
       `}
               >
                 <span className="px-2 flex-1 text-left">{metric}</span>
