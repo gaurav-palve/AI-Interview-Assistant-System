@@ -435,7 +435,7 @@ function CreateUser() {
                     {r.permissions?.slice(0, MAX_VISIBLE).map((perm, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full"
+                        className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg"
                       >
                         {perm}
                       </span>
@@ -443,7 +443,7 @@ function CreateUser() {
 
                     {r.permissions?.length > MAX_VISIBLE && (
                       <div className="relative group">
-                        <span className="px-3 py-1 text-xs bg-gray-200 text-gray-600 rounded-full cursor-pointer">
+                        <span className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg cursor-pointer">
                           +{r.permissions.length - MAX_VISIBLE} more
                         </span>
 
