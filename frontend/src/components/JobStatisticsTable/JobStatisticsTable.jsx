@@ -66,16 +66,16 @@ function JobStatisticsTable() {
             </h3>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             <table className="min-w-full">
-              <thead>
+              <thead className="sticky top-0 bg-white z-10">
                 <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <th className="px-4 py-2">Job Title</th>
-                  <th className="px-4 py-2">Posted</th>
-                  <th className="px-4 py-2">Applications</th>
-                  <th className="px-4 py-2">Shortlisted</th>
-                  <th className="px-4 py-2">Interviewed</th>
-                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2 text-center">Posted</th>
+                  <th className="px-4 py-2 text-center">Applications</th>
+                  <th className="px-4 py-2 text-center">Shortlisted</th>
+                  <th className="px-4 py-2 text-center">Interviewed</th>
+                  <th className="px-4 py-2 text-center">Status</th>
                 </tr>
               </thead>
 
@@ -88,7 +88,7 @@ function JobStatisticsTable() {
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <div className="text-sm text-gray-500">
                         {job.posted_days_ago} days ago
                       </div>
@@ -101,19 +101,15 @@ function JobStatisticsTable() {
                     </td>
 
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <div className="text-sm font-medium text-gray-600">
-                        {job.shortlisted}
-                      </div>
+                      <div className="text-sm font-medium text-black-600">{job.shortlisted}</div>
                     </td>
 
                     <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <div className="text-sm font-medium text-gray-600">
-                        {job.interviewed}
-                      </div>
+                      <div className="text-sm font-medium text-black-600">{job.interviewed}</div>
                     </td>
 
                     {/* ✅ STATUS IN TITLE CASE */}
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
                           ${job.status === 'active'
