@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useRef, useEffect } from "react";
 
 /**
  * StatusChangeMenu component
  * Provides a dropdown menu for changing job posting status
  */
 const StatusChangeMenu = ({ job, onStatusChange, onClose }) => {
-  // Status configuration with labels and colors
+
+  const dropdownRef = useRef(null); // ✅ inside component
+
   const statusConfig = {
     draft: { 
       label: "Draft", 
@@ -28,8 +30,7 @@ const StatusChangeMenu = ({ job, onStatusChange, onClose }) => {
       hoverColor: "hover:bg-gray-50"
     }
   };
-  
-  // Define available statuses based on current status
+
   const getAvailableStatuses = () => {
     switch (job.status) {
       case 'draft':
@@ -41,20 +42,42 @@ const StatusChangeMenu = ({ job, onStatusChange, onClose }) => {
       case 'archived':
         return ['active'];
       default:
-        return ['draft', 'active', 'closed', 'archived'].filter(s => s !== job.status);
+        return ['draft', 'active', 'closed', 'archived']
+          .filter(s => s !== job.status);
     }
   };
 
   const handleStatusChange = (newStatus) => {
     onStatusChange(job.id, newStatus);
-    onClose();
+    onClose(); // close after select
   };
 
+  // ✅ Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        onClose(); // close dropdown
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
-    <div className="absolute top-0 right-0 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-slideInDown mt-8">
+    <div  
+      ref={dropdownRef}
+      className="absolute top-0 right-0 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-slideInDown mt-8"
+    >
       <div className="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">
         Change status to:
       </div>
+
       {getAvailableStatuses().map((status) => (
         <button
           key={status}
@@ -67,6 +90,7 @@ const StatusChangeMenu = ({ job, onStatusChange, onClose }) => {
           <span className={`font-medium ${statusConfig[status].color.split(' ')[1]}`}>
             {statusConfig[status].label}
           </span>
+
           <span className={`
             w-2 h-2 rounded-full
             ${statusConfig[status].color.split(' ')[0]}
