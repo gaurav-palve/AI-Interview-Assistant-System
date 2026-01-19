@@ -1,7 +1,7 @@
 import { PERMISSIONS } from "../constants/permissions";
 import {
   DashboardOutlined,
-  WorkOutlined,
+  WorkOutline,
   AssignmentOutlined,
   BarChartOutlined,
   GradingOutlined,
@@ -31,7 +31,7 @@ export const NAV_ITEMS = [
     key: "job-postings",
     path: "/job-postings",
     label: "Job Postings",
-    icon: WorkOutlined,
+    icon: WorkOutline,
     permissions: [
       PERMISSIONS.JOB_VIEW,
       PERMISSIONS.JOB_VIEW,

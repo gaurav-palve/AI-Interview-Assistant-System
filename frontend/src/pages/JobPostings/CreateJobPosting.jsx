@@ -181,15 +181,6 @@ function CreateJobPosting() {
                 <SaveIcon className="h-4 w-4 mr-2" />
                 Save as Draft
               </button>
-
-              <button
-                onClick={publishJobPosting}
-                disabled={loading}
-                className="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-              >
-                <CheckIcon className="h-4 w-4 mr-2" />
-                Create Job
-              </button>
             </div>
           </div>
 
