@@ -18,7 +18,7 @@ import {
   AssessmentOutlined as AssessmentIcon,
   DescriptionOutlined as DescriptionIcon,
   GradingOutlined as GradingIcon,
-  WorkOutlined as WorkIcon,
+  WorkOutline as WorkIcon,
   ChevronLeftOutlined as ChevronLeftIcon,
   ChevronRightOutlined as ChevronRightIcon,
   AdminPanelSettingsOutlined as RolesIcon,
@@ -63,7 +63,7 @@ export default function MainLayout({ children }) {
     },
 
     {
-      path: '/job-postings', label: 'Job Postings', icon: <WorkIcon className="text-white"/>, permissions: [
+      path: '/job-postings', label: 'Job Postings', icon: <WorkIcon />, permissions: [
         PERMISSIONS.JOB_VIEW,
         PERMISSIONS.JOB_CREATE,
         PERMISSIONS.JOB_EDIT,
