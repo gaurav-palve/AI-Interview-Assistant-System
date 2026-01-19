@@ -64,13 +64,9 @@ const styles = {
   },
 
   role: {
-    width: 'fit-content',
-    padding: '0px',
     fontSize: 13,
     fontWeight: 600,
     color: '#2563EB',
-    // background: '#2563EB',
-    // borderRadius: 999,
     textTransform: 'uppercase'
   }
 };
@@ -85,39 +81,31 @@ const OrganizationTree = () => {
     height: window.innerHeight
   });
 
-  /* ---------------- Resize ---------------- */
+  /* ---------------- Handle Resize ---------------- */
   useEffect(() => {
-    const handleResize = () =>
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  /* ---------------- Fetch Hierarchy ---------------- */
+  /* ---------------- Fetch Hierarchy (NO rebuilding) ---------------- */
   useEffect(() => {
     const fetchHierarchy = async () => {
       try {
-        const users = await userHierarchyService.getUserHierarchy();
+        const hierarchy = await userHierarchyService.getUserHierarchy();
 
-        const map = {};
-        users.forEach(u => {
-          if (u?.email) map[u.email] = { ...u, children: [] };
+        setTreeData({
+          name: 'Organization',
+          children: hierarchy
         });
-
-        const roots = [];
-        users.forEach(u => {
-          if (!u?.email) return;
-          if (u.created_by && map[u.created_by]) {
-            map[u.created_by].children.push(map[u.email]);
-          } else {
-            roots.push(map[u.email]);
-          }
-        });
-
-        setTreeData({ name: 'Organization', children: roots });
-      } catch {
-        setError('Failed to load hierarchy');
+      } catch (err) {
+        setError('Failed to load organization hierarchy');
       } finally {
         setLoading(false);
       }
@@ -126,13 +114,14 @@ const OrganizationTree = () => {
     fetchHierarchy();
   }, []);
 
-  /* ---------------- Custom Node (HTML only) ---------------- */
+  /* ---------------- Custom Node Renderer ---------------- */
   const renderNode = ({ nodeDatum }) => {
+    // Root Node
     if (nodeDatum.name === 'Organization') {
       return (
         <g>
           <foreignObject x={-90} y={-25} width={180} height={50}>
-            <div className="org-root-node" style={styles.rootNode}>
+            <div style={styles.rootNode}>
               Hirepool.AI
             </div>
           </foreignObject>
@@ -141,22 +130,22 @@ const OrganizationTree = () => {
     }
 
     const initials = `${nodeDatum.first_name?.[0] || ''}${nodeDatum.last_name?.[0] || ''}`;
-    const role = nodeDatum.role_name || 'Team Member';
+    const role = nodeDatum.role_name || 'TEAM MEMBER';
 
     return (
       <g>
         <foreignObject x={-40} y={-35} width={340} height={90}>
-          <div className="org-node" style={styles.node}>
-            <div className="org-avatar" style={styles.avatar}>
+          <div style={styles.node}>
+            <div style={styles.avatar}>
               {initials}
             </div>
 
-            <div className="org-content" style={styles.content}>
-              <div className="org-name" style={styles.name}>
+            <div style={styles.content}>
+              <div style={styles.name}>
                 {nodeDatum.first_name} {nodeDatum.last_name}
               </div>
 
-              <span className="org-role" style={styles.role}>
+              <span style={styles.role}>
                 {role}
               </span>
             </div>
@@ -166,20 +155,24 @@ const OrganizationTree = () => {
     );
   };
 
-  if (loading)
+  /* ---------------- Loading / Error ---------------- */
+  if (loading) {
     return (
       <Box sx={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
         <CircularProgress />
       </Box>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <Box sx={{ height: '100vh', display: 'grid', placeItems: 'center' }}>
         <Typography color="error">{error}</Typography>
       </Box>
     );
+  }
 
+  /* ---------------- Tree Config ---------------- */
   const translate = {
     x: dimensions.width / 2,
     y: 100

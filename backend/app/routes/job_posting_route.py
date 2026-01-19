@@ -146,7 +146,6 @@ async def create_job_posting(
             "work_location": job_doc["work_location"],
             "location": job_doc["location"],
             "experience_level": job_doc["experience_level"],
-            "department": job_doc["department"],
             "required_skills": job_doc["required_skills"],
             "requirements": job_doc["requirements"],
             "responsibilities": job_doc["responsibilities"],
@@ -179,22 +178,23 @@ async def get_job_postings(
         db = get_database()
         user_id = ObjectId(current_user["_id"])
 
-        # Fetch role
+        # -------------------------
+        # FETCH ROLE
+        # -------------------------
         role_doc = await db[ROLES_COLLECTION].find_one(
-            {"_id": ObjectId(current_user.get("role_id"))},
+            {"_id": ObjectId(current_user["role_id"])},
             {"role_name": 1}
         )
 
         if not role_doc:
             raise HTTPException(status_code=403, detail="Invalid role")
 
+        filters = []
+
         # -------------------------
-        # BASE QUERY
+        # ACCESS CONTROL
         # -------------------------
-        if role_doc["role_name"] == "SUPER_ADMIN":
-            query = {}
-        else:
-            # Fetch assigned job IDs
+        if role_doc["role_name"] != "SUPER_ADMIN":
             assignments = await db["job_assignments"].find(
                 {
                     "user_id": user_id,
@@ -205,27 +205,38 @@ async def get_job_postings(
 
             assigned_job_ids = [a["job_id"] for a in assignments]
 
-            query = {
+            filters.append({
                 "$or": [
                     {"created_by": str(user_id)},
                     {"_id": {"$in": assigned_job_ids}}
                 ]
-            }
+            })
 
         # -------------------------
-        # FILTERS
+        # STATUS FILTER
         # -------------------------
         if status:
-            query["status"] = status
+            filters.append({"status": status})
 
+        # -------------------------
+        # SEARCH FILTER
+        # -------------------------
         if search:
-            query["$or"] = query.get("$or", []) + [
-                {"job_title": {"$regex": search, "$options": "i"}},
-                {"company": {"$regex": search, "$options": "i"}},
-                {"location": {"$regex": search, "$options": "i"}},
-                {"job_description": {"$regex": search, "$options": "i"}},
-                {"required_skills": {"$elemMatch": {"$regex": search, "$options": "i"}}}
-            ]
+            filters.append({
+                "$or": [
+                    {"job_title": {"$regex": search, "$options": "i"}},
+                    {"company": {"$regex": search, "$options": "i"}},
+                    {"location": {"$regex": search, "$options": "i"}},
+                    {"job_description": {"$regex": search, "$options": "i"}},
+                    {"required_skills": {"$regex": search, "$options": "i"}},
+                    {"job_type": {"$regex": search, "$options": "i"}}
+                ]
+            })
+
+        # -------------------------
+        # FINAL QUERY
+        # -------------------------
+        query = {"$and": filters} if filters else {}
 
         # -------------------------
         # SORTING
@@ -255,9 +266,8 @@ async def get_job_postings(
         # -------------------------
         # RESPONSE
         # -------------------------
-        result = []
-        for job in jobs:
-            result.append({
+        result = [
+            {
                 "id": str(job["_id"]),
                 "job_title": job.get("job_title"),
                 "company": job.get("company"),
@@ -266,13 +276,13 @@ async def get_job_postings(
                 "created_at": job.get("created_at").isoformat(),
                 "updated_at": job.get("updated_at").isoformat(),
                 "applicants_count": job.get("applicants_count", 0),
-                "experience" : job.get('experience_level'),
-                'skills': job.get("required_skills"),
+                "experience": job.get("experience_level"),
+                "skills": job.get("required_skills"),
                 "work_location": job.get("location"),
                 "job_type": job.get("job_type"),
-
-
-            })
+            }
+            for job in jobs
+        ]
 
         return {
             "job_postings": result,
