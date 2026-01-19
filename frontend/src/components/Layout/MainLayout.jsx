@@ -26,8 +26,10 @@ import {
   PersonAddOutlined,
   PeopleOutlined,
   AdminPanelSettingsOutlined,
-  AccountTreeOutlined
+  AccountTreeOutlined,
 } from '@mui/icons-material';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 
 export default function MainLayout({ children }) {
   // const { user, logout } = useAuth();
@@ -61,7 +63,7 @@ export default function MainLayout({ children }) {
     },
 
     {
-      path: '/job-postings', label: 'Job Postings', icon: <WorkIcon />, permissions: [
+      path: '/job-postings', label: 'Job Postings', icon: <WorkIcon className="text-white"/>, permissions: [
         PERMISSIONS.JOB_VIEW,
         PERMISSIONS.JOB_CREATE,
         PERMISSIONS.JOB_EDIT,
@@ -146,7 +148,7 @@ export default function MainLayout({ children }) {
         style={{
           margin: 0,
           padding: 0,
-          background: 'linear-gradient(to bottom, #000000 0%, #000000 70%, #2563EB 100%)',
+          background: 'linear-gradient(to bottom, #000000 0%, #000000 60%, #2563EB 100%)',
         }}
         onMouseEnter={() => !isSidebarExpanded && setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
@@ -416,20 +418,20 @@ export default function MainLayout({ children }) {
           </div>
 
           {/* Desktop Header */}
-          <div className="hidden md:flex items-center justify-between px-6 h-full relative transition-all duration-300">
+          <div className="hidden md:flex items-center justify-between px-6 h-full relative transition-all duration-300 bg-[#FFFFFF] ">
             {/* Left side - Dashboard title */}
             <div className="flex items-center h-full">
 
             </div>
 
             {/* Right side - User info and profile */}
-            <div className="flex items-center space-x-4">
+            <div className="px-9 flex items-center space-x-4">
               <div className="flex items-center" style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
                 <span className="text-sm text-black font-bold">Hello, {localStorage.getItem('user_name')}</span>
                 <span className="text-[10px] text-[#2563EB] ml-1">{localStorage.getItem('auth_role')}</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center">
-                <PersonIcon className="text-white" />
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                <AccountCircleIcon className="text-white" fontSize="large"/>
               </div>
             </div>
           </div>
