@@ -18,8 +18,8 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import theme from "./theme";
-import { AuthProvider } from "./contexts/AuthContext"; // ✅ Import AuthProvider
-import { CameraProvider } from "./contexts/CameraContext"; // ✅ Optional (if used)
+import { AuthProvider } from "./contexts/AuthContext"; //  Import AuthProvider
+import { CameraProvider } from "./contexts/CameraContext"; //  Optional (if used)
 
 // Create a default MUI theme to prevent SvgIcon errors
 const muiTheme = createTheme();
