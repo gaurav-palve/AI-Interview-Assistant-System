@@ -16,41 +16,58 @@ const StatCard = ({
 
   return (
     <div
-      // style={{ backgroundColor: bgColor }}
-      // onMouseEnter={() => setBgColor(hoverBackgroundColor)}
-      // onMouseLeave={() => {setBgColor(backgroundColor);console.log(backgroundColor);}}
-      // onMouseDown={() => setBgColor(backgroundColor)}
-      className={`rounded-lg p-4 flex flex-col justify-between h-full shadow--sm transition-colors duration-300 cursor-pointer border-2 border-transparent hover:border-2 hover:border-[#2563EB] ${backgroundColor || "bg-white"} ${hoverBackgroundColor || "hover:bg-blue-500"}`}
+      className={`
+        rounded-lg
+        p-4
+        h-full
+        shadow--sm
+        transition-colors
+        duration-300
+        cursor-pointer
+        border-2 border-transparent
+        hover:border-2 hover:border-[#2563EB]
+
+        /* 👇 ADDED */
+        flex flex-row items-center justify-between
+        min-h-[96px]
+
+        ${backgroundColor || "bg-white"}
+        ${hoverBackgroundColor || "hover:bg-blue-500"}
+      `}
     >
-      <div className="flex justify-between items-start">
-        <div className={`p-2 rounded-md ${iconColor}`}>
-          {icon}
+      {/* LEFT CONTENT */}
+      <div className="flex flex-col justify-center">
+        <div className="flex items-center gap-2">
+          <div className={`p-0 rounded-md ${iconColor}`}>
+            {icon}
+          </div>
+
+          <h2 className={`text-2xl font-bold ${textColor}`}>
+            {String(count).includes('/') ? (
+              <>
+                {count.split('/')[0]}{'/'}
+                <span className="text-[#E0E0E0] font-medium">
+                  {count.split('/')[1]}
+                </span>
+              </>
+            ) : (
+              count
+            )}
+          </h2>
         </div>
 
-        {hasArrow && (
-          <ArrowForward
-            className={`${textColor} cursor-pointer hover:opacity-80 mt-2`}
-            onClick={onClick}
-          />
-        )}
+        <p className={`text-sm mt-1 ${textColor} opacity-80`}>
+          {label}
+        </p>
       </div>
 
-      <div className="mt-4">
-        <h2 className={`text-3xl font-bold ${textColor}`}>
-          {String(count).includes('/') ? (
-            <>
-              {count.split('/')[0]}{'/'}
-              <span className="text-[#E0E0E0] font-medium">
-                {count.split('/')[1]}
-              </span>
-            </>
-          ) : (
-            count
-          )}
-        </h2>
-
-        <p className={`text-sm ${textColor} font-medium opacity-80`}>{label}</p>
-      </div>
+      {/* RIGHT ARROW */}
+      {hasArrow && (
+        <ArrowForward
+          className={`${textColor} cursor-pointer hover:opacity-80`}
+          onClick={onClick}
+        />
+      )}
     </div>
   );
 };

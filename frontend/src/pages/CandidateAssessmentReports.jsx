@@ -216,7 +216,7 @@ function CandidateAssessmentReports({ jobPostingId = null }) {
     <div className="space-y-6">
       <div className="bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-          <AssessmentIcon className="mr-2 text-primary-600" />
+          <AssessmentIcon className="mr-2 text-[#2563EB]" />
           Candidate Assessment Reports
         </h1>
         <p className="text-gray-600 mb-6">
@@ -237,7 +237,7 @@ function CandidateAssessmentReports({ jobPostingId = null }) {
           {/* Filter form */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
           <h2 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
-            <SearchIcon className="mr-2 text-primary-600" />
+            <SearchIcon className="mr-2 text-[#2563EB]" />
             Filter Reports
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -295,7 +295,7 @@ function CandidateAssessmentReports({ jobPostingId = null }) {
             </button>
             <button
               onClick={applyFilters}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#2563EB] hover:bg-primary-700"
             >
               Apply Filters
             </button>
