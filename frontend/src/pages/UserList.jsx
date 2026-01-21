@@ -213,25 +213,25 @@ function UsersList() {
               </div>
 
               <div className="flex justify-center">
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
+                <span className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 text-left">
                   {rolesMap[user.role_id] || "-"}
                 </span>
               </div>
 
-              <div className="text-sm text-gray-600 text-center">
+              <div className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 text-left">
                 {user.department || "-"}
               </div>
 
-              <div className="text-sm text-gray-600 text-center">
+              <div className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 text-left">
                 {user.location || "-"}
               </div>
 
               <div className="flex justify-center">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  className={`px-3 py-1 rounded-full text-xs font-medium text-left ${
                     user.is_active
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
+                      ? "text-[#28A745]"
+                      : "text-[#DC2626]"
                   }`}
                 >
                   {user.is_active ? "Active" : "Inactive"}

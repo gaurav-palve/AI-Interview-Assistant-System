@@ -110,15 +110,7 @@ function Statistics() {
             INTERVIEW STATISTICS
           </span>
         </h1>
-        <button
-          type="button"
-          onClick={fetchStatistics}
-          disabled={loading}
-          className="inline-flex items-center px-6 py-2 border border-transparent rounded-full shadow-md text-sm font-medium text-white bg-gradient-to-r from-sky-400 to-blue-200 hover:from-sky-500 hover:to-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 transition-all duration-300"
-        >
-          <RefreshIcon className="-ml-1 mr-2 h-5 w-5 animate-spin-slow" />
-          Refresh
-        </button>
+        
       </div>
 
       {error && (
@@ -198,7 +190,7 @@ function Statistics() {
           </div>
 
           {/* Status Breakdown */}
-          <div className="card shadow-lg border-t-4 border-sky-400 animate-fadeIn" style={{ animationDelay: '0.5s' }}>
+          <div className="card shadow-lg border-t-4 border-[#2563EB] animate-fadeIn" style={{ animationDelay: '0.5s' }}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <PieChartIcon className="h-5 w-5 mr-2 text-sky-400" />
               Interview Status Breakdown
@@ -303,7 +295,7 @@ function Statistics() {
           </div>
 
           {/* Visual Chart */}
-          <div className="card shadow-lg border-t-4 border-sky-400 animate-fadeIn" style={{ animationDelay: '0.6s' }}>
+          <div className="card shadow-lg border-t-4 border-[#2563EB] animate-fadeIn" style={{ animationDelay: '0.6s' }}>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
               <ChartIcon className="h-5 w-5 mr-2 text-sky-400" />
               Visual Representation

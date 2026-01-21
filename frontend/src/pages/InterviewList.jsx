@@ -199,7 +199,7 @@ function InterviewList() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary-500 animate-fadeIn">Interviews</h1>
+        <h1 className="text-3xl font-bold text-black animate-fadeIn">Interviews</h1>
       </div>
 
       {error && (
@@ -209,7 +209,7 @@ function InterviewList() {
       )}
 
       {/* Search & Filters */}
-      <div className="card p-4 shadow-lg border-t-4 border-primary-500">
+      <div className="card p-4 shadow-lg border-t-4 border-[#2563EB]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0 md:space-x-4">
           <div className="flex-1">
             <input
@@ -271,7 +271,7 @@ function InterviewList() {
         <button
           onClick={handleDownloadAll}
           disabled={downloading}
-          className="inline-flex items-center px-5 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium shadow-md hover:scale-105 transition-all disabled:opacity-50"
+          className="inline-flex items-center px-5 py-2 rounded-lg bg-[#2563EB] text-white font-medium shadow-md hover:scale-105 transition-all disabled:opacity-50"
         >
           <DownloadIcon className="mr-2" />
           {downloading ? 'Downloading...' : 'Download'}
@@ -281,7 +281,7 @@ function InterviewList() {
         
 
       {/* Interviews Table */}
-      <div className="card overflow-hidden shadow-lg border-t-4 border-secondary-500">
+      <div className="card overflow-hidden shadow-lg border-t-4 border-[#2563EB]">
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
@@ -311,8 +311,8 @@ function InterviewList() {
                     <td className="px-6 py-4 text-gray-700">{formatDateInCandidateTimezone(interview.scheduled_datetime, interview.timezone)}</td>
                     <td className="px-6 py-4">{getStatusBadge(interview.status)}</td>
                     <td className="px-6 py-4 text-right">
-                      <Link to={`/interviews/${interview.id}/edit`} className="text-secondary-600 hover:text-secondary-800 mr-3">
-                        <EditIcon className="h-4 w-4" />
+                      <Link to={`/interviews/${interview.id}/edit`} className="text-[#2563EB] hover:text-[#1D4ED8] mr-3">
+                        <EditIcon className="h-4 w-4 text-[#2563EB]" />
                       </Link>
                       <button
                         onClick={() => handleDeleteInterview(interview.id)}
