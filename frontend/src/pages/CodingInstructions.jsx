@@ -1,13 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
+import { useToast } from '@chakra-ui/react';
 import { Code, Clock, Brain, Zap, Target, Shield } from 'lucide-react';
 import { generateCodingQuestions } from "../services/codingService";
+import CameraProctorNew from '../components/CameraProctorNew';
 
 function CodingInstructions() {
   const navigate = useNavigate();
   const { interviewId } = useParams();
+  const toast = useToast();
   const [instructionTimer, setInstructionTimer] = useState(30);
+  const [cameraReady, setCameraReady] = useState(false);
   const requestMadeRef = useRef(false);
+
+  // Handle cheating detection and show toast
+  const handleCheatingDetected = useCallback((type, message) => {
+    const cheatingTypeMap = {
+      'FACE_MISSING': { title: 'Warning: Face Not Visible', colorScheme: 'orange' },
+      'MULTIPLE_FACES': { title: 'Warning: Multiple Faces Detected', colorScheme: 'red' },
+      'LOOK_AWAY': { title: 'Warning: Looking Away', colorScheme: 'orange' },
+      'PHONE_DETECTED': { title: 'Warning: Phone Detected', colorScheme: 'red' },
+      'TAB_SWITCH': { title: 'Warning: Tab Switched', colorScheme: 'red' },
+      'WINDOW_BLUR': { title: 'Warning: Window Lost Focus', colorScheme: 'red' }
+    };
+
+    const config = cheatingTypeMap[type] || { title: 'Warning Detected', colorScheme: 'orange' };
+
+    toast({
+      title: config.title,
+      description: message,
+      status: type === 'PHONE_DETECTED' || type === 'MULTIPLE_FACES' || type === 'TAB_SWITCH' || type === 'WINDOW_BLUR' ? 'error' : 'warning',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+      variant: 'solid'
+    });
+
+    console.warn(`Cheating detected: ${type}`, message);
+  }, [toast]);
 
   // -------------------------------
   // GENERATE CODING QUESTIONS (NO TOASTS)
@@ -27,6 +57,8 @@ function CodingInstructions() {
     };
 
     generateQuestions();
+    // Auto-start camera on component mount
+    setCameraReady(true);
   }, [interviewId]);
 
   // -------------------------------
@@ -76,6 +108,16 @@ function CodingInstructions() {
           </div>
         </div>
       </header>
+
+      {/* Camera Component */}
+      {cameraReady && (
+        <CameraProctorNew 
+          autoStart={true} 
+          sessionId={interviewId} 
+          hideControls={true} 
+          onCheatingDetected={handleCheatingDetected} 
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 relative z-10">

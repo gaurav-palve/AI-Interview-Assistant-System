@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useToast } from '@chakra-ui/react';
 import sharedImage from '../shared image.png';
 import { useParams, useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import interviewService from '../services/interviewService';
-import CameraProctor from '../components/CameraProctor';
-import { useCamera } from '../contexts/CameraContext';
+import CameraProctorNew from '../components/CameraProctorNew';
 // Custom logger for better debugging
 const logger = {
   info: (message, data) => {
@@ -45,6 +45,7 @@ import {
 function CandidateInterview() {
   const { interviewId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,7 +62,34 @@ function CandidateInterview() {
   const [mcqTimerActive, setMcqTimerActive] = useState(false);
   const timerRef = useRef(null);
   const mcqTimerRef = useRef(null);
-  const { startCamera, stopCamera, isActive } = useCamera();
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraPermissionRequested, setCameraPermissionRequested] = useState(false);
+
+  // Handle cheating detection and show toast
+  const handleCheatingDetected = useCallback((type, message) => {
+    const cheatingTypeMap = {
+      'FACE_MISSING': { title: 'Warning: Face Not Visible', colorScheme: 'orange' },
+      'MULTIPLE_FACES': { title: 'Warning: Multiple Faces Detected', colorScheme: 'red' },
+      'LOOK_AWAY': { title: 'Warning: Looking Away', colorScheme: 'orange' },
+      'PHONE_DETECTED': { title: 'Warning: Phone Detected', colorScheme: 'red' },
+      'TAB_SWITCH': { title: 'Warning: Tab Switched', colorScheme: 'red' },
+      'WINDOW_BLUR': { title: 'Warning: Window Lost Focus', colorScheme: 'red' }
+    };
+
+    const config = cheatingTypeMap[type] || { title: 'Warning Detected', colorScheme: 'orange' };
+
+    toast({
+      title: config.title,
+      description: message,
+      status: type === 'PHONE_DETECTED' || type === 'MULTIPLE_FACES' || type === 'TAB_SWITCH' || type === 'WINDOW_BLUR' ? 'error' : 'warning',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+      variant: 'solid'
+    });
+
+    logger.warn(`Cheating detected: ${type}`, message);
+  }, [toast]);
 
   // Fetch interview details on component mount
   useEffect(() => {
@@ -88,10 +116,12 @@ function CandidateInterview() {
 
     if (interviewId) {
       fetchInterview();
-      // Start instruction timer automatically when component mounts
-      setTimerActive(true);
-      // Start camera
-      startCamera();
+      // Request camera permission immediately when interview loads
+      if (!cameraPermissionRequested) {
+        logger.info('Requesting camera permission on interview entry');
+        setCameraPermissionRequested(true);
+        setCameraReady(true); // This will trigger the camera to auto-start
+      }
       // Note: MCQ generation/fetching is now handled in fetchInterview based on mcqs_status
     }
   }, [interviewId]);
@@ -644,9 +674,7 @@ function CandidateInterview() {
           {/* Camera component - positioned at the left corner of page */}
           <div className="fixed top-0 right-2">
             <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl" style={{ width: '180px', height: '135px' }}>
-              <CameraProctor
-                detectionEnabled={false} // Disable detection on completion page
-              />
+              <CameraProctorNew />
             </div>
           </div>
           
@@ -720,9 +748,7 @@ function CandidateInterview() {
               {/* Camera component on the right side of navbar */}
               <div className="absolute top-1 right-2" style={{ width: '180px', height: '135px' }}>
                 <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
-                  <CameraProctor
-                    detectionEnabled={phase === 'mcq'} // Only enable detection during MCQ phase
-                  />
+                  {cameraReady && <CameraProctorNew autoStart={true} sessionId={interviewId} hideControls={true} onCheatingDetected={handleCheatingDetected} />}
                 </div>
               </div>
             </div>
@@ -825,33 +851,39 @@ function CandidateInterview() {
                 
                 {/* Start button */}
                 <div className="flex justify-center pt-1">
-                  <button
-                    onClick={() => {
-                      // Start camera when the assessment begins
-                      // Camera is already started by the context
-                      handleStartInstructions();
-                    }}
-                    disabled={timerActive || generatingMcqs || phase === 'waiting'}
-                    className="px-6 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
-                  >
-                    {timerActive ? (
-                      <span className="flex items-center text-sm">
-                        <TimerIcon className="mr-2 h-4 w-4" />
-                        Reading Time: {formatTime(instructionTimer)}
-                      </span>
-                    ) : phase === 'waiting' ? (
-                      <span className="flex items-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
-                        Preparing Questions...
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        <PlayIcon className="mr-2" />
-                        <VideocamIcon className="mr-1" />
-                        Begin Assessment
-                      </span>
-                    )}
-                  </button>
+                  {!cameraReady ? (
+                    <button
+                      onClick={() => setCameraReady(true)}
+                      className="px-6 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
+                    >
+                      <VideocamIcon className="mr-2" />
+                      Allow Camera & Start Test
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleStartInstructions}
+                      disabled={timerActive || generatingMcqs || phase === 'waiting'}
+                      className="px-6 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
+                    >
+                      {timerActive ? (
+                        <span className="flex items-center text-sm">
+                          <TimerIcon className="mr-2 h-4 w-4" />
+                          Reading Time: {formatTime(instructionTimer)}
+                        </span>
+                      ) : phase === 'waiting' ? (
+                        <span className="flex items-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                          Preparing Questions...
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          <PlayIcon className="mr-2" />
+                          <VideocamIcon className="mr-1" />
+                          Begin Assessment
+                        </span>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -898,12 +930,10 @@ function CandidateInterview() {
           {/* Main content area - 75% width */}
           <div className="w-3/4 pr-2">
             {/* Camera component - positioned at the right corner with smaller size */}
-            {isActive && (
+            {cameraReady && (
               <div className="fixed top-24 right-2 z-50" style={{ width: '180px', height: '135px' }}>
                 <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
-                  <CameraProctor
-                    detectionEnabled={true} // Enable detection during MCQ phase
-                  />
+                  <CameraProctorNew autoStart={true} sessionId={interviewId} hideControls={true} onCheatingDetected={handleCheatingDetected} />
                 </div>
               </div>
             )}

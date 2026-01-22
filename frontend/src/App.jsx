@@ -337,7 +337,6 @@ function App() {
       />
 
       <Route path="/camera-test" element={<CameraTestPage />} />
-      <Route path="/camera-test" element={<CameraTestPage />} />
 
 
         </Routes>
