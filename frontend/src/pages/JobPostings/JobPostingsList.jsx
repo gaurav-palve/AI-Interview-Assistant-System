@@ -292,28 +292,19 @@ function JobPostingsList() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-  <div className="flex mb-16 items-end">
+  <div className="flex mb-6 items-end">
     
     {/* Left content – takes only needed width */}
     <span className="flex flex-shrink-0">
-      <div
-        style={{
-          borderRightColor: "black",
-          borderRightWidth: 1,
-          whiteSpace: "nowrap",
-          paddingRight: 12,
-        }}
-      >
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight animate-slideInLeft">
-          Job Postings
-        </h1>
-      </div>
-
-      <div style={{ paddingLeft: 6, maxWidth: 300 }}>
-        <p className="text-gray-600 mt-2 animate-slideInLeft animation-delay-100 pr-1">
-          Manage and track all your job openings in one place
-        </p>
-      </div>
+     
+            {/* Breadcrumb */}
+            <div className="text-sm text-gray-500">
+              <Link to="/" className="text-gray-600 hover:underline">Home</Link>
+              <span className="mx-2">/</span>
+              <Link to="/job-postings" className="text-blue-600 hover:underline">
+                Total Job Posting
+              </Link>
+            </div>
     </span>
 
     {/* Right content – fills remaining space */}
@@ -410,7 +401,8 @@ function JobPostingsList() {
         </div>
       )}
 
-     
+     {/* Divider */}
+          <div className="border-t border-gray-200" />
 
       {/* Job postings are filtered directly without indicator */}
 

@@ -379,7 +379,7 @@ function Dashboard() {
       {/* Main Section */}
       <div className="flex flex-col md:flex-row gap-4">
         {/* Metrics + Donut */}
-        <div className="bg-white rounded-lg shadow-sm flex flex-col md:flex-row gap-4 w-full md:w-2/3 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm flex flex-col md:flex-row gap-3 w-full md:w-2/3 overflow-hidden max-h-[300px]">
           {/* Left Sidebar */}
           <div className="w-full md:w-1/3 flex flex-row md:flex-col border-b md:border-b-0 md:border-r border-gray-200">
             {sidebarMetrics.map((metric, index) => (
@@ -458,14 +458,14 @@ function Dashboard() {
         </div>
 
         {/* Schedule */}
-        <div className="bg-white p-4 rounded-lg shadow-sm w-full md:w-1/3">
+        <div className="bg-white p-4 rounded-lg shadow-sm w-full md:w-1/3 max-h-[300px] flex flex-col">
           {/* Header */}
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Schedule</h3>
           </div>
 
           {/* Week Navigation */}
-          <div className="flex items-center justify-between my-4">
+          <div className="flex items-center justify-between my-2">
             <ArrowBackIcon className="cursor-pointer" onClick={() => changeWeek(-1)} />
             <span className="text-sm">
               {currentWeek.length > 0 &&
@@ -502,11 +502,11 @@ function Dashboard() {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-200 my-3" />
+          <div className="border-t border-gray-200 my-2" />
 
 
           {/* Events */}
-          <div className="space-y-3">
+          <div className="space-y-3 flex-1 overflow-y-auto scrollbar-hide hover:scrollbar-default">
             {scheduleEvents.map(event => (
               <div key={event.id} className="bg-gray-50 p-2 sm:p-3 rounded-lg border-l-4 border-[#2563EB]" >
                 <p className="font-medium text-sm">{event.title}</p>

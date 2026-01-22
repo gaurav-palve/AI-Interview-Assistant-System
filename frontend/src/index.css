@@ -736,3 +736,25 @@ input[type="password"]::-webkit-password-toggle-button {
   display: none !important;
   -webkit-appearance: none !important;
 }
+
+/* Hide scrollbar by default */
+.scrollbar-hide {
+  scrollbar-width: none; 
+}
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+/* Show scrollbar on hover */
+.scrollbar-default {
+  scrollbar-width: thin; 
+}
+.scrollbar-default::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-default::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.6);
+  border-radius: 6px;
+}
+
