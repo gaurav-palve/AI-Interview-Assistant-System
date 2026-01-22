@@ -8,7 +8,14 @@ import {
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
 
-export default function CameraProctoringTest() {
+/**
+ * CameraProctoringTest Component
+ * @param {boolean} autoStart - Auto-start camera on mount (default: false)
+ * @param {string} sessionId - Session ID for WebSocket (default: 'test-session-001')
+ * @param {boolean} hideControls - Hide the manual start/stop buttons (default: false)
+ * @param {function} onCheatingDetected - Callback function when cheating is detected, receives (type, message)
+ */
+export default function CameraProctoringTest({ autoStart = false, sessionId: propSessionId = 'test-session-001', hideControls = false, onCheatingDetected = null }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -32,7 +39,7 @@ export default function CameraProctoringTest() {
   const [modelsReady, setModelsReady] = useState(false);
 
   // session id
-  const sessionId = "test-session-001";
+  const sessionId = propSessionId;
 
   // ============================
   // GLOBAL COOLDOWN (5 sec)
@@ -79,6 +86,11 @@ export default function CameraProctoringTest() {
 
     // log once
     addLog(logMsg);
+
+    // trigger callback for toast notification
+    if (onCheatingDetected) {
+      onCheatingDetected(type, logMsg);
+    }
 
     // send event once
     if (wsRef.current && wsRef.current.readyState === 1) {
@@ -172,6 +184,13 @@ export default function CameraProctoringTest() {
       addLog("Camera permission denied or blocked");
     }
   };
+
+  // Auto-start camera on mount if autoStart prop is true
+  useEffect(() => {
+    if (autoStart && status === "idle") {
+      startCamera();
+    }
+  }, [autoStart]);
 
   const stopCamera = () => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -428,55 +447,61 @@ export default function CameraProctoringTest() {
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700 }}>
-        Live Interview Proctoring (Face + Phone + Look Away)
-      </h2>
+    <div style={{ padding: hideControls ? 0 : 20, width: "100%", height: "100%" }}>
+      {!hideControls && (
+        <>
+          <h2 style={{ fontSize: 22, fontWeight: 700 }}>
+            Live Interview Proctoring (Face + Phone + Look Away)
+          </h2>
 
-      <div style={{ marginTop: 12 }}>
-        {status === "idle" && (
-          <button onClick={startCamera} style={btnStyle}>
-            Allow Camera & Start Proctoring
-          </button>
-        )}
+          <div style={{ marginTop: 12 }}>
+            {status === "idle" && (
+              <button onClick={startCamera} style={btnStyle}>
+                Allow Camera & Start Proctoring
+              </button>
+            )}
 
-        {status === "requesting" && <p>Requesting camera permission...</p>}
+            {status === "requesting" && <p>Requesting camera permission...</p>}
 
-        {status === "denied" && (
-          <p style={{ color: "red" }}>
-            Camera blocked. Please allow camera in Chrome settings and refresh.
-          </p>
-        )}
+            {status === "denied" && (
+              <p style={{ color: "red" }}>
+                Camera blocked. Please allow camera in Chrome settings and refresh.
+              </p>
+            )}
 
-        {status === "ready" && (
-          <button
-            onClick={stopCamera}
-            style={{ ...btnStyle, background: "#DC2626" }}
-          >
-            Stop Interview
-          </button>
-        )}
-      </div>
+            {status === "ready" && (
+              <button
+                onClick={stopCamera}
+                style={{ ...btnStyle, background: "#DC2626" }}
+              >
+                Stop Interview
+              </button>
+            )}
+          </div>
 
-      <div style={{ marginTop: 10 }}>
-        <b>Models:</b>{" "}
-        <span style={{ color: modelsReady ? "green" : "orange" }}>
-          {modelsReady ? "READY" : "LOADING"}
-        </span>
-      </div>
+          <div style={{ marginTop: 10 }}>
+            <b>Models:</b>{" "}
+            <span style={{ color: modelsReady ? "green" : "orange" }}>
+              {modelsReady ? "READY" : "LOADING"}
+            </span>
+          </div>
+        </>
+      )}
 
-      <div style={{ display: "flex", gap: 20, marginTop: 20 }}>
-        <div style={{ position: "relative" }}>
+      <div style={{ display: hideControls ? "block" : "flex", gap: 20, marginTop: hideControls ? 0 : 20 }}>
+        <div style={{ position: "relative", flex: hideControls ? 1 : "auto" }}>
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
             style={{
-              width: 520,
-              borderRadius: 14,
-              border: "2px solid #2563EB",
+              width: hideControls ? "100%" : 520,
+              height: hideControls ? "100%" : "auto",
+              borderRadius: hideControls ? 0 : 14,
+              border: hideControls ? "none" : "2px solid #2563EB",
               background: "#000",
+              objectFit: "cover"
             }}
           />
 
@@ -486,46 +511,50 @@ export default function CameraProctoringTest() {
               position: "absolute",
               top: 0,
               left: 0,
-              width: 520,
-              height: "auto",
+              width: "100%",
+              height: "100%",
               pointerEvents: "none",
             }}
           />
 
-          <p style={{ marginTop: 8, fontWeight: 600 }}>
-            Status:{" "}
-            <span style={{ color: status === "ready" ? "green" : "gray" }}>
-              {status}
-            </span>
-          </p>
+          {!hideControls && (
+            <p style={{ marginTop: 8, fontWeight: 600 }}>
+              Status:{" "}
+              <span style={{ color: status === "ready" ? "green" : "gray" }}>
+                {status}
+              </span>
+            </p>
+          )}
         </div>
 
-        <div style={{ flex: 1 }}>
-          <h3 style={{ fontWeight: 700 }}>Live Proctoring Logs</h3>
+        {!hideControls && (
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontWeight: 700 }}>Live Proctoring Logs</h3>
 
-          <div
-            style={{
-              height: 380,
-              overflowY: "auto",
-              border: "1px solid #ddd",
-              borderRadius: 12,
-              padding: 12,
-              background: "#fafafa",
-              fontFamily: "monospace",
-              fontSize: 13,
-            }}
-          >
-            {logs.length === 0 ? (
-              <p>No logs yet...</p>
-            ) : (
-              logs.map((l, i) => <div key={i}>{l}</div>)
-            )}
-          </div>
+            <div
+              style={{
+                height: 380,
+                overflowY: "auto",
+                border: "1px solid #ddd",
+                borderRadius: 12,
+                padding: 12,
+                background: "#fafafa",
+                fontFamily: "monospace",
+                fontSize: 13,
+              }}
+            >
+              {logs.length === 0 ? (
+                <p>No logs yet...</p>
+              ) : (
+                logs.map((l, i) => <div key={i}>{l}</div>)
+              )}
+            </div>
 
-          <div style={{ marginTop: 10, fontSize: 12, color: "#555" }}>
-            <b>Cooldown:</b> {EVENT_COOLDOWN_MS / 1000}s (per cheating type)
+            <div style={{ marginTop: 10, fontSize: 12, color: "#555" }}>
+              <b>Cooldown:</b> {EVENT_COOLDOWN_MS / 1000}s (per cheating type)
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

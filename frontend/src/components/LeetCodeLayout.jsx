@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Box,
   Flex,
@@ -28,7 +28,7 @@ import {
 import { ChevronLeft, ChevronRight, LightMode, DarkMode } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import ProblemDescription from "./ProblemDescription";
-import { useCamera } from "../contexts/CameraContext";
+import CameraProctorNew from "./CameraProctorNew";
 import CodeEditorPanel from "./CodeEditorPanel";
 import {
   fetchCodingQuestions,
@@ -39,13 +39,12 @@ import {
 import { CODE_SNIPPETS } from "../constants";
 
 const LeetCodeLayout = () => {
-  // Get the stopCamera function from the camera context
-  const { stopCamera } = useCamera();
   const { interviewId } = useParams();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [cameraReady, setCameraReady] = useState(false);
   const editorRef = useRef(null);
   const rightPanelRef = useRef(null);
   const testResultsRef = useRef(null);
@@ -66,6 +65,32 @@ const LeetCodeLayout = () => {
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const toast = useToast();
   
+  // Handle cheating detection and show toast
+  const handleCheatingDetected = useCallback((type, message) => {
+    const cheatingTypeMap = {
+      'FACE_MISSING': { title: 'Warning: Face Not Visible', colorScheme: 'orange' },
+      'MULTIPLE_FACES': { title: 'Warning: Multiple Faces Detected', colorScheme: 'red' },
+      'LOOK_AWAY': { title: 'Warning: Looking Away', colorScheme: 'orange' },
+      'PHONE_DETECTED': { title: 'Warning: Phone Detected', colorScheme: 'red' },
+      'TAB_SWITCH': { title: 'Warning: Tab Switched', colorScheme: 'red' },
+      'WINDOW_BLUR': { title: 'Warning: Window Lost Focus', colorScheme: 'red' }
+    };
+
+    const config = cheatingTypeMap[type] || { title: 'Warning Detected', colorScheme: 'orange' };
+
+    toast({
+      title: config.title,
+      description: message,
+      status: type === 'PHONE_DETECTED' || type === 'MULTIPLE_FACES' || type === 'TAB_SWITCH' || type === 'WINDOW_BLUR' ? 'error' : 'warning',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+      variant: 'solid'
+    });
+
+    console.warn(`Cheating detected: ${type}`, message);
+  }, [toast]);
+  
   // Get the current question
   const currentQuestion = questions[currentQuestionIndex] || null;
   
@@ -76,9 +101,11 @@ const LeetCodeLayout = () => {
   const successBg = useColorModeValue("green.50", "green.900");
   const errorBg = useColorModeValue("red.50", "red.900");
   
-  // Load questions when component mounts
+  // Load questions when component mounts and auto-start camera
   useEffect(() => {
     loadQuestions();
+    // Auto-start camera on component mount
+    setCameraReady(true);
   }, []);
   
   // Scroll to test results when they are shown
@@ -489,15 +516,6 @@ const LeetCodeLayout = () => {
     // Auto-save all answers
     const saveSuccess = await autoSaveAllAnswers();
     
-    // Stop the camera when time is up
-    try {
-      await stopCamera();
-      console.log("Camera stopped successfully on time up");
-    } catch (cameraError) {
-      console.error("Error stopping camera on time up:", cameraError);
-      // Continue with interview completion even if camera stop fails
-    }
-    
     // Show completion modal
     setShowCompletionModal(true);
     
@@ -770,15 +788,6 @@ const LeetCodeLayout = () => {
     try {
       console.log("Updating interview status to completed for interview ID:", interviewId);
       
-      // Stop the camera before completing the interview
-      try {
-        await stopCamera();
-        console.log("Camera stopped successfully");
-      } catch (cameraError) {
-        console.error("Error stopping camera:", cameraError);
-        // Continue with interview completion even if camera stop fails
-      }
-      
       // Make API call to update interview status to completed
       const response = await fetch(`http://localhost:8000/api/candidate/complete_interview/${interviewId}`, {
         method: 'POST',
@@ -820,15 +829,6 @@ const LeetCodeLayout = () => {
     // Save all answers
     const saveSuccess = await autoSaveAllAnswers();
     
-    // Stop the camera when ending the interview
-    try {
-      await stopCamera();
-      console.log("Camera stopped successfully on interview end");
-    } catch (cameraError) {
-      console.error("Error stopping camera on interview end:", cameraError);
-      // Continue with interview completion even if camera stop fails
-    }
-    
     if (saveSuccess) {
       toast({
         title: "Success",
@@ -855,6 +855,16 @@ const LeetCodeLayout = () => {
 
   return (
     <Box bg={bgColor} minH="100vh" p={4}>
+      {/* Camera Component */}
+      {cameraReady && (
+        <CameraProctorNew 
+          autoStart={true} 
+          sessionId={interviewId} 
+          hideControls={true} 
+          onCheatingDetected={handleCheatingDetected} 
+        />
+      )}
+      
       {/* Timer display and End Interview button */}
       <Flex justifyContent="center" mb={2} alignItems="center">
         <Box
