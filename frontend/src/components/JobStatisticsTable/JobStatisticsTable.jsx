@@ -66,7 +66,7 @@ function JobStatisticsTable() {
             </h3>
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+          <div className="overflow-x-auto max-h-[405px] overflow-y-auto scrollbar-hide hover:scrollbar-default">
             <table className="min-w-full">
               <thead className="sticky top-0 bg-white z-10">
                 <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
