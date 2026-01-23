@@ -109,15 +109,19 @@ function CodingInstructions() {
         </div>
       </header>
 
-      {/* Camera Component */}
+
+      {/* Camera Component - Fixed Top Right */}
       {cameraReady && (
-        <CameraProctorNew 
-          autoStart={true} 
-          sessionId={interviewId} 
-          hideControls={true} 
-          onCheatingDetected={handleCheatingDetected} 
-        />
+        <div className="fixed top-20 right-4 z-50 w-64 h-30 rounded-lg overflow-hidden border border-white/20 bg-black shadow-xl">
+          <CameraProctorNew
+            autoStart={true}
+            sessionId={interviewId}
+            hideControls={true}
+            onCheatingDetected={handleCheatingDetected}
+          />
+        </div>
       )}
+
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 relative z-10">
