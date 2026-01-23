@@ -38,6 +38,8 @@ export default function CameraProctoringTest({ autoStart = false, sessionId: pro
   const [logs, setLogs] = useState([]);
   const [modelsReady, setModelsReady] = useState(false);
 
+  const autoStartAttemptedRef = useRef(false);
+
   // session id
   const sessionId = propSessionId;
 
@@ -187,8 +189,16 @@ export default function CameraProctoringTest({ autoStart = false, sessionId: pro
 
   // Auto-start camera on mount if autoStart prop is true
   useEffect(() => {
-    if (autoStart && status === "idle") {
+    if (autoStart && status === "idle" && !autoStartAttemptedRef.current) {
+      console.log('AutoStart: Starting camera');
+      autoStartAttemptedRef.current = true;
       startCamera();
+    }
+  }, [autoStart]);
+
+  useEffect(() => {
+    if (!autoStart) {
+      autoStartAttemptedRef.current = false;
     }
   }, [autoStart]);
 

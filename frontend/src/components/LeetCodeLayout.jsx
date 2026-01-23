@@ -857,12 +857,14 @@ const LeetCodeLayout = () => {
     <Box bg={bgColor} minH="100vh" p={4}>
       {/* Camera Component */}
       {cameraReady && (
-        <CameraProctorNew 
-          autoStart={true} 
-          sessionId={interviewId} 
-          hideControls={true} 
-          onCheatingDetected={handleCheatingDetected} 
-        />
+        <div className="fixed top-1 right-4 z-50 w-64 h-30 rounded-lg overflow-hidden border border-white/20 bg-black shadow-xl">
+          <CameraProctorNew
+            autoStart={true}
+            sessionId={interviewId}
+            hideControls={true}
+            onCheatingDetected={handleCheatingDetected}
+          />
+        </div>
       )}
       
       {/* Timer display and End Interview button */}
