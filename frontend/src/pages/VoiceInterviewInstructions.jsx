@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useToast } from '@chakra-ui/react';
 import interviewService from '../services/interviewService';
-import CameraProctor from '../components/CameraProctor';
-import { useCamera } from '../contexts/CameraContext';
+import CameraProctorNew from '../components/CameraProctorNew';
 
 // Material UI Icons import using lucide-react (matching voice interview styling)
 import { Clock, Mic, ArrowRight, AlertCircle, Brain, Loader2, Volume2, Camera } from 'lucide-react';
@@ -14,12 +14,39 @@ import { Clock, Mic, ArrowRight, AlertCircle, Brain, Loader2, Volume2, Camera } 
 function VoiceInterviewInstructions() {
   const { interviewId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [instructionTimer, setInstructionTimer] = useState(20); // 60 seconds countdown
   const timerRef = useRef(null);
-  const { startCamera } = useCamera();
+  const [cameraReady, setCameraReady] = useState(false);
+
+  // Handle cheating detection and show toast
+  const handleCheatingDetected = useCallback((type, message) => {
+    const cheatingTypeMap = {
+      'FACE_MISSING': { title: 'Warning: Face Not Visible', colorScheme: 'orange' },
+      'MULTIPLE_FACES': { title: 'Warning: Multiple Faces Detected', colorScheme: 'red' },
+      'LOOK_AWAY': { title: 'Warning: Looking Away', colorScheme: 'orange' },
+      'PHONE_DETECTED': { title: 'Warning: Phone Detected', colorScheme: 'red' },
+      'TAB_SWITCH': { title: 'Warning: Tab Switched', colorScheme: 'red' },
+      'WINDOW_BLUR': { title: 'Warning: Window Lost Focus', colorScheme: 'red' }
+    };
+
+    const config = cheatingTypeMap[type] || { title: 'Warning Detected', colorScheme: 'orange' };
+
+    toast({
+      title: config.title,
+      description: message,
+      status: type === 'PHONE_DETECTED' || type === 'MULTIPLE_FACES' || type === 'TAB_SWITCH' || type === 'WINDOW_BLUR' ? 'error' : 'warning',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+      variant: 'solid'
+    });
+
+    console.warn(`Cheating detected: ${type}`, message);
+  }, [toast]);
 
   // Fetch interview details on component mount
   useEffect(() => {
@@ -42,13 +69,13 @@ function VoiceInterviewInstructions() {
     if (interviewId && !interview) {  // Only fetch if we don't already have interview data
       fetchInterview();
     }
-    // Start camera
-    startCamera();
+    // Auto-start camera on component mount
+    setCameraReady(true);
     
     return () => {
-      // Camera will be managed by the context
+      // Camera will be managed by the component
     };
-  }, [interviewId, startCamera, interview]);
+  }, [interviewId, interview]);
 
   // Timer effect for instruction reading
   useEffect(() => {
@@ -194,7 +221,7 @@ return (
 
         {/* CAMERA FIXED TOP RIGHT (Just Below Timer) */}
         <div className="absolute right-10 top-[60px] w-56 h-56 rounded-lg overflow-hidden z-30">
-          <CameraProctor detectionEnabled={false} />
+          {cameraReady && <CameraProctorNew autoStart={true} sessionId={interviewId} hideControls={true} onCheatingDetected={handleCheatingDetected} />}
         </div>
 
         {/* Guidelines Box */}
