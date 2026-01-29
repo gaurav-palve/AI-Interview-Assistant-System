@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/Layout/MainLayout';
+import CameraTestPage from './pages/CameraTestPage';
 
 // Admin Pages
 import Login from './pages/Login';
@@ -335,7 +336,12 @@ function App() {
         }
       />
 
+      <Route path="/camera-test" element={<CameraTestPage />} />
+
+
         </Routes>
+
+      
     //     </Router>
     //   </CameraProvider>
     // </AuthProvider>

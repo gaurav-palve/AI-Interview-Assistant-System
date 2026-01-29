@@ -55,7 +55,8 @@ from app.routes import (
     users_permission_route,
     jobwise_statistics_route,
     dashboard_stats_route,
-    job_mapping_route
+    job_mapping_route,
+    proctoring_ws_route
 )
 
 # Initialize logger
@@ -184,6 +185,7 @@ app.include_router(users_permission_route.router, prefix="/api/permissions")
 app.include_router(jobwise_statistics_route.router, prefix="/api")   
 app.include_router(dashboard_stats_route.router, prefix="/api/dashboard-stats")
 app.include_router(job_mapping_route.router, prefix="/api")
+app.include_router(proctoring_ws_route.router, prefix="/api/ws")
 
 logger.info("All routes registered successfully.")
 
