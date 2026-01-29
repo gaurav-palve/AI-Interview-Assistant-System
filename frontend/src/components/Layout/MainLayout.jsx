@@ -159,7 +159,7 @@ export default function MainLayout({ children }) {
             <div className="flex items-center justify-between w-full h-10">
               {isSidebarVisible ? (
                 <>
-                  <Link to="/dashboard" className="flex items-center justify-start flex-1 pl-1">
+                  <Link to="/dashboard" className="flex-1">
                     <Logo expanded={isSidebarVisible} />
                   </Link>
                   {/* Professional Toggle Button - Top right of drawer when expanded */}
