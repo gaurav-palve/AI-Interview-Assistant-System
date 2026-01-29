@@ -110,14 +110,14 @@ function Login() {
 
                 <div>
                   <p className="text-xl font-extrabold text-white drop-shadow-lg">Neutrino</p>
-                  <p className="text-xs opacity-90 tracking-widest text-gray-200">Hirepool.AI</p>
+                  <p className="text-xs opacity-90 tracking-widest text-gray-200">RecruitIQ</p>
                 </div>
               </div>
 
               {/* SPACER TO PUSH TO CENTER */}
               <div className="flex-grow" />
 
-              {/* Hirepool.AI SECTION CENTERED VERTICALLY */}
+              {/* RecruitIQ SECTION CENTERED VERTICALLY */}
               <div className="pb-20">
                 <h1 className="
                   text-5xl font-extrabold 
@@ -125,7 +125,7 @@ function Login() {
                   bg-clip-text text-transparent 
                   drop-shadow-xl
                 ">
-                  Hirepool.AI
+                  RecruitIQ
                 </h1>
 
                 <p className="mt-5 text-indigo-100 text-sm leading-relaxed max-w-xs">
@@ -157,7 +157,7 @@ function Login() {
             </h2>
 
             <p className="text-sm text-gray-500 mb-6">
-              Login to access your Hirepool.AI dashboard
+              Login to access your RecruitIQ dashboard
             </p>
 
             {/* API ERROR */}
