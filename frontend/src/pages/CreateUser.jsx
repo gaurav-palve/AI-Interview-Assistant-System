@@ -275,9 +275,15 @@ function CreateUser() {
 
             <button
               onClick={() => navigate("/users")}
-              className="btn bg-primary-600 text-white px-4 py-2"
+              className="flex items-center justify-center
+                      w-[120px] h-[44px]
+                      p-[10px]
+                      gap-[6px]
+                      text-sm
+                      border border-[#CBD5E1]
+                      rounded-lg bg-[#2563EB] text-[#FFFFFF]"
             >
-              <BackIcon className="h-4 w-4 mr-2" />
+              <BackIcon className="h-3 w-3 mr-1" />
               Back
             </button>
           </div>

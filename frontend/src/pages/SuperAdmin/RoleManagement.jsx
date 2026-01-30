@@ -1,5 +1,6 @@
 
 import { Shield, X, Trash2 } from "lucide-react";
+import AddIcon from "@mui/icons-material/Add";
 import { RoleManagementService } from "../../services/roleManagementService";
 import { useEffect, useState } from "react";
 
@@ -324,9 +325,15 @@ const RoleManagement = () => {
           </div>
           <button 
             onClick={() => setShowCreateRoleModal(true)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+            className="flex items-center justify-center
+                      w-[180px] h-[44px]
+                      p-[10px]
+                      gap-[6px]
+                      text-sm
+                      border border-[#CBD5E1]
+                      rounded-lg bg-[#2563EB] text-[#FFFFFF]"
           >
-            <Shield size={20} />
+            <AddIcon fontSize="small" className="mr-1" />
             Create New Role
           </button>
         </div>
