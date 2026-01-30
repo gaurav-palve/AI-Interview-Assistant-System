@@ -212,93 +212,87 @@ function FileUpload() {
               </p>
             </div>
 
-            {/* Resume Upload */}
-            <div>
-              <label htmlFor="resume" className="form-label">
-                <FileIcon className="h-5 w-5 mr-1 text-gray-500 inline-block" />
-                Resume
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dark:border-gray-600">
-                <div className="space-y-1 text-center">
-                  <div className="flex flex-col items-center">
-                    <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                      <label
-                        htmlFor="resume-upload"
-                        className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-                      >
-                        <span>Upload resume</span>
-                        <input
-                          id="resume-upload"
-                          name="resume-upload"
-                          type="file"
-                          className="sr-only"
-                          accept=".pdf,.docx"
-                          onChange={handleResumeChange}
-                          ref={resumeInputRef}
-                          required
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      PDF or DOCX up to 5MB
-                    </p>
-                  </div>
-                  {resumeFile && (
-                    <div className="mt-2 flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
-                      <FileIcon className="h-5 w-5 mr-1 text-gray-500" />
-                      <span className="text-gray-900 dark:text-white font-medium">{resumeFile.name}</span>
-                      <span className="ml-2 text-gray-500">({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+           {/* Upload Section - Side by Side */}
+<div className="grid grid-cols-2 gap-6">
+  {/* Job Description Upload */}
+  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-8 min-h-[300px]">
+    <div className="flex flex-col items-center text-center space-y-4">
+      <UploadIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
 
-            {/* Job Description Upload */}
-            <div>
-              <label htmlFor="jd" className="form-label">
-                <JobIcon className="h-5 w-5 mr-1 text-gray-500 inline-block" />
-                Job Description
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dark:border-gray-600">
-                <div className="space-y-1 text-center">
-                  <div className="flex flex-col items-center">
-                    <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                      <label
-                        htmlFor="jd-upload"
-                        className="relative cursor-pointer bg-white dark:bg-gray-800 rounded-md font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-                      >
-                        <span>Upload job description</span>
-                        <input
-                          id="jd-upload"
-                          name="jd-upload"
-                          type="file"
-                          className="sr-only"
-                          accept=".pdf,.docx"
-                          onChange={handleJdChange}
-                          ref={jdInputRef}
-                          required
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      PDF or DOCX up to 5MB
-                    </p>
-                  </div>
-                  {jdFile && (
-                    <div className="mt-2 flex items-center justify-center text-sm text-gray-600 dark:text-gray-400">
-                      <FileIcon className="h-5 w-5 mr-1 text-gray-500" />
-                      <span className="text-gray-900 dark:text-white font-medium">{jdFile.name}</span>
-                      <span className="ml-2 text-gray-500">({(jdFile.size / 1024 / 1024).toFixed(2)} MB)</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Drag & drop the file here or
+      </p>
+
+      <label
+        htmlFor="jd-upload"
+        className="cursor-pointer px-6 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+      >
+        Choose File to Upload
+        <input
+          id="jd-upload"
+          type="file"
+          accept=".pdf,.docx"
+          className="hidden"
+          onChange={handleJdChange}
+          ref={jdInputRef}
+        />
+      </label>
+
+      <p className="text-xs text-gray-500 dark:text-gray-400">
+        Upload file containing job description.
+      </p>
+
+      {jdFile && (
+        <div className="flex items-center space-x-2 mt-2">
+          <FileIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+            {jdFile.name}
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* Resume Upload */}
+  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-8 min-h-[300px]">
+    <div className="flex flex-col items-center text-center space-y-4">
+      <UploadIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Drag & drop the file here or
+      </p>
+
+      <label
+        htmlFor="resume-upload"
+        className="cursor-pointer px-6 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+      >
+        Choose File to Upload
+        <input
+          id="resume-upload"
+          type="file"
+          accept=".pdf,.zip"
+          className="hidden"
+          onChange={handleResumeChange}
+          ref={resumeInputRef}
+        />
+      </label>
+
+      <p className="text-xs text-gray-500 dark:text-gray-400">
+        Upload file containing candidate resume in PDF or ZIP format
+      </p>
+
+      {resumeFile && (
+        <div className="flex items-center space-x-2 mt-2">
+          <FileIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+            {resumeFile.name}
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
           </div>
 
           {/* Form Actions */}

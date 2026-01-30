@@ -6,16 +6,20 @@ import { fetchScreeningResults } from '../../services/screeningService';
 import CandidateAssessmentReports from '../../pages/CandidateAssessmentReports';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
-import Nts_logo from '../../assets/Nts_logo/NTSLOGO.png';
+import Nts_logo from '../../assets/Nts_logo/CompanyLogo.png';
 import JobPostingStatistics from '../../components/JobPostings/JobPostingStatistics';
 import { PERMISSIONS } from "../../constants/permissions";
 
 // Material UI Icons
 import {
-  Work as WorkIcon,
+  DriveFolderUploadOutlined,
+  PersonPinOutlined,
+  CheckCircleOutlineOutlined,
+  AccessTimeOutlined,
+  FileUploadOutlined,
+  LocationOnOutlined,
+  Assignment as AssignmentIcon,
   Business as BusinessIcon,
-  LocationOn as LocationIcon,
-  School as ExperienceIcon,
   Category as DepartmentIcon,
   Description as DescriptionIcon,
   AttachMoney as SalaryIcon,
@@ -23,31 +27,35 @@ import {
   CloudUpload as CloudUploadIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
-  Assignment as AssignmentIcon,
   Person as PersonIcon,
   Star as StarIcon,
   StarHalf as StarHalfIcon,
   StarBorder as StarBorderIcon,
   Warning as WarningIcon,
-  Edit as EditIcon,
   Publish as PublishIcon,
   ArrowBack as BackIcon,
   Schedule as ScheduleIcon,
   Email as EmailIcon,
   Assessment as AssessmentIcon,
   CalendarToday as CalendarIcon,
-  Timer as TimerIcon,
   Group as GroupIcon,
   Check as CheckIcon,
   Close as CloseIcon,
   FileUpload as FileUploadIcon,
-  Visibility as ViewIcon,
-  FileDownload as FileDownloadIcon,
+  VisibilityOutlined,
+  FileDownloadOutlined,
   Mic as MicIcon,
   Add as AddIcon,
   Code as CodeIcon,
-  Download as DownloadIcon
+  Download as DownloadIcon,
+  CasesOutlined,
+  CallMergeOutlined,
+  ModeOutlined,
+  SaveAsOutlined,
+  CalendarTodayOutlined,
+  AccountCircleOutlined,
 } from '@mui/icons-material';
+
 import html2pdf from 'html2pdf.js';
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
@@ -318,14 +326,35 @@ function JobPostingDetail() {
 
   // Handle resume file change
   const handleResumeFileChange = (e) => {
-    setResumeFile(e.target.files[0]);
-  };
+  const file = e.target.files[0];
+  if (file) {
+    setResumeFile(file);
+  }
+};
+
 
   // Handle JD file change
-  const handleJdFileChange = (e) => {
-    setJdFile(e.target.files[0]);
-  };
+ const handleJdFileChange = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setJdFile(file);
+  }
+};
+//  ADD REMOVE HANDLER HERE
+  const handleRemoveJd = () => {
+  setJdFile(null);
 
+  const jdInput = document.getElementById("jd-file");
+  if (jdInput) jdInput.value = "";
+};
+  const handleRemoveResume = () => {
+  setResumeFile(null);
+
+  const resumeInput = document.getElementById("resume-file");
+  if (resumeInput) resumeInput.value = "";
+};
+
+   
   // Fetch persisted screening results from backend
   const fetchPersistedScreeningResults = async () => {
     try {
@@ -963,174 +992,148 @@ const handleDropResume = (e) => {
   return (
     <div className="space-y-8">
       {/* Enhanced Header with Gradient Background */}
-<div className="bg-gradient-to-r from-primary-50 via-white to-purple-50 rounded-2xl p-8 shadow-xl animate-slideInDown">
+{/* ================= JOB HEADER (IMAGE STYLE) ================= */}
+{/* <div className="bg-white border border-gray-200 rounded-xl p-6"> */}
 
-  {/* TOP BAR */}
-  <div className="flex items-center justify-between mb-4">
+  {/* Top Row */}
+{/* Top Row */}
+<div className="flex justify-between items-start">
 
-    {/* Left: Back to Job Postings */}
-    <div className="flex items-center">
+  {/* Left */}
+  <div className="flex items-start gap-4">
+
+    {/* Logo */}
+    <div className="h-[66px] w-[66px] rounded-lg bg-white flex items-center justify-center">
+      <img
+        src={Nts_logo}
+        alt="Company Logo"
+        className="h-[40px] w-[38px] object-contain"
+      />
+    </div>
+
+    {/* Right Content */}
+    <div className="flex flex-col">
+
+      {/* Job Posting Name */}
+      <h1 className="font-inter font-semibold text-[32px] leading-[40px] text-gray-900">
+        {jobPosting?.job_posting_name || jobPosting?.job_title}
+      </h1>
+
+      {/* Company • Status • Date */}
+      <div className="flex items-center gap-5 mt-2 text-[12px] leading-[16px] font-inter h-3">
+
+        <span className="text-[#38BDF8]">
+          {jobPosting?.company}
+        </span>
+
+        <span className="flex items-center gap-1 text-[#28A745] font-inter">
+          < CheckCircleOutlineOutlined className="h-2 w-2" />
+          Active
+        </span>
+
+        <span className="flex items-center gap-1 text-[#000000] text-[12px] font-inter">
+          < CalendarTodayOutlined className="h-2 w-2" />
+          {new Date().toDateString()}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+    {/* Right Actions */}
+    <div className="flex gap-2">
       <button
         onClick={() => navigate('/job-postings')}
-        className="mr-4 p-2 rounded-lg hover:bg-white/50 transition-all duration-200 group"
+className="
+            flex items-center justify-center
+            w-[81px] h-[44px]
+            p-[10px]
+            gap-[10px]
+            text-sm text-[#2563EB]
+            border border-[#CBD5E1]
+            rounded-lg
+            bg-[#FFFFFF]"
       >
-        <BackIcon className="h-5 w-5 text-gray-600 group-hover:text-primary-700 transition-colors" />
+        ←  Back
       </button>
-      <span className="text-sm text-gray-500">Back to Job Postings</span>
-    </div>
-    {/* RIGHT SIDE ACTIONS */}
-  <div className="flex items-center gap-2 ml-auto">
-    {/* Upload Resumes (LEFT of New Interview) */}
-    {canUploadResume && (
-    <button
-      onClick={() => {
-        setShowUploadModal(true);
-        setShowSuccess(false);
-        setSelectedFiles([]);
-      }}
-      className="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-primary-700"
-    >
-      <UploadIcon className="h-4 w-4 mr-2" />
-      Upload Resumes
-    </button>
-    )}
 
-    {/* Right: New Interview */}
-    {canCreateInterview && (
-    <Link
-      to={`/interviews/new?job_role=${encodeURIComponent(
-        jobPosting?.job_posting_name || jobPosting?.job_title || ""
-      )}&job_posting_id=${id}`}
-      className="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-primary-700 transition-colors duration-150"
-      onClick={(e) => e.stopPropagation()}
-      aria-label={`Create interview for ${jobPosting?.job_posting_name || jobPosting?.job_title}`}
-    >
-      <AddIcon className="-ml-1 mr-2 h-4 w-4" />
-      New Interview
-    </Link>
-    )}
-    </div>
-  </div>
+      {canUploadResume && (
+        <button
+          onClick={() => setShowUploadModal(true)}
 
-  {/* JOB INFO */}
-  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-    <div className="flex items-center animate-slideInLeft">
-      <div
-        className="
-          flex-shrink-0 h-16 w-16 rounded-xl
-          text-white flex items-center justify-center font-bold text-lg
-          shadow-md transform transition-all duration-300 bg-white
-        "
-      >
-        <div className="h-11 w-11 flex items-center">
-          <img
-            src={Nts_logo}
-            alt="NTSLOGO"
-            className="h-11 w-11 object-contain"
-          />
-        </div>
-      </div>
+          className=" flex items-center justify-center
+                      w-[153px] h-[44px]
+                      p-[10px]
+                      gap-[1px]
+                      text-sm text-[#2563EB]
+                      border border-[#CBD5E1]
+                      rounded-lg
+                      bg-[#FFFFFF]"
+                      >
+          <FileUploadOutlined className="h-[12px] w-[12px] text-[#2563EB]  p-1 m-0" />              
+           Upload Resume
+        </button>
+      )}
 
-      <div className="ml-6">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-          {jobPosting?.job_posting_name || jobPosting?.job_title || "Job Posting"}
-        </h1>
-
-        <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
-          <span>{jobPosting?.company}</span>
-          <span>{jobPosting?.location}</span>
-          <span className="flex items-center">
-            <CalendarIcon className="h-4 w-4 mr-1" />
-            Posted {new Date().toLocaleDateString()}
-          </span>
-        </div>
-      </div>
+      {canCreateInterview && (
+        <Link
+          to={`/interviews/new?job_posting_id=${id}`}
+          className="flex items-center justify-center
+                      w-[157px] h-[44px]
+                      p-[10px]
+                      gap-[6px]
+                      text-sm
+                      border border-[#CBD5E1]
+                      rounded-lg bg-[#2563EB] text-[#FFFFFF]"
+        >
+          <AddIcon className="h-[14px] w-[14px] text-white gap-[100px]" />
+          New Interview
+        </Link>
+      )}
     </div>
   </div>
 
-  {/* QUICK STATS */}
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-    {[
-      { icon: GroupIcon, label: 'Applicants', value: '0' },
-      { icon: ViewIcon, label: 'Views', value: '0' },
-      { icon: ScheduleIcon, label: 'Interviews', value: scheduledInterviews.length },
-      {
-        icon: StarIcon,
-        label: 'Status',
-        value: jobPosting?.status || 'Active',
-        isStatus: true
-      },
-    ].map((stat, index) => (
-      <div
-        key={index}
-        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 animate-slideInUp"
-        style={{ animationDelay: `${index * 100}ms` }}
+  {/* Stats */}
+  <div className="flex gap-6 mt-4 text-[12px] text-gray-600"> 
+    <span className="flex items-center gap-1 border-[1px] border-[#E2E2E2] rounded-[6px] px-3 text-black ">
+      <SaveAsOutlined className="h-4 w-4 " />
+      0 Applicants
+    </span>
+
+    <span className="flex items-center gap-1 border-[1px] border-[#E2E2E2] rounded-[6px] px-3 text-black">
+      <VisibilityOutlined className="h-4 w-4" />
+      0 Views
+    </span>
+
+    <span className="flex font-inter items-center gap-2 h-[36px] border-[1px] border-[#E2E2E2] rounded-[6px] px-3 text-black">
+      <PersonPinOutlined className="h-8 w-4 text-black" />
+      Posted Today
+    </span>
+  </div>  
+
+
+      {/* ================= TABS ================= */}
+<div className="border-b border-[#D7D7D7] mt-6">
+  <nav className="flex gap-8 text-[16px] font-medium">
+    {TABS.filter(tab => tab.show).map(tab => (
+      <button
+        key={tab.id}
+        onClick={() => handleTabChange(tab.id)}
+        className={`pb-3 ${
+          activeTab === tab.id
+            ? 'border-b-2 border-primary-600 text-primary-600'
+            : 'text-[#000000]'
+        }`}
       >
-        <div className="flex items-center space-x-3">
-          <stat.icon className="h-5 w-5 text-primary-500" />
-          {stat.isStatus ? (
-            <div className="flex flex-col">
-              <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
-              
-              {canChangeStatus ? (
-                <StatusDropdown
-                  jobId={id}
-                  currentStatus={jobPosting?.status || "active"}
-                  onStatusChange={handleStatusChange}
-                />
-              ) : (
-                <span className="text-sm font-semibold text-gray-700">
-                  {jobPosting?.status}
-                </span>
-              )}
-            </div>
-          ) : (
-            <div>
-              <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-              <p className="text-xs text-gray-500">{stat.label}</p>
-            </div>
-          )}
-        </div>
-      </div>
+        {tab.label}
+      </button>
     ))}
-  </div>
+  </nav>
 </div>
 
-      {/* Enhanced Tabs */}
-      <div className="bg-white rounded-xl shadow-xl border border-gray-100 p-3 animate-slideInUp">
-        <nav className="flex space-x-9">
-          {TABS.filter(tab => tab.show).map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`
-          flex-1 flex items-center justify-center px-4 py-3 rounded-lg font-medium
-          transition-all duration-300 transform
-          ${activeTab === tab.id
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl scale-105'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }
-        `}
-            >
-              <tab.icon className="h-5 w-5 mr-2" />
-              <span>{tab.label}</span>
-
-              {/* Badges */}
-              {tab.id === 'screening' && screeningResults.length > 0 && (
-                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-white/20">
-                  {screeningResults.length}
-                </span>
-              )}
-
-              {tab.id === 'interviews' && scheduledInterviews.length > 0 && (
-                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-white/20">
-                  {scheduledInterviews.length}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
-      </div>
 
 
       {/* Tab Content with Animation */}
@@ -1138,57 +1141,84 @@ const handleDropResume = (e) => {
         {activeTab === 'details' && (
           <div className="space-y-8">
             {/* Job Details */}
-            <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+            
               <div className="p-6">
-                <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
-                  <WorkIcon className="h-6 w-6 mr-2 text-primary-600" />
-                  <span className="text-gray-800">Job Details</span>
-                </h2>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Basic Information</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-700">
-                      <WorkIcon className="h-5 w-5 mr-2 text-gray-500" />
-                      <span className="font-medium mr-2">Job Type:</span>
-                      <span>{jobPosting?.job_type}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-700">
-                      <LocationIcon className="h-5 w-5 mr-2 text-gray-500" />
-                      <span className="font-medium mr-2">Location:</span>
-                      <span>{jobPosting?.location}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-700">
-                      <ExperienceIcon className="h-5 w-5 mr-2 text-gray-500" />
-                      <span className="font-medium mr-2">Experience Level:</span>
-                      <span>{jobPosting?.experience_level}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-700">
-                      <DepartmentIcon className="h-5 w-5 mr-2 text-gray-500" />
-                      <span className="font-medium mr-2">Department:</span>
-                      <span>{jobPosting?.department}</span>
-                    </div>
-                  </div>
-                </div>
+                {/* ================= BASIC DETAILS ================= */}
+        <div className="mt-[-30px] mb-[-50px] font-inter">
+          {/* Title */}
+          <div className="flex items-center h-[24px] width-[125px] mb-6  top-[345px] gap-[10px] left-[392px]">
+            <CasesOutlined className="h-6 w-6 text-gray-700 " style={{marginLeft:-25}}/>
+            <h2 className="text-[20px] h-[24px] w-[125px] top-[345px] left-[392px] gap-[4px] font-inter text-[#000000] font-semibold pb-10">
+              Basic Details
+            </h2>
+          </div>
+
+  {/* Inline Details Row */}
+  <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[12px] text-gray-600 mb-5">
+
+    <span className="flex items-center gap-2" style={{marginLeft:-27}}>
+      <LocationOnOutlined className="h-4 w-4 text-[#717171] font-inter" />
+      <span>Location: {jobPosting?.location}</span>
+    </span>
+
+    <span className="flex items-center gap-2">
+      <AccessTimeOutlined className="h-4 w-4 text-[#717171]" />
+      <span>Full Time</span>
+    </span>
+
+    <span className="flex items-center gap-2">
+      <CasesOutlined className="h-4 w-4 text-[#717171]" />
+      <span>Experience Level: {jobPosting?.experience_level}</span>
+    </span>
+
+    <span className="flex items-center gap-2">
+      <CallMergeOutlined className="h-4 w-4 text-gray-500" />
+      <span>Job Type: {jobPosting?.job_type}</span>
+    </span>
+
+    <span className="flex items-center gap-2">
+      < AccountCircleOutlined className="h-4 w-4 text-gray-500" />
+      <span>Department: {jobPosting?.department}</span>
+    </span>
+
+  </div>
+
+  {/* Required Skills */}
+  <div className="flex flex-wrap items-start gap-2" style={{marginLeft:-21}}>
+
+    <span className="text-[15px] font-inter font-bold text-[#717171] mr-1" style={{marginTop:3}}>
+      Required Skills:
+    </span>
+
+    {jobPosting?.required_skills?.map((skill, index) => (
+      <span
+        key={index}
+        className="
+          px-3 py-1 gap-[4px] border-[1px] border-[#717171] rounded-[6px] text-[12px] text-[#717171] bg-white whitespace-nowrap"
+      >
+        {skill}
+      </span>
+    ))}
+  </div>
+</div>
+
                 
                 <div className="mt-8">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Required Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {jobPosting?.required_skills && jobPosting.required_skills.map((skill, index) => (
-                      <span key={index} className="badge badge-primary badge-lg py-3">{skill}</span>
-                    ))}
-                  </div>
+                  
                 </div>
               </div>
-            </div>
+            
             {/* Enhanced Job Description with better styling */}
-            <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
-                    <DescriptionIcon className="h-6 w-6 mr-2 text-primary-600" />
-                    <span className="text-gray-800">Job Description</span>
-                  </h2>
-                  <div className="flex items-center gap-2">
+
+            
+             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+
+              {/* ===== Header ===== */}
+              <div className="flex justify-between items-center h-[52px] py-4 border-b border-[#D7D7D7] border-[1px]">
+                <h2 className="text-lg font-semibold text-black ml-4  ">
+                  Job Description
+                </h2>
+                    <div className="flex items-center gap-2">
                     {/* EDIT BUTTON */}
                     {canEditJD && (
                     <button
@@ -1200,10 +1230,10 @@ const handleDropResume = (e) => {
                           setInitialJdLoaded(true);
                         }
                       }}
-                      className="btn btn-outline btn-sm flex items-center"
+                      className=" rounded-lg  h-[32px] w-[76px] top-[533px] right-[10px] left-[1300 px] bottom-[10px] text-[12px] border-[#2563EB] border-[1px] flex items-center text-[#2563EB] mr-1 gap-[1px] m-0 p-1 "
                       title="Edit Job Description"
                     >
-                      <EditIcon className="h-4 w-4 mr-1" />
+                      <ModeOutlined className="h-[12px] w-[12px] top-[10px] left-[20px] items-center m-0 p-1 flex-center " />
                       Edit
                     </button>
                     )}
@@ -1211,17 +1241,17 @@ const handleDropResume = (e) => {
                     {/* DOWNLOAD BUTTON (unchanged) */}
                     <button
                       onClick={downloadJobDescription}
-                      className="btn btn-outline btn-sm flex items-center"
+                      className="rounded-lg  h-[32px] w-[105px] border-[#2563EB] border-[1px] flex items-center text-[#2563EB] mr-2 left-[16px] right[16px] top-[10px] bottom-[10px] text-[12px] m-0 p-1 "
                       title="Download Job Description"
                     >
-                      <FileDownloadIcon className="h-4 w-4 mr-1" />
+                      <FileDownloadOutlined className="h-[12px] w-[12px]  items-center left-[16px] right[16px] top-[10px] bottom-[10px]  m-0 p-1 flex-center" />
                       Download
                     </button>
                   </div>
                 </div>
                 
                 <div className="prose prose-lg max-w-none">
-                  <div className="p-6">
+                  <div className="p-[-2px]">
                     {/* ========== IF EDITING → SHOW TEXTAREA ========== */}
                     {isEditingJD ? (
                       <textarea
@@ -1232,7 +1262,7 @@ const handleDropResume = (e) => {
                           setIsEditingJD(false);
                           await saveUpdatedJD();
                         }}
-                        className="w-full border border-gray-300 rounded p-3 min-h-[300px] focus:ring focus:ring-primary-300"
+                        className="w-full border border-[#D7D7D7] rounded p-3 min-h-[300px] focus:ring focus:ring-primary-300"
                         autoFocus
                       />
                     ) : (
@@ -1240,7 +1270,7 @@ const handleDropResume = (e) => {
                       <div className="prose prose-lg max-w-none">
                         <div
                           dangerouslySetInnerHTML={{ __html: formatJobDescription(jdText || jobPosting?.job_description || '') }}
-                          className="job-description-content leading-relaxed text-gray-700 rounded-lg bg-gray-50 p-6 border-l-4 border-primary-400"
+                          className="job-description-content leading-relaxed text-[#000000] rounded-lg bg-white p-6  border-[#D7D7D7]"
                           style={{
                             lineHeight: '1.8',
                             fontSize: '1.05rem'
@@ -1252,23 +1282,14 @@ const handleDropResume = (e) => {
 
                 </div>
               </div>
-            </div>
+            
           </div>
         )}
         
         {activeTab === 'screening' && canScreenResume && (
           <div className="space-y-8">
-            <div className="card bg-white shadow-xlrounded-lg overflow-hidden border border-gray-200">
+            
               <div className="p-6">
-                <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
-                  <AssignmentIcon className="h-6 w-6 mr-2 text-primary-600" />
-                  <span className="text-gray-800">Resume Screening</span>
-                </h2>
-                
-                <p className="text-gray-700 mb-6">
-                  Upload a job description PDF and a zip file containing candidate resumes or single PDF to screen them against this job posting.
-                </p>
-                
                 {/* Warning message when job is not active */}
                 {jobPosting?.status !== 'active' && (
                   <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md mb-6">
@@ -1280,115 +1301,169 @@ const handleDropResume = (e) => {
                     </div>
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  {/* JD Upload */}
-                  <div>
-                    <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
-                      Upload Job Description (PDF)
-                    </label>
-                    <div
-                      onDragOver={handleDragOver}
-                      onDrop={handleDropJd}
-                      className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${
-                        jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'
-                      } border-dashed rounded-md ${
-                        jobPosting?.status !== 'active' ? 'opacity-60' : ''
-                    }`}
-                    >
-                      <div className="space-y-1 text-center">
-                        <DescriptionIcon className={`mx-auto h-12 w-12 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
-                        <div className={`flex text-sm ${jobPosting?.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          <label htmlFor="jd-file" className={`relative ${jobPosting?.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting?.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
-                            <span>Upload a file</span>
-                            <input
-                              disabled={jobPosting?.status !== 'active'}
-                              id="jd-file"
-                              name="jd-file"
-                              type="file"
-                              accept=".pdf"
-                              className="sr-only"
-                              onChange={handleJdFileChange}
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          PDF file containing job description
-                        </p>
-                      </div>
-                    </div>
-                    {jdFile && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        Selected file: {jdFile.name}
-                      </p>
-                    )}
-                  </div>
-                  
-                  {/* Resumes Upload */}
-                  <div>
-                    <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
-                      Upload Resumes (ZIP file or PDF)
-                    </label>
-                    <div
-                      onDragOver={handleDragOver}
-                      onDrop={handleDropResume}
-                      className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${
-                        jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'
-                      } border-dashed rounded-md ${
-                        jobPosting?.status !== 'active' ? 'opacity-60' : ''
-                      }`}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+  
+  {/* JD Upload */}
+  {/* JD Upload */}
+<div
+  onDragOver={handleDragOver}
+  onDrop={handleDropJd}
+  className={`h-[300px] w-full flex items-center justify-center 
+    border-2 border-dashed border-[#2563EB] 
+    bg-[#EDEDED] rounded-lg
+    ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}
 >
-                      <div className="space-y-1 text-center">
-                        <CloudUploadIcon className={`mx-auto h-12 w-12 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
-                        <div className={`flex text-sm ${jobPosting?.status === 'active' ? 'text-gray-600' : 'text-gray-400'}`}>
-                          <label htmlFor="resume-file" className={`relative ${jobPosting?.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting?.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'} focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500`}>
-                            <span>Upload a file</span>
-                            <input
-                              disabled={jobPosting?.status !== 'active'}
-                              id="resume-file"
-                              name="resume-file"
-                              type="file"
-                              accept=".zip,.pdf"
-                              className="sr-only"
-                              onChange={handleResumeFileChange}
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          upload file containing candidate resumes in PDF or ZIP format
-                        </p>
-                      </div>
-                    </div>
-                    {resumeFile && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        Selected file: {resumeFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex justify-center mt-4">
-                  <button
-                    onClick={handleScreenResumes}
-                    disabled={!jdFile || !resumeFile || screeningLoading || jobPosting?.status !== 'active'}
-                    className={`btn w-full md:w-auto ${jobPosting?.status === 'active' ? 'btn-primary' : 'btn-disabled bg-gray-300'}`}
-                    title={jobPosting?.status !== 'active' ? "Resume screening is only available for active job postings" : ""}
-                  >
-                    {screeningLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                        Screening...
-                      </>
-                    ) : (
-                      <>
-                        <UploadIcon className="h-5 w-5 mr-2" />
-                        Screen Resumes
-                      </>
-                    )}
-                  </button>
-                </div>
-                
+  <div className="text-center space-y-2">
+
+    <DriveFolderUploadOutlined
+  sx={{ width: 45, height: 36 }}
+  className={jdFile ? "text-[#2563EB]" : "text-[#91949D]"}
+/>
+
+
+    {!jdFile ? (
+      <>
+        <p className="text-[16px] text-[#91949D]">
+          Drag & drop the file here or
+        </p>
+
+        <label
+          htmlFor="jd-file"
+          className={`inline-flex items-center justify-center
+            px-5 py-2 rounded-lg border border-[#2563EB]
+            text-[#2563EB] font-semibold bg-[#EDEDED] cursor-pointer
+            ${jobPosting?.status !== 'active' ? 'cursor-not-allowed' : ''}`}
+        >
+          Choose File to Upload
+          <input
+            disabled={jobPosting?.status !== 'active'}
+            id="jd-file"
+            type="file"
+            accept=".pdf"
+            className="sr-only"
+            onChange={handleJdFileChange}
+          />
+        </label>
+        <p className="text-[12px] text-[#91949D]">
+        Upload file containing job description.
+      </p>
+
+      </>
+    ) : (
+      /* ✅ AFTER UPLOAD */
+      
+      <div className="flex flex-col items-center gap-3">
+    <p className="text-[16px] font-medium text-[#000000] truncate max-w-[300px]">
+      {jdFile.name}
+    </p>
+      
+    <button
+      onClick={handleRemoveJd}
+      className=" w-[221px] h-[44px]
+      border border-[#2563EB]
+      text-[#2563EB] border-[1px] left-[140px] top-[341] gap-[10px]
+      text-md font-medium font-inter font-semibold
+      rounded-lg"
+      
+    >
+      Remove
+    </button>
+  </div>
+)}
+  </div>
+</div>
+
+
+ {/* Resume Upload */}
+<div
+  className={`h-[300px] w-full flex items-center justify-center
+    border-2 border-dashed border-[#2563EB]
+    bg-[#EDEDED] rounded-lg
+    ${!jdFile ? 'opacity-60 pointer-events-none' : ''}
+  `}
+>
+  {!resumeFile ? (
+    /* BEFORE UPLOAD */
+    <div className="text-center space-y-2">
+      <DriveFolderUploadOutlined
+        sx={{ width: 45, height: 36 }}
+        className="text-[#91949D]"
+      />
+
+      <p className="text-[16px] text-[#91949D]">
+        Drag & drop the file here or
+      </p>
+
+      <label
+        className={`
+          inline-flex items-center justify-center
+          px-5 py-2 rounded-lg border
+          font-semibold bg-[#EDEDED]
+          transition-colors duration-200
+          ${
+            !jdFile
+              ? "border-[#C4C4C4] text-[#91949D] cursor-not-allowed"
+              : "border-[#2563EB] text-[#2563EB] cursor-pointer hover:bg-blue-50"
+          }
+        `}
+      >
+        Choose File to Upload
+        <input
+          id="resume-file"
+          type="file"
+          accept=".zip,.pdf"
+          className="sr-only"
+          disabled={!jdFile}
+          onChange={handleResumeFileChange}
+        />
+      </label>
+
+      <p className="text-xs text-[#717171]">
+        Upload resume in PDF or ZIP format
+      </p>
+    </div>
+  ) : (
+    /* AFTER UPLOAD */
+    <div className="flex flex-col items-center gap-3 text-center">
+      <DriveFolderUploadOutlined
+        sx={{ width: 45, height: 36 }}
+        className="text-[#2563EB]"
+      />
+
+      <p className="text-[16px] font-medium text-[#000000] truncate max-w-[300px]">
+        {resumeFile.name}
+      </p>
+
+      <button
+        onClick={handleScreenResumes}
+        className="px-5 w-[221px] h-[44px] flex items-center justify-center
+          bg-[#2563EB] text-white rounded-md"
+      >
+        {screeningLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+            Screening...
+          </>
+        ) : (
+          "Start Screening"
+        )}
+      </button>
+
+      <button
+        onClick={handleRemoveResume}
+        className="w-[221px] h-[44px]
+          border border-[#2563EB]
+          text-[#2563EB]
+          text-md font-semibold rounded-lg"
+      >
+        Remove
+      </button>
+    </div>
+  )}
+</div>
+
+</div>
+
                 {screeningError && (
                   <div className="bg-danger-50 border-l-4 border-danger-500 p-4 rounded-r-md mb-6 mt-4">
                     <div className="flex">
@@ -1401,38 +1476,6 @@ const handleDropResume = (e) => {
                 
                 {/* Email Attachments */}
 <div className="mb-4">
-  <label className={`block text-sm font-medium ${jobPosting?.status === 'active' ? 'text-gray-700' : 'text-gray-400'} mb-1`}>
-    Email Attachments (Optional)
-  </label>
-  <div className={`mt-1 flex justify-center px-6 pt-3 pb-3 border-2 ${jobPosting?.status === 'active' ? 'border-gray-300' : 'border-gray-200'} border-dashed rounded-md ${jobPosting?.status !== 'active' ? 'opacity-60' : ''}`}>
-    <div className="space-y-1 text-center">
-      <div className="flex flex-col items-center">
-        <EmailIcon className={`mx-auto h-8 w-8 ${jobPosting?.status === 'active' ? 'text-gray-400' : 'text-gray-300'}`} />
-        <div className="flex text-sm text-gray-600">
-          <label
-            htmlFor="attachment-upload"
-            className={`relative ${jobPosting?.status === 'active' ? 'cursor-pointer' : 'cursor-not-allowed'} bg-white rounded-md font-medium ${jobPosting?.status === 'active' ? 'text-primary-600 hover:text-primary-500' : 'text-gray-400'}`}
-          >
-            <span>Upload attachments</span>
-            <input
-              id="attachment-upload"
-              name="attachment-upload"
-              type="file"
-              disabled={jobPosting?.status !== 'active'}
-              className="sr-only"
-              multiple
-              onChange={handleEmailAttachmentChange}
-            />
-          </label>
-          <p className="pl-1">or drag and drop</p>
-        </div>
-        <p className="text-xs text-gray-500">
-          Any file type up to 5MB each
-        </p>
-      </div>
-    </div>
-  </div>
-  
   {/* Attachment List */}
   {emailAttachments.length > 0 && (
     <div className="mt-2">
@@ -1598,17 +1641,16 @@ const handleDropResume = (e) => {
                         className="
           flex items-center gap-2
           px-4 py-2
-          rounded-full
-          border border-gray-300
+          rounded-lg der-[1px]
+          border border-[#CBD5E1]
           bg-white
-          text-sm font-medium text-gray-700
-          hover:bg-gray-50
-          shadow-sm
+          text-sm font-medium text-[#2563EB]
+         
         "
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-gray-600"
+                          className="h-4 w-4 text-[#2563EB]"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -1746,7 +1788,7 @@ const handleDropResume = (e) => {
                   </div>
                 )}
               </div>
-            </div>
+            
             
             {/* Report Modal */}
             {isReportModalOpen && (
@@ -1943,15 +1985,15 @@ const handleDropResume = (e) => {
         )}
         
         {activeTab === 'interviews' && canViewInterviews && (
-          <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
-            <div className="p-6">
+          
+            <div className="p-6"> 
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                 <PersonIcon className="h-6 w-6 mr-2 text-primary-600" />
-                <span className="text-gray-800">Scheduled Interviews</span>
+                <span className="text-black font-inter text-[20px]">Scheduled Interviews</span>
               </h2>
 
               {scheduledInterviews.length === 0 ? (
-                <p className="text-gray-700">
+                <p className="text-black text-[16px] font-inter font-semibold  ">
                   No interviews scheduled yet. Select candidates from the Resume Screening tab to schedule interviews.
                 </p>
               ) : (
@@ -2020,7 +2062,7 @@ const handleDropResume = (e) => {
                 </div>
               )}
             </div>
-          </div>
+          
         )}
 
         {activeTab === 'assessments' && (
@@ -2030,7 +2072,7 @@ const handleDropResume = (e) => {
         )}
 
         {activeTab === 'statistics' && (
-          <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+          
             <div className="p-6">
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                 <AssessmentIcon className="h-6 w-6 mr-2 text-primary-600" />
@@ -2038,7 +2080,7 @@ const handleDropResume = (e) => {
               </h2>
               
                 <JobPostingStatistics jobPostingId={id} />
-            </div>
+            
           </div>
         )}
       </div>
@@ -2060,7 +2102,7 @@ const handleDropResume = (e) => {
               onDrop={handleDropDummy}
               className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
             >
-              <CloudUploadIcon className="mx-auto h-10 w-10 text-gray-400" />
+              <DriveFolderUploadOutlined className="mx-auto h-10 w-10 text-gray-400" />
               <p className="mt-2 text-sm text-gray-600">
                 Drag & drop resume files here
               </p>
@@ -2116,6 +2158,6 @@ const handleDropResume = (e) => {
 
     </div>
   );
-}
+};
 
 export default JobPostingDetail;
