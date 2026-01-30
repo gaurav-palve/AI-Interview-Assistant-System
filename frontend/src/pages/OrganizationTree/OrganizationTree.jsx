@@ -122,7 +122,7 @@ const OrganizationTree = () => {
         <g>
           <foreignObject x={-90} y={-25} width={180} height={50}>
             <div style={styles.rootNode}>
-              Hirepool.AI
+              RecruitIQ
             </div>
           </foreignObject>
         </g>

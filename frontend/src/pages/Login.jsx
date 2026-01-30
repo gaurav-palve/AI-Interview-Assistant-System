@@ -1,297 +1,222 @@
-import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import {
-  Email as EmailIcon,
-  Lock as LockIcon,
-  Visibility,
-  VisibilityOff,
-} from '@mui/icons-material';
-import { useFormValidation } from '../hooks/useFormValidation';
-import Nts_logo from '../assets/Nts_logo/NTSLOGO.png';
-import LoginBg from '../assets/login_bg.png';
-import { NAV_ITEMS } from "../config/navigationConfig";
-import { getFirstAllowedRoute } from "../utils/getFirstAllowedRoute";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
+import { useAuth } from "../contexts/AuthContext";
+
+// import StudioLogo from "../assets/Neutrino-AI-Studio-White-Logo.png";
+// import LoginLogo from "../assets/ATS-RecruitIQ-White-Logo.png";
+import NeutrinoLogo from "../assets/neutrino-logo1.png";
+import { useEffect } from "react";
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const { signIn } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = '/dashboard';
 
-  const {
-    values,
-    errors,
-    touched,
-    handleChange,
-    handleBlur,
-    validate,
-  } = useFormValidation(
-    { email: '', password: '' },
-    {
-      email: { required: true, email: true, fieldName: 'Email' },
-      password: { required: true, fieldName: 'Password' },
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
     }
-  );
+  }, []);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    if (!validate()) return;
-    setIsLoading(true);
+    setError("");
+    setLoading(true);
 
     try {
-      await signIn(values.email, values.password);
+      await signIn(email, password);
+      
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
 
-      const permissions = JSON.parse(
-        localStorage.getItem("auth_permissions") || "[]"
-      );
-
-      const redirectTo = getFirstAllowedRoute(permissions, NAV_ITEMS);
-
-      navigate(redirectTo, { replace: true });
-
-    } catch (err) {
-      setError(err.detail || 'Failed to sign in. Please check your credentials.');
+      navigate("/dashboard", { replace: true });
+    } catch {
+      setError("Invalid email or password");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-violet-100 via-white to-indigo-100
-                    flex items-center justify-center p-4 animate-pageFade">
+    <div
+      className="min-h-screen flex items-center justify-center relative px-4 font-inter"
+      style={{
+        backgroundImage: "url(/ATS-Bg-Image.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* TOP LEFT LOGO */}
+      <img
+        src="/Neutrino-AI-Studio-Logo-White-Logo.png"
+        alt="Neutrino AI Studio"
+        className="absolute top-6 left-6 w-[200px]"
+      />
 
-      {/* MAIN CARD */}
-      <div className="
-        w-full max-w-4xl
-        bg-white/85 backdrop-blur-xl 
-        rounded-3xl shadow-2xl overflow-hidden 
-        border border-white/40 
-        grid grid-cols-1 lg:grid-cols-2
-        animate-cardUp
-      ">
+      {/* BACK */}
+      <Link
+        to="/"
+        className="absolute bottom-6 left-6 flex items-center gap-1 text-white text-sm opacity-80 hover:opacity-100"
+      >
+        <ArrowBackIcon fontSize="small" />
+        Back
+      </Link>
 
-        {/* LEFT PANEL */}
-        <div className="hidden lg:flex relative p-4">
+      {/* LOGIN CARD */}
+      <div
+  className="
+    w-full max-w-[440px]
+    bg-white/10 backdrop-blur-[50px]
+    rounded-lg
+    border border-white/20
+    shadow-2xl
+    px-10 py-10
+  "
+>
+  {/* HEADER */}
+  <div className="flex flex-col items-center mb-8">
+    <img
+      src="/ATS-RecruitIQ-White-Logo.png"
+      alt="RecruitIQ"
+      className="h-[44px] mb-4 object-contain"
+    />
+    <span className="text-white text-sm font-medium">
+      Login
+    </span>
+  </div>
 
-          <div
-            className="
-              relative rounded-2xl overflow-hidden shadow-lg 
-              w-full h-full flex flex-col
-            "
-            style={{
-              backgroundImage: `url(${LoginBg})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            {/* OVERLAY */}
-            <div className="
-              absolute inset-0 
-              bg-gradient-to-b 
-              from-violet-900/25 via-indigo-900/20 to-purple-900/25
-              backdrop-blur-[1px]
-            "></div>
+  {/* ERROR */}
+  {error && (
+    <div className="mb-4 text-xs text-red-300 bg-red-900/30 border border-red-400/40 rounded-lg px-3 py-2">
+      {error}
+    </div>
+  )}
 
-            {/* LEFT CONTENT */}
-            <div className="relative z-10 w-full h-full flex flex-col pl-10 pr-6">
-
-              {/* LOGO AT TOP */}
-              <div className="flex items-center gap-3 pt-6">
-                <div className="w-12 h-12 bg-white/95 rounded-full flex items-center justify-center shadow-xl p-2">
-                  <img src={Nts_logo} alt="NTS Logo" className="h-8 w-8" />
-                </div>
-
-                <div>
-                  <p className="text-xl font-extrabold text-white drop-shadow-lg">Neutrino</p>
-                  <p className="text-xs opacity-90 tracking-widest text-gray-200">Hirepool.AI</p>
-                </div>
-              </div>
-
-              {/* SPACER TO PUSH TO CENTER */}
-              <div className="flex-grow" />
-
-              {/* Hirepool.AI SECTION CENTERED VERTICALLY */}
-              <div className="pb-20">
-                <h1 className="
-                  text-5xl font-extrabold 
-                  bg-gradient-to-r from-violet-200 to-pink-200 
-                  bg-clip-text text-transparent 
-                  drop-shadow-xl
-                ">
-                  Hirepool.AI
-                </h1>
-
-                <p className="mt-5 text-indigo-100 text-sm leading-relaxed max-w-xs">
-                  AI-powered interview assistant to streamline your hiring workflow
-                  using next-gen intelligence.
-                </p>
-
-                {/* BUTTON */}
-                <button className="
-                  mt-6 px-5 py-2 
-                  bg-white/90 text-indigo-700 text-sm 
-                  font-semibold rounded-full 
-                  hover:bg-white hover:shadow-xl 
-                  transition-all duration-300 w-fit
-                ">
-                  View more
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT SIDE - LOGIN FORM */}
-        <div className="flex items-center justify-center p-10 bg-white animate-rightFade overflow-visible">
-          <div className="w-full max-w-xs">
-
-            <h2 className="text-3xl font-bold mb-1 bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-              Welcome Back 👋
-            </h2>
-
-            <p className="text-sm text-gray-500 mb-6">
-              Login to access your Hirepool.AI dashboard
-            </p>
-
-            {/* API ERROR */}
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-
-              {/* EMAIL */}
-              <div className="group">
-                <label className="block text-xs font-semibold mb-1">Email</label>
-
-                <div className="relative">
-                  <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500" />
-                  <input
-                    type="email"
-                    name="email"
-                    value={values.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="example@mail.com"
-                    className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg 
-                      focus:ring-2 focus:ring-violet-400/50 transition-all
-                      ${errors.email && touched.email ? 'border-red-400' : 'border-gray-200'}
-                    `}
-                  />
-                </div>
-
-                {errors.email && touched.email && (
-                  <p className="text-xs text-red-600 mt-2 pl-1 animate-pulse">{errors.email}</p>
-                )}
-              </div>
-
-              {/* PASSWORD */}
-              <div className="group">
-                <label className="block text-xs font-semibold mb-1">Password</label>
-
-                <div className="relative">
-                  <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500" />
-
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={values.password}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg
-                      focus:ring-2 focus:ring-violet-400/50 transition-all
-                      ${errors.password && touched.password ? 'border-red-400' : 'border-gray-200'}
-                    `}
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </button>
-                </div>
-
-                {errors.password && touched.password && (
-                  <p className="text-xs text-red-600 mt-2 pl-1 animate-pulse">{errors.password}</p>
-                )}
-              </div>
-
-              {/* REMEMBER + FORGOT */}
-              <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-3 h-3"
-                  />
-                  <span>Remember me</span>
-                </label>
-
-                <Link to="/forgot-password" className="text-violet-600 hover:underline">
-                  Forgot?
-                </Link>
-              </div>
-
-              {/* LOGIN BUTTON */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="
-                  w-full py-3 
-                  bg-gradient-to-r from-violet-600 to-indigo-600 text-white 
-                  rounded-lg font-medium shadow-md 
-                  hover:shadow-xl hover:scale-[1.02] 
-                  transition-all duration-300
-                "
-              >
-                {isLoading ? 'Logging in...' : 'Login'}
-              </button>
-            </form>
-
-            {/* SIGNUP LINK */}
-            <div className="text-center mt-6 text-sm">
-              <span className="text-gray-500">Not a member?</span>
-              <Link to="/signup" className="text-violet-600 ml-1 font-medium hover:underline">
-                Sign up
-              </Link>
-            </div>
-          </div>
-        </div>
+  {/* FORM */}
+  <form onSubmit={handleSubmit} className="space-y-4">
+    {/* EMAIL */}
+    <div>
+      <label className="block text-xs text-white mb-1">
+        Email 
+      </label>
+      <div className="relative">
+        <EmailOutlinedIcon
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+          fontSize="small"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={loading}
+          
+          className="
+            w-full h-[42px] pl-10 pr-3
+            rounded-lg
+            bg-white/5
+            text-white text-sm
+            border border-white/20
+            focus:outline-none focus:border-white/40
+          "
+        />
       </div>
+    </div>
 
-      {/* ANIMATIONS */}
-      <style>{`
-        @keyframes pageFade { 
-          from {opacity:0; transform:translateY(20px);} 
-          to {opacity:1; transform:translateY(0);} 
-        }
-        .animate-pageFade { animation: pageFade .7s ease-out; }
+    {/* PASSWORD */}
+    <div>
+      <label className="block text-xs text-white mb-1">
+        Password
+      </label>
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          disabled={loading}
+          placeholder="••••••••"
+          className="
+            w-full h-[42px] px-3 pr-10
+            rounded-lg
+            bg-white/5
+            text-white text-sm
+            border border-white/20
+            focus:outline-none focus:border-white/40
+          "
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60"
+        >
+          {showPassword ? (
+            <VisibilityOff fontSize="small" />
+          ) : (
+            <Visibility fontSize="small" />
+          )}
+        </button>
+      </div>
+    </div>
 
-        @keyframes cardUp { 
-          from {opacity:0; transform:scale(.95);} 
-          to {opacity:1; transform:scale(1);} 
-        }
-        .animate-cardUp { animation: cardUp .7s ease-out; }
+    {/* OPTIONS */}
+    <div className="flex items-center justify-between text-[11px] text-white/70">
+      <label className="flex items-center gap-2">
+        <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="accent-white scale-90"
+          />
+        Remember me
+      </label>
+      <Link
+          to="/forgot-password"
+          className="text-white hover:underline"
+        >
+          Forgot password?
+        </Link>
+    </div>
 
-        @keyframes rightFade { 
-          from {opacity:0; transform:translateX(25px);} 
-          to {opacity:1; transform:translateX(0);} 
-        }
-        .animate-rightFade { animation: rightFade .8s ease-out .2s forwards; opacity:0; }
-      `}</style>
+    {/* SUBMIT */}
+    <button
+      type="submit"
+      disabled={loading}
+      className="
+        w-full h-[46px]
+        rounded-full
+        bg-white
+        text-black text-sm font-semibold
+        hover:bg-gray-100 transition
+        disabled:opacity-60
+      "
+    >
+      {loading ? "Signing in..." : "Login"}
+    </button>
+  </form>
+
+  {/* FOOTER */}
+  <div className="mt-8 text-center text-[11px] text-white/70 flex items-center justify-center gap-2">
+    Powered by
+    <img src={NeutrinoLogo} alt="Neutrino" className="h-4" />
+  </div>
+</div>
+
     </div>
   );
 }

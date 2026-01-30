@@ -80,7 +80,7 @@ export default function ForgotPassword() {
 
                 <div>
                   <p className="text-xl font-extrabold text-white drop-shadow-lg">Neutrino</p>
-                  <p className="text-xs opacity-90 tracking-widest text-gray-200">Hirepool.AI</p>
+                  <p className="text-xs opacity-90 tracking-widest text-gray-200">RecruitIQ</p>
                 </div>
               </div>
 
