@@ -1985,15 +1985,15 @@ className="
         )}
         
         {activeTab === 'interviews' && canViewInterviews && (
-          <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
-            <div className="p-6">
+          
+            <div className="p-6"> 
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                 <PersonIcon className="h-6 w-6 mr-2 text-primary-600" />
-                <span className="text-gray-800">Scheduled Interviews</span>
+                <span className="text-black font-inter text-[20px]">Scheduled Interviews</span>
               </h2>
 
               {scheduledInterviews.length === 0 ? (
-                <p className="text-gray-700">
+                <p className="text-black text-[16px] font-inter font-semibold  ">
                   No interviews scheduled yet. Select candidates from the Resume Screening tab to schedule interviews.
                 </p>
               ) : (
@@ -2062,7 +2062,7 @@ className="
                 </div>
               )}
             </div>
-          </div>
+          
         )}
 
         {activeTab === 'assessments' && (
@@ -2072,7 +2072,7 @@ className="
         )}
 
         {activeTab === 'statistics' && (
-          <div className="card bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+          
             <div className="p-6">
               <h2 className="text-2xl font-semibold text-gray-900 flex items-center mb-4">
                 <AssessmentIcon className="h-6 w-6 mr-2 text-primary-600" />
@@ -2080,7 +2080,7 @@ className="
               </h2>
               
                 <JobPostingStatistics jobPostingId={id} />
-            </div>
+            
           </div>
         )}
       </div>

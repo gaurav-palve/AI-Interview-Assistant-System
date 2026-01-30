@@ -76,7 +76,13 @@ function UsersList() {
 
         <button
           onClick={() => navigate("/users/create")}
-          className="btn bg-primary-600 text-white px-4 py-2"
+          className="flex items-center justify-center
+                      w-[157px] h-[44px]
+                      p-[10px]
+                      gap-[6px]
+                      text-sm
+                      border border-[#CBD5E1]
+                      rounded-lg bg-[#2563EB] text-[#FFFFFF]"
         >
           <AddIcon fontSize="small" className="mr-1" />
           Create User
