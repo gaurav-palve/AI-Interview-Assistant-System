@@ -1,3 +1,4 @@
+from app import read_properties
 import os
 import sys
 import json
