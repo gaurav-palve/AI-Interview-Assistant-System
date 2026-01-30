@@ -206,7 +206,7 @@ function Signup() {
                     Neutrino
                   </p>
                   <p className="text-xs opacity-90 tracking-widest text-gray-200">
-                    Hirepool.AI
+                    RecruitIQ
                   </p>
                 </div>
               </div>
@@ -227,7 +227,7 @@ function Signup() {
                 </h1>
 
                 <p className="mt-5 text-indigo-100 text-sm leading-relaxed max-w-xs">
-                  Create your Hirepool.AI account and streamline your hiring
+                  Create your RecruitIQ account and streamline your hiring
                   process with intelligent automation.
                 </p>
               </div>
@@ -254,7 +254,7 @@ function Signup() {
             </h2>
 
             <p className="text-sm text-gray-500 mb-6">
-              Start your journey with Hirepool.AI
+              Start your journey with RecruitIQ
             </p>
 
             {/* ERROR */}
