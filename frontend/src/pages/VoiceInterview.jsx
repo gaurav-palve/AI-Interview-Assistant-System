@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useToast } from '@chakra-ui/react';
 import voiceInterviewService from '../services/voiceInterviewService';
 import interviewService from '../services/interviewService';
-import { useCamera } from '../contexts/CameraContext';
 
 import VoiceInterviewControls from '../components/VoiceInterview/VoiceInterviewControls';
 // import AudioRecorder from '../components/VoiceInterview/AudioRecorder';
 import TranscriptDisplay from '../components/VoiceInterview/TranscriptDisplay';
 import VoiceInterviewResults from '../components/VoiceInterview/VoiceInterviewResults';
-import CameraProctor from '../components/CameraProctor';
+import CameraProctorNew from '../components/CameraProctorNew';
 
 import { ArrowLeft, AlertCircle, Loader2, Mic, Download, Clock, CheckCircle, Volume2, Wifi, WifiOff, MessageSquare, Zap, Brain, Heart, Camera } from 'lucide-react';
 
@@ -136,6 +136,7 @@ const useDurationTracker = (isActive) => {
 const VoiceInterview = () => {
   const { interviewId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // State management
   const [interview, setInterview] = useState(null);
@@ -153,9 +154,35 @@ const VoiceInterview = () => {
   const [userMessage, setUserMessage] = useState('');
   const [audioLevel, setAudioLevel] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const { toggleDetection, isActive } = useCamera();
   const [aiThinking, setAiThinking] = useState(false);
   const [interviewProgress, setInterviewProgress] = useState(0);
+  const [cameraReady, setCameraReady] = useState(true);
+
+  // Handle cheating detection and show toast
+  const handleCheatingDetected = useCallback((type, message) => {
+    const cheatingTypeMap = {
+      'FACE_MISSING': { title: 'Warning: Face Not Visible', colorScheme: 'orange' },
+      'MULTIPLE_FACES': { title: 'Warning: Multiple Faces Detected', colorScheme: 'red' },
+      'LOOK_AWAY': { title: 'Warning: Looking Away', colorScheme: 'orange' },
+      'PHONE_DETECTED': { title: 'Warning: Phone Detected', colorScheme: 'red' },
+      'TAB_SWITCH': { title: 'Warning: Tab Switched', colorScheme: 'red' },
+      'WINDOW_BLUR': { title: 'Warning: Window Lost Focus', colorScheme: 'red' }
+    };
+
+    const config = cheatingTypeMap[type] || { title: 'Warning Detected', colorScheme: 'orange' };
+
+    toast({
+      title: config.title,
+      description: message,
+      status: type === 'PHONE_DETECTED' || type === 'MULTIPLE_FACES' || type === 'TAB_SWITCH' || type === 'WINDOW_BLUR' ? 'error' : 'warning',
+      duration: 4000,
+      isClosable: true,
+      position: 'top-right',
+      variant: 'solid'
+    });
+
+    console.warn(`Cheating detected: ${type}`, message);
+  }, [toast]);
 
   // Custom hooks
   const durationTracker = useDurationTracker(status === 'active');
@@ -254,14 +281,14 @@ useEffect(() => {
     loadInterview();
   }
   
-  // Enable detection for voice interview
-  toggleDetection(true);
+  // Auto-start camera on component mount
+  setCameraReady(true);
   
   // Cleanup on unmount
   return () => {
-    // Detection will be managed by the context
+    // Camera will be managed by the component
   };
-}, [interviewId, toggleDetection, loadInterview, interview]);
+}, [interviewId, loadInterview, interview]);
 
 const startInterview = useCallback(async () => {
   try {
@@ -304,9 +331,7 @@ const stopInterview = useCallback(async () => {
       setVoiceSession(completedSession);
       setStatus('completed');
       setResults(completedSession);
-      // Disable detection when interview is completed
-      toggleDetection(false);
-      // Camera will be managed by the context
+      // Interview completed
     }
 
   } catch (err) {
@@ -315,7 +340,7 @@ const stopInterview = useCallback(async () => {
   } finally {
     setIsProcessing(false);
   }
-}, [voiceSession, durationTracker, toggleDetection]);
+}, [voiceSession, durationTracker]);
 
   const handleInterviewComplete = useCallback(() => {
     stopInterview();
@@ -432,12 +457,10 @@ ${transcript}`;
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
       {/* Camera element - small version in corner */}
-      {isActive && (
+      {cameraReady && (
         <div className="absolute top-4 right-4 z-50" style={{ width: '180px', height: '135px' }}>
           <div className="bg-black/70 rounded-lg overflow-hidden shadow-xl w-full h-full">
-            <CameraProctor
-              detectionEnabled={true} // Enable detection during voice interview
-            />
+            <CameraProctorNew autoStart={true} sessionId={interviewId} hideControls={true} onCheatingDetected={handleCheatingDetected} />
           </div>
         </div>
       )}
