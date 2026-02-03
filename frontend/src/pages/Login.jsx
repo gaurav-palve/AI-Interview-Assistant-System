@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 import { useAuth } from "../contexts/AuthContext";
 
@@ -37,7 +38,7 @@ function Login() {
 
     try {
       await signIn(email, password);
-      
+
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
       } else {
@@ -68,14 +69,14 @@ function Login() {
         className="absolute top-6 left-6 w-[200px]"
       />
 
-      {/* BACK */}
-      <Link
-        to="/"
+      <a
+        href="https://neutrinoaistudio.com/"
         className="absolute bottom-6 left-6 flex items-center gap-1 text-white text-sm opacity-80 hover:opacity-100"
       >
         <ArrowBackIcon fontSize="small" />
         Back
-      </Link>
+      </a>
+
 
       {/* LOGIN CARD */}
       <div
@@ -139,40 +140,52 @@ function Login() {
     </div>
 
     {/* PASSWORD */}
-    <div>
-      <label className="block text-xs text-white mb-1">
-        Password
-      </label>
-      <div className="relative">
-        <input
-          type={showPassword ? "text" : "password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          disabled={loading}
-          placeholder="••••••••"
-          className="
-            w-full h-[42px] px-3 pr-10
-            rounded-lg
-            bg-white/5
-            text-white text-sm
-            border border-white/20
-            focus:outline-none focus:border-white/40
-          "
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60"
-        >
-          {showPassword ? (
-            <VisibilityOff fontSize="small" />
-          ) : (
-            <Visibility fontSize="small" />
-          )}
-        </button>
-      </div>
-    </div>
+    {/* PASSWORD */}
+<div>
+  <label className="block text-xs text-white mb-1">
+    Password
+  </label>
+
+  <div className="relative">
+    {/* LOCK ICON */}
+    <LockOutlinedIcon
+      className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+      fontSize="small"
+    />
+
+    <input
+      type={showPassword ? "text" : "password"}
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+      disabled={loading}
+      
+      className="
+        w-full h-[42px]
+        pl-10 pr-10
+        rounded-lg
+        bg-white/5
+        text-white text-sm
+        border border-white/20
+        focus:outline-none focus:border-white/40
+      "
+    />
+
+    {/* EYE ICON */}
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60"
+    >
+      {showPassword ? (
+        <VisibilityOff fontSize="small" />
+      ) : (
+        <Visibility fontSize="small" />
+      )}
+    </button>
+  </div>
+</div>
+
 
     {/* OPTIONS */}
     <div className="flex items-center justify-between text-[11px] text-white/70">
@@ -208,6 +221,17 @@ function Login() {
     >
       {loading ? "Signing in..." : "Login"}
     </button>
+    {/* SIGNUP */}
+<div className="text-center text-[12px] text-white/70 mt-4">
+  Don't have an account?{" "}
+  <Link
+    to="/signup"
+    className="text-white font-medium hover:underline"
+  >
+    Sign up
+  </Link>
+</div>
+
   </form>
 
   {/* FOOTER */}

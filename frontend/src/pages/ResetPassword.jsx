@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
-  Email as EmailIcon,
+  EmailOutlined as EmailIcon,
   Lock as LockIcon,
   VpnKey as PinIcon,
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
+import NeutrinoLogo from "../assets/neutrino-logo1.png";
 import authService from "../services/authService";
-import Nts_logo from "../assets/Nts_logo/NTSLOGO.png";
-import LoginBg from "../assets/login_bg.png";
 
 export default function ResetPassword() {
   const { state } = useLocation();
@@ -55,219 +54,238 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-violet-100 via-white to-indigo-100 
-                    flex items-center justify-center p-4 animate-pageFade">
+    <div
+      className="min-h-screen flex items-center justify-center relative px-4 font-inter"
+      style={{
+        backgroundImage: "url(/ATS-Bg-Image.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* TOP LEFT LOGO */}
+      <img
+        src="/Neutrino-AI-Studio-Logo-White-Logo.png"
+        alt="Neutrino AI Studio"
+        className="absolute top-6 left-6 w-[200px]"
+      />
 
-      {/* MAIN CARD */}
-      <div className="
-        w-full max-w-4xl bg-white/85 backdrop-blur-xl rounded-3xl shadow-2xl 
-        overflow-hidden border border-white/40 grid grid-cols-1 lg:grid-cols-2 animate-cardUp
-      ">
-
-        {/* LEFT PANEL (Smaller + Balanced) */}
-        <div className="hidden lg:flex relative p-4">
-          <div
-            className="
-              relative rounded-2xl overflow-hidden shadow-lg 
-              w-full h-full flex flex-col
-            "
-            style={{
-              backgroundImage: `url(${LoginBg})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            <div className="
-              absolute inset-0 bg-gradient-to-b 
-              from-violet-900/25 via-indigo-900/15 to-purple-900/25 
-              backdrop-blur-[1px]
-            " />
-
-            {/* TOP LOGO */}
-            <div className="relative z-10 flex items-center gap-3 px-6 pt-6">
-              <div className="w-11 h-11 bg-white/95 rounded-full flex items-center justify-center shadow-xl p-2">
-                <img src={Nts_logo} alt="Logo" className="h-7 w-7" />
-              </div>
-              <div>
-                <p className="text-lg font-extrabold text-white drop-shadow-lg">Neutrino</p>
-                <p className="text-[10px] opacity-90 tracking-widest text-gray-200">RecruitIQ</p>
-              </div>
-            </div>
-
-            {/* CENTER CONTENT */}
-            <div className="relative z-10 w-full h-full flex flex-col justify-center px-8 pb-10">
-              <h1 className="
-                text-4xl font-extrabold 
-                bg-gradient-to-r from-violet-200 to-pink-200 
-                bg-clip-text text-transparent drop-shadow-xl
-              ">
-                Reset Password
-              </h1>
-
-              <p className="mt-4 text-indigo-100 text-sm leading-relaxed max-w-[240px]">
-                Enter the OTP sent to your email and create a secure new password.
-              </p>
-            </div>
-          </div>
+      {/* GLASS CARD */}
+      <div
+        className="
+          w-full max-w-[440px]
+          bg-white/10 backdrop-blur-[50px]
+          rounded-lg
+          border border-white/20
+          shadow-2xl
+          px-10 py-10
+        "
+      >
+        {/* HEADER */}
+        <div className="flex flex-col items-center mb-8">
+          <img
+            src="/ATS-RecruitIQ-White-Logo.png"
+            alt="RecruitIQ"
+            className="h-[44px] mb-4 object-contain"
+          />
+          <span className="text-white text-sm font-medium">
+            Reset Password
+          </span>
         </div>
 
-        {/* RIGHT SIDE (Shrunk + Fits Perfectly) */}
-        <div className="flex items-center justify-center p-8 bg-white animate-rightFade overflow-visible">
-          <div className="w-full max-w-[280px]">
-
-            <h2 className="text-xl font-semibold text-gray-800 mb-5">
-              Create New Password
-            </h2>
-            
-
-            {/* ERROR */}
-            {status && status !== "success" && (
-              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-[11px] text-red-700">
-                {status}
-              </div>
-            )}
-
-            {/* SUCCESS */}
-            {status === "success" && (
-              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-center text-[12px] text-green-700">
-                <div className="font-semibold">Password Updated!</div>
-                <p>You will be redirected...</p>
-              </div>
-            )}
-
-            {/* FORM */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-              {/* EMAIL */}
-              <div>
-                <label className="block text-base font-semibold mb-1">Email</label>
-                <div className="relative">
-                  <EmailIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-base
-                               focus:ring-2 focus:ring-blue-400/40 outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* OTP */}
-              <div>
-                <label className="block text-base font-semibold mb-1">OTP Code</label>
-                <div className="relative">
-                  <PinIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    required
-                    maxLength={6}
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg 
-                                tracking-widest font-mono text-base focus:ring-2 focus:ring-blue-400/40"
-                  />
-                </div>
-              </div>
-
-              {/* NEW PASSWORD */}
-              <div>
-                <label className="block text-base font-semibold mb-1">New Password</label>
-                <div className="relative">
-                  <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    className="w-full pl-10 pr-10 py-2 bg-gray-50 border rounded-lg text-[12px]
-                               focus:ring-2 focus:ring-violet-400/50 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* CONFIRM PASSWORD */}
-              <div>
-                <label className="block text-base font-semibold mb-1">Confirm Password</label>
-                <div className="relative">
-                  <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-indigo-500" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="w-full pl-10 pr-10 py-2 bg-gray-50 border rounded-lg text-[12px]
-                               focus:ring-2 focus:ring-violet-400/50 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* SUBMIT */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base 
-                           rounded-lg font-medium shadow-md hover:shadow-lg transition disabled:opacity-50"
-              >
-                {isLoading ? "Updating..." : "Reset Password"}
-              </button>
-            </form>
-
-            {/* LINKS */}
-            <div className="text-center mt-5 text-sm">
-              <span className="text-gray-500">Didn't get OTP?</span>
-              <Link to="/forgot-password" className="text-violet-600 ml-1 font-medium">
-                Resend
-              </Link>
-
-              <div className="mt-2">
-                <Link to="/login" className="text-violet-600 font-medium">
-                  Back to Login
-                </Link>
-              </div>
-            </div>
-
+        {/* ERROR */}
+        {status && status !== "success" && (
+          <div className="mb-4 text-xs text-red-300 bg-red-900/30 border border-red-400/40 rounded-lg px-3 py-2">
+            {status}
           </div>
+        )}
+
+        {/* SUCCESS */}
+        {status === "success" && (
+          <div className="mb-4 text-xs text-green-300 bg-green-900/30 border border-green-400/40 rounded-lg px-3 py-2 text-center">
+            Password updated successfully! Redirecting…
+          </div>
+        )}
+
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* EMAIL */}
+          <div>
+            <label className="block text-xs text-white mb-1">
+              Email
+            </label>
+            <div className="relative">
+              <EmailIcon
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+                fontSize="small"
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="
+                  w-full h-[42px] pl-10 pr-3
+                  rounded-lg
+                  bg-white/5
+                  text-white text-sm
+                  border border-white/20
+                  focus:outline-none focus:border-white/40
+                "
+              />
+            </div>
+          </div>
+
+          {/* OTP */}
+          <div>
+            <label className="block text-xs text-white mb-1">
+              OTP
+            </label>
+            <div className="relative">
+              <PinIcon
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+                fontSize="small"
+              />
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) =>
+                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                required
+                maxLength={6}
+                className="
+                  w-full h-[42px] pl-10 pr-3
+                  rounded-lg
+                  bg-white/5
+                  text-white text-sm tracking-widest
+                  border border-white/20
+                  focus:outline-none focus:border-white/40
+                "
+              />
+            </div>
+          </div>
+
+          {/* NEW PASSWORD */}
+          <div>
+            <label className="block text-xs text-white mb-1">
+              New Password
+            </label>
+
+            <div className="relative">
+              <LockIcon
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+                fontSize="small"
+              />
+              <input
+                type={showPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                className="
+                  w-full h-[42px] pl-10 pr-10
+                  rounded-lg
+                  bg-white/5
+                  text-white text-sm
+                  border border-white/20
+                  focus:outline-none focus:border-white/40
+                "
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60"
+              >
+                {showPassword ? (
+                  <VisibilityOff fontSize="small" />
+                ) : (
+                  <Visibility fontSize="small" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* CONFIRM PASSWORD */}
+          <div>
+            <label className="block text-xs text-white mb-1">
+              Confirm Password
+            </label>
+
+            <div className="relative">
+              <LockIcon
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
+                fontSize="small"
+              />
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="
+                  w-full h-[42px] pl-10 pr-10
+                  rounded-lg
+                  bg-white/5
+                  text-white text-sm
+                  border border-white/20
+                  focus:outline-none focus:border-white/40
+                "
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60"
+              >
+                {showConfirmPassword ? (
+                  <VisibilityOff fontSize="small" />
+                ) : (
+                  <Visibility fontSize="small" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* SUBMIT */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="
+              w-full h-[46px]
+              rounded-full
+              bg-white
+              text-black text-sm font-semibold
+              hover:bg-gray-100 transition
+              disabled:opacity-60
+            "
+          >
+            {isLoading ? "Updating..." : "Reset Password"}
+          </button>
+        </form>
+
+        <div className="text-center text-[12px] text-white/70 mt-6">
+  Didn’t get OTP?{" "}
+  <Link
+    to="/forgot-password"
+    className="text-white font-medium hover:underline"
+  >
+    Resend
+  </Link>
+  <span className="mx-2 opacity-50">|</span>
+  <Link
+    to="/login"
+    className="text-white font-medium hover:underline"
+  >
+    Back to Login
+  </Link>
+</div>
+
+
+        {/* FOOTER */}
+        <div className="mt-8 text-center text-[11px] text-white/70 flex items-center justify-center gap-2">
+          Powered by
+          <img src={NeutrinoLogo} alt="Neutrino" className="h-4" />
         </div>
       </div>
-
-      {/* ANIMATIONS */}
-      <style>{`
-        @keyframes pageFade { 
-          from {opacity:0; transform:translateY(20px);} 
-          to {opacity:1; transform:translateY(0);} 
-        }
-        .animate-pageFade { animation: pageFade .7s ease-out; }
-
-        @keyframes cardUp { 
-          from {opacity:0; transform:scale(.95);} 
-          to {opacity:1; transform:scale(1);} 
-        }
-        .animate-cardUp { animation: cardUp .7s ease-out; }
-
-        @keyframes rightFade { 
-          from {opacity:0; transform:translateX(25px);} 
-          to {opacity:1; transform:translateX(0);} 
-        }
-        .animate-rightFade { animation: rightFade .8s ease-out .2s forwards; opacity:0; }
-      `}</style>
     </div>
   );
 }
-
-
