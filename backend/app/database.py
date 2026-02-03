@@ -679,7 +679,7 @@ async def get_and_save_interview_report_data(interview_id: str) -> bool:
 
         #initialize job_post_id by null
         job_post_id = None
-        job_post_id = interview_record.get("job_post_id", "")
+        job_post_id = interview_record.get("job_posting_id", "")
 
         # Step 2: Fetch MCQ data
         mcq_data = []
