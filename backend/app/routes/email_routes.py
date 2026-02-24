@@ -6,33 +6,11 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from typing import Optional
 from ..utils.logger import get_logger
+from app.schemas.email_schema import EmailConfirmationRequest, EmailReminderRequest, TestEmailRequest, CustomEmailConfirmationRequest
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["Emails"])
 
-class EmailConfirmationRequest(BaseModel):
-    candidate_email: EmailStr
-    candidate_name: str
-    job_role: str
-    scheduled_datetime: str
-    interview_id: str
-
-class CustomEmailConfirmationRequest(BaseModel):
-    candidate_email: EmailStr
-    candidate_name: str
-    job_role: str
-    scheduled_datetime: str
-    interview_id: str
-    custom_body: str
-class EmailReminderRequest(BaseModel):
-    candidate_email: EmailStr
-    candidate_name: str
-    job_role: str
-    scheduled_datetime: str
-    interview_id: str
-
-class TestEmailRequest(BaseModel):
-    test_email: EmailStr
 
 @router.post("/send-confirmation")
 async def send_confirmation_email(

@@ -1,6 +1,6 @@
 # app/schemas/auth_schema.py
-from pydantic import BaseModel, EmailStr
-from typing import Dict, Optional
+from pydantic import BaseModel, EmailStr, Field
+from typing import Dict, Optional, Annotated
 
 class UserSignupRequest(BaseModel):
     email: EmailStr
@@ -16,10 +16,10 @@ class OTPVerifyRequest(BaseModel):
     otp: int
 
 class CreateAccountRequest(BaseModel):
-    first_name: str
-    middle_name: Optional[str] = None
+    first_name:  Annotated[str, Field(max_length=50,examples =["ajay"])]
+    middle_name: Annotated[Optional[str], Field(default=None, description="Middle name is optional",examples =["Alan","ajay"])]
     last_name: str
-    mobile_number: str
+    mobile_number: Annotated[int,Field(strict=True, examples=[9876543210], description="Mobile number must be a 10-digit integer")]
     email: EmailStr
     password: str
     confirm_password: str

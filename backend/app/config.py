@@ -3,6 +3,9 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
 
+    PISTON_API_URL: str = ""
+    MONGO_URI: str = ""
+    DB_NAME: str = 'interview_assistant'
     # =========================================
     # Code Execution Provider
     # =========================================

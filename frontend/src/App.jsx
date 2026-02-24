@@ -337,6 +337,16 @@ function App() {
       />
 
       <Route path="/camera-test" element={<CameraTestPage />} />
+      <Route
+          path="/job-postings/edit/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CreateJobPosting />
+              </MainLayout>
+            </ProtectedRoute>
+  }
+/>
 
 
         </Routes>

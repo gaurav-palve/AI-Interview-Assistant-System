@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import { useRef } from 'react';
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 
 // Material UI Icons
@@ -30,6 +32,7 @@ function CreateJobPosting() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const {id} = useParams();
 
   const [formData, setFormData] = useState({
     job_title: '',
@@ -127,8 +130,12 @@ function CreateJobPosting() {
       setError(null);
 
       const payload = buildJobPostingPayload(status);
-      await jobPostingService.createJobPosting(payload);
-
+      if (id) {
+      await jobPostingService.updateJobPosting(id, payload);
+      }
+      else{
+        await jobPostingService.createJobPosting(payload);
+      }
       navigate('/job-postings');
     } catch (err) {
       console.error('Error saving job posting:', err);
@@ -143,6 +150,46 @@ function CreateJobPosting() {
     }
   };
 
+
+useEffect(() => {
+  if (!id) return;
+
+  let mounted = true;
+  (async () => {
+    try {
+      setLoading(true);
+      const resp = await jobPostingService.getJobPosting(id);
+      if (!mounted) return;
+      // map API response to formData fields safely
+      setFormData(prev => ({
+        ...prev,
+        job_title: resp.job_title || prev.job_title,
+        company: resp.company || prev.company,
+        job_type: resp.job_type || prev.job_type,
+        work_location: resp.work_location || prev.work_location,
+        location: resp.location || prev.location,
+        experience_level: resp.experience_level || prev.experience_level,
+        experience: resp.experience || prev.experience,
+        department: resp.department || prev.department,
+        required_skills: resp.required_skills || prev.required_skills,
+        requirements: resp.requirements || prev.requirements,
+        responsibilities: resp.responsibilities || prev.responsibilities,
+        qualifications: resp.qualifications || prev.qualifications,
+        company_description: resp.company_description || prev.company_description,
+        job_description: resp.job_description || prev.job_description,
+        use_ai_generation: typeof resp.use_ai_generation === 'boolean' ? resp.use_ai_generation : prev.use_ai_generation,
+        status: resp.status || prev.status
+      }));
+    } catch (err) {
+      console.error("Failed to load job for editing:", err);
+      setError(err?.message || 'Failed to load job');
+    } finally {
+      setLoading(false);
+    }
+  })();
+
+  return () => { mounted = false; }
+}, [id]);
   const basicInfoNextRef = useRef(null);
 
   const saveAsDraft = () => submitJobPosting('draft');

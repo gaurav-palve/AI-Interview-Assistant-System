@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import jobPostingService from '../../services/jobPostingService';
 import StatusDropdown from '../../components/JobPostings/StatusDropdown';
 import AssignedUsersModal from '../../components/JobPostings/AssignedUsersModal';
@@ -36,6 +36,7 @@ import {
  */
 function JobPostingsList() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [jobPostings, setJobPostings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -228,6 +229,16 @@ function JobPostingsList() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Handle edit job
+const handleEditJob = (e, jobId) => {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  navigate(`update_job_posting/${jobId}`);
+};
 
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
@@ -427,6 +438,7 @@ function JobPostingsList() {
                 job={job}
                 onDelete={(jobId) => handleDeleteClick(null, jobId)}
                 onAssign={(job) => handleAssignUsersClick(null, job)}
+                onEdit={(e, jobId) => handleEditJob(e, jobId)}
                 onChangeStatus={(jobId, newStatus) => handleStatusChange(jobId, newStatus)}
                 canEdit={canEditJob}
                 canDelete={canDeleteJob}

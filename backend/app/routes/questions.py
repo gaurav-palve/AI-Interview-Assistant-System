@@ -4,20 +4,10 @@ from app.database import fetch_coding_questions, save_coding_round_answers, get_
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 import logging
-
+from app.schemas.questions_schema import CodingQuestionsRequest, CodingAnswerSubmission
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-class CodingQuestionsRequest(BaseModel):
-    interview_id: str
-    count: int = 3
-    difficulty: str = "medium"
-class CodingAnswerSubmission(BaseModel):
-    interview_id: str = Field(..., description="The ID of the interview session")
-    question_id: int = Field(..., description="The ID of the question being answered")
-    candidate_answer: str = Field(..., description="The candidate's submitted code")
-    test_results: List[Dict[str, Any]] = Field(..., description="Results of test case execution")
 
 
 @router.post("/generate-coding-questions")
