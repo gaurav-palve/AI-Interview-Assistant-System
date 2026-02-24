@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 /* Job Posting Styles */
 .tab-button {
   @apply whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm;
@@ -27,7 +26,6 @@
   html {
     font-family: 'Inter', system-ui;
     scroll-behavior: smooth;
-     overflow-x: hidden;
   }
   
   /* All text should use Inter font */
@@ -41,7 +39,6 @@
     @apply transition-colors duration-200;
     min-height: 100vh;
     background-attachment: fixed;
-    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -72,19 +69,6 @@
 }
 
 @layer components {
-
-  .app-container {
-    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-   .sidebar-mobile {
-    @apply fixed inset-0 z-50 bg-primary-800 md:hidden;
-  }
-
-  .table-responsive {
-    @apply w-full overflow-x-auto;
-  }
-
   .btn {
     @apply px-4 py-2 rounded-full font-medium transition-all duration-200;
     @apply shadow-sm hover:shadow-md;
@@ -94,7 +78,7 @@
   }
 
   .btn-primary {
-    @apply px-4 py-2 rounded-full text-sm font-medium transition-all;
+    @apply bg-gradient-to-r from-primary-500 to-secondary-400 text-white;
     @apply hover:from-primary-600 hover:to-secondary-500;
     @apply focus:ring-primary-500;
     box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
@@ -239,24 +223,22 @@
 }
 
 /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
-  }
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
 
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
-  }
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
-  }
-
-
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
 
 /* Animations */
 @keyframes fadeIn {
@@ -702,7 +684,7 @@
 
 .search-bar-animate:focus {
   animation: searchBarFocus 2s infinite, searchBarGlow 3s infinite;
-  transform: scale(1.02);
+  transform: translateY(-2px);
   width: 110%;
   border-width: 2px;
 }
