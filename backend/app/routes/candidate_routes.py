@@ -14,6 +14,7 @@ from app.database import fetch_interview_report_data
 from app.database import save_report_pdf_to_db
 from app.utils.report_pdf_generation import  build_candidate_report_pdf
 from app.services.email_service import EmailService
+from app.schemas.candidate_side_schemas import MCQSubmission, MCQResponse
 logger = get_logger(__name__)
 router = APIRouter(tags=["Candidate"])
 
@@ -22,21 +23,6 @@ router = APIRouter(tags=["Candidate"])
 in_progress_mcq_generations: Dict[str, float] = {}
 # Timeout for in-progress tracking (seconds)
 IN_PROGRESS_TIMEOUT = 60
-
-# Define request models
-class MCQResponse(BaseModel):
-    question: str
-    question_id: int  # Add question_id field
-    selected_answer: str
-    correct_answer: str
-    is_correct: bool
-
-class MCQSubmission(BaseModel):
-    interview_id: str
-    candidate_email: str
-    responses: List[MCQResponse]
-    total_score: int
-    max_score: int
 
 @router.get("/interview/{interview_id}")
 async def get_candidate_interview(interview_id: str) -> Dict[str, Any]:

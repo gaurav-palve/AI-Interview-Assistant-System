@@ -29,8 +29,20 @@ const authService = {
       }
       return response.data;
     } catch (error) {
-      throw error.response?.data || { detail: 'An error occurred during sign in' };
-    }
+  console.error("Signin error (raw):", error);
+
+  const message =
+    error.response?.data?.detail ||
+    error.response?.data?.message ||
+    "Invalid email or password";
+
+  const err = new Error(message);
+  err.status = error.response?.status;
+  err.data = error.response?.data;
+
+  throw err;
+}
+
   },
 
   /**

@@ -11,17 +11,9 @@ from datetime import datetime, timezone
 from app.database import get_database
 from pydantic import BaseModel
 from bson import ObjectId
-
+from app.schemas.jobwise_statistics_schema import JobTitleResponse
 
 router = APIRouter()
-
-class JobTitleResponse(BaseModel):
-    job_title: str
-    posted_days_ago: int
-    number_of_applications: int
-    shortlisted: int
-    interviewed: int
-    status: str
 
 @router.get("/jobwise-statistics", response_model=List[JobTitleResponse])
 async def jobwise_statistics(

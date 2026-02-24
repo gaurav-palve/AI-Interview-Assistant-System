@@ -46,9 +46,16 @@ function Login() {
       }
 
       navigate("/dashboard", { replace: true });
-    } catch {
-      setError("Invalid email or password");
-    } finally {
+    } catch (err) {
+  console.error("Login error:", err);
+
+  setError(
+    err?.message ||
+    err?.detail ||
+    "Login failed. Please try again."
+  );
+}
+ finally {
       setLoading(false);
     }
   };
@@ -186,7 +193,6 @@ function Login() {
   </div>
 </div>
 
-
     {/* OPTIONS */}
     <div className="flex items-center justify-between text-[11px] text-white/70">
       <label className="flex items-center gap-2">
@@ -246,3 +252,4 @@ function Login() {
 }
 
 export default Login;
+ 

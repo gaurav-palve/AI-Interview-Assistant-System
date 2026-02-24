@@ -7,19 +7,8 @@ import pymongo
 
 from app.database import get_database
 from app.utils.auth_dependency import require_permission
-
+from app.schemas.job_mapping_schema import AssignJobRequest, RemoveAssignedUserRequest
 router = APIRouter()
-
-
-class AssignJobRequest(BaseModel):
-    job_id: str
-    user_ids: List[str]
-
-class RemoveAssignedUserRequest(BaseModel):
-    job_id: str
-    user_id: str
-
-
 
 @router.post("/job-assignments/assign")
 async def assign_job_to_users(

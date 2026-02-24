@@ -5,14 +5,11 @@ from ..services.camera_service import gen_frames, start_camera, stop_camera, set
 from ..utils.logger import get_logger
 from pydantic import BaseModel
 from typing import Optional
+from app.schemas.camera_schema import CameraConfig
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["Camera"])
 
-class CameraConfig(BaseModel):
-    width: Optional[int] = 640
-    height: Optional[int] = 480
-    enable_detection: Optional[bool] = False
 
 @router.get("/camera-integration")
 def camera_integration():

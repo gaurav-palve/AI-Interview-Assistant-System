@@ -11,27 +11,11 @@ from ..database import get_database, SCHEDULED_INTERVIEWS_COLLECTION, CANDIDATE_
 from ..utils.auth_dependency import  get_current_user,require_permission
 from ..services.email_service import EmailService
 from fastapi import Depends
+from app.schemas.interview_schedule_schema import BulkInterviewScheduleRequest
 
 logger = get_logger(__name__)
 router = APIRouter()
 
-# Define models
-class CandidateInfo(BaseModel):
-    name: str
-    email: str
-    resume: str
-
-class AttachmentInfo(BaseModel):
-    filename: str
-    content: str  # Base64 encoded content
-    content_type: str
-
-class BulkInterviewScheduleRequest(BaseModel):
-    job_posting_id: str
-    interview_datetime: str
-    candidates: List[CandidateInfo]
-    job_description: str
-    attachments: Optional[List[AttachmentInfo]] = []
 
 # Note: We're now using the get_current_user from auth_dependency.py
 

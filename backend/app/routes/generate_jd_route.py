@@ -11,15 +11,7 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 router = APIRouter(tags=["Job Descriptions"])
-
-class JDRequest(BaseModel):
-    company_description: Optional[str] = ""
-    job_role: Optional[str] = ""
-    location: Optional[str] = ""
-    experience: Optional[str] = ""
-    qualifications: Optional[str] = ""
-    skills: Optional[str] = ""
-    generated_description: Optional[str] = ""
+from app.schemas.JD_schema import JDRequest
 
 @router.post("/generate")
 async def generate_job_description(request: JDRequest):

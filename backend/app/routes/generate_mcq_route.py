@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import logging
 import time
 import hashlib
+from app.schemas.candidate_side_schemas import MCQGenerationRequest
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +22,6 @@ CACHE_EXPIRY = 300  # 5 minutes in seconds
 in_progress_requests: Dict[str, float] = {}
 router = APIRouter(prefix="/interviews", tags=["Interviews"])
 
-class MCQGenerationRequest(BaseModel):
-    candidate_email: str
-    request_id: Optional[str] = Field(None, description="Unique request ID for tracking and deduplication")
 
 @router.post("/generate-mcqs/")
 async def generate_mcqs_route(

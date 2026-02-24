@@ -40,12 +40,14 @@ const JobPostingActions = ({
 
 
   // Handle edit post
-  const handleEdit = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setAnchorEl(null);
-    navigate(`/job-postings/${job.id}/edit`);
-  };
+const handleEdit = (e) => {
+  if (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  }
+  setAnchorEl(null);
+  navigate(`/job-postings/edit/${job.id}`);
+};
 
   // Handle delete post
   const handleDelete = (e) => {
@@ -88,21 +90,6 @@ const JobPostingActions = ({
     setShowStatusMenu(false);
   };
 
-  // Close the dropdown when clicking outside
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (menuRef.current && !menuRef.current.contains(event.target)) {
-  //       setIsOpen(false);
-  //       setShowStatusMenu(false);
-  //     }
-  //   };
-    
-  //   document.addEventListener('mousedown', handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener('mousedown', handleClickOutside);
-  //   };
-  // }, []);
-
   return (
     <div className="relative">
       {/* Action button (three dots) */}
@@ -111,6 +98,7 @@ const JobPostingActions = ({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            setShowStatusMenu(false);
             setAnchorEl(e.currentTarget);
           }}
           className="p-2 rounded-full text-gray-600 hover:bg-gray-200"
@@ -138,7 +126,7 @@ const JobPostingActions = ({
       >
         {canEdit && (
           <button
-            onClick={handleEdit}
+            onClick= {handleEdit}
             className="w-full px-4 py-2 flex items-center hover:bg-gray-100"
           >
             <EditIcon className="mr-2 text-primary-500" />
