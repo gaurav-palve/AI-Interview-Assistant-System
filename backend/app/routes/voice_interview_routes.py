@@ -2,13 +2,16 @@
 from fastapi import APIRouter, HTTPException
 from app.services.voice_interview_service import VoiceInterviewService
 from app.database import get_voice_session, get_sessions_by_interview
-
+ 
 router = APIRouter(tags=["voice-interviews"])
-
-@router.post("/start")
-async def start_voice_interview(payload: dict):
+ 
+ 
+@router.post("/get-signed-url")
+async def get_signed_url(payload: dict):
     """
-    Start a voice interview session.
+    Generate a signed URL for a client-side ElevenLabs WebRTC session.
+    Creates a DB session record and returns the signed URL + session info.
+ 
     Expected payload: { "interview_id": "...", "candidate_id": "..." }
     """
     try:
@@ -16,26 +19,26 @@ async def start_voice_interview(payload: dict):
         candidate_id = payload.get("candidate_id")
         if not (interview_id and candidate_id):
             raise HTTPException(status_code=400, detail="Missing interview_id or candidate_id")
-
+ 
         service = VoiceInterviewService()
         return await service.start_voice_interview(interview_id, candidate_id)
+    except HTTPException:
+        raise
     except Exception as e:
-        # Log the full exception for debugging
         import traceback
-        print("=== VOICE INTERVIEW START ERROR ===")
+        print("=== VOICE INTERVIEW GET-SIGNED-URL ERROR ===")
         print(f"Error type: {type(e).__name__}")
         print(f"Error message: {str(e)}")
-        print("Full traceback:")
         traceback.print_exc()
         print("=== END ERROR ===")
-
+ 
         raise HTTPException(status_code=500, detail={
-            "error": "Failed to start voice interview",
+            "error": "Failed to get signed URL for voice interview",
             "error_type": type(e).__name__,
             "error_message": str(e),
-            "debug_info": "Check server logs for full traceback"
         })
-
+ 
+ 
 @router.post("/stop")
 def stop_voice_interview(payload: dict):
     """
@@ -46,26 +49,37 @@ def stop_voice_interview(payload: dict):
         session_id = payload.get("session_id")
         if not session_id:
             raise HTTPException(status_code=400, detail="Missing session_id")
-
+ 
         service = VoiceInterviewService()
         return service.stop_voice_interview_legacy(session_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to stop voice interview: {str(e)}")
-
+ 
+ 
 @router.post("/session/{session_id}/complete")
 async def complete_voice_interview(session_id: str, payload: dict):
     """
-    Complete a voice interview session and end the ElevenLabs agent.
-    Expected payload: { "duration_seconds": 120 }
+    Complete a voice interview session.
+    The frontend sends transcript data collected from the client-side SDK.
+ 
+    Expected payload: {
+        "duration_seconds": 120,
+        "transcript": [
+            {"role": "agent", "text": "..."},
+            {"role": "user", "text": "..."}
+        ]
+    }
     """
     try:
         duration_seconds = payload.get("duration_seconds", 0)
-
+        transcript_data = payload.get("transcript", [])
+ 
         service = VoiceInterviewService()
-        return await service.complete_voice_interview(session_id, duration_seconds)
+        return await service.complete_voice_interview(session_id, duration_seconds, transcript_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to complete voice interview: {str(e)}")
-
+ 
+ 
 @router.get("/session/{session_id}")
 async def get_voice_interview_session(session_id: str):
     """
@@ -75,13 +89,14 @@ async def get_voice_interview_session(session_id: str):
         session = await get_voice_session(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Voice interview session not found")
-
+ 
         return session
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get voice interview session: {str(e)}")
-
+ 
+ 
 @router.get("/interview/{interview_id}")
 async def get_voice_sessions_by_interview(interview_id: str):
     """
