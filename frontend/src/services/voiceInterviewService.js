@@ -1,23 +1,32 @@
 import api from './api';
-
+ 
 class VoiceInterviewService {
-  async startVoiceInterview(interviewId, candidateId) {
+  /**
+   * Get a signed URL for client-side WebRTC connection to ElevenLabs.
+   * Also creates a session record in the database.
+   */
+  async getSignedUrl(interviewId, candidateId) {
     try {
-      const response = await api.post('/voice-interviews/start', {
+      const response = await api.post('/voice-interviews/get-signed-url', {
         interview_id: interviewId,
         candidate_id: candidateId
       });
       return response.data;
     } catch (error) {
-      console.error('Error starting voice interview:', error);
+      console.error('Error getting signed URL:', error);
       throw error;
     }
   }
-
-  async completeVoiceInterview(sessionId, duration) {
+ 
+  /**
+   * Complete a voice interview session.
+   * Sends transcript data collected from the client-side SDK to the backend.
+   */
+  async completeVoiceInterview(sessionId, duration, transcript = []) {
     try {
       const response = await api.post(`/voice-interviews/session/${sessionId}/complete`, {
-        duration_seconds: duration
+        duration_seconds: duration,
+        transcript: transcript
       });
       return response.data;
     } catch (error) {
@@ -25,20 +34,20 @@ class VoiceInterviewService {
       throw error;
     }
   }
-
+ 
   async getVoiceSession(sessionId) {
     try {
-      const response = await api.get(`/api/voice-interviews/session/${sessionId}`);
+      const response = await api.get(`/voice-interviews/session/${sessionId}`);
       return response.data;
     } catch (error) {
       console.error('Error getting voice session:', error);
       throw error;
     }
   }
-
+ 
   async getInterviewVoiceSessions(interviewId) {
     try {
-      const response = await api.get(`/api/voice-interviews/interview/${interviewId}`);
+      const response = await api.get(`/voice-interviews/interview/${interviewId}`);
       return response.data;
     } catch (error) {
       console.error('Error getting interview voice sessions:', error);
@@ -46,5 +55,7 @@ class VoiceInterviewService {
     }
   }
 }
-
+ 
 export default new VoiceInterviewService();
+ 
+ 

@@ -1,401 +1,204 @@
 import axios from 'axios';
 
-// Flag to prevent multiple token refreshes at the same time
+// ===============================
+// Internal state
+// ===============================
 let isRefreshing = false;
-// Store callbacks for requests that were paused due to token refresh
 let refreshSubscribers = [];
-// Track token expiration time
 let tokenExpiryTime = null;
-// Buffer time in milliseconds (refresh token if expires within this time)
+
 const TOKEN_REFRESH_BUFFER_MS = 60000; // 1 minute
 
-/**
- * Execute all callbacks after token refresh
- * @param {string} token - New access token
- */
+// ===============================
+// Helpers
+// ===============================
 const onTokenRefreshed = (token) => {
-  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers.forEach((callback) => callback(token));
   refreshSubscribers = [];
 };
 
-/**
- * Subscribe to token refresh
- * @param {Function} callback - Function to call after token refresh
- */
 const addRefreshSubscriber = (callback) => {
   refreshSubscribers.push(callback);
 };
 
-/**
- * Parse JWT token to get expiration time
- * @param {string} token - JWT token
- * @returns {number} Expiration time in milliseconds
- */
 const parseTokenExpiry = (token) => {
-  if (!token) {
-    console.error('Invalid token provided to parseTokenExpiry');
-    return null;
-  }
-  
+  if (!token) return null;
+
   try {
-    // Split the token parts
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      console.error('Invalid JWT token format');
-      return null;
-    }
-    
-    // Base64 decode and parse the payload
-    const payload = JSON.parse(atob(parts[1]));
-    
-    // Ensure exp claim exists
-    if (!payload.exp) {
-      console.error('Token missing expiration claim');
-      return null;
-    }
-    
-    // Convert seconds to milliseconds
-    return payload.exp * 1000;
-  } catch (error) {
-    console.error('Error parsing token:', error);
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp ? payload.exp * 1000 : null;
+  } catch {
     return null;
   }
 };
 
-/**
- * Check if token is expired or about to expire
- * @returns {boolean} True if token needs refresh
- */
 const isTokenExpired = () => {
-  // If we don't have an expiry time, consider it expired
-  if (!tokenExpiryTime) {
-    return true;
-  }
-  
-  // Check if token is expired or will expire soon
-  const now = Date.now();
-  return now > (tokenExpiryTime - TOKEN_REFRESH_BUFFER_MS);
+  if (!tokenExpiryTime) return true;
+  return Date.now() > tokenExpiryTime - TOKEN_REFRESH_BUFFER_MS;
 };
 
-/**
- * Update stored token and expiry time
- * @param {string} token - New access token
- */
 const updateStoredToken = (token) => {
-  if (token) {
-    // Store in localStorage
-    localStorage.setItem('access_token', token);
-    
-    // Parse and store expiration time
-    tokenExpiryTime = parseTokenExpiry(token);
-    
-    console.log(`Token updated, expires at: ${new Date(tokenExpiryTime).toISOString()}`);
-    console.log(`Will refresh after: ${new Date(tokenExpiryTime - TOKEN_REFRESH_BUFFER_MS).toISOString()}`);
-  }
+  if (!token) return;
+
+  localStorage.setItem('access_token', token);
+  tokenExpiryTime = parseTokenExpiry(token);
 };
 
-// Export utility functions
-export { parseTokenExpiry, updateStoredToken };
-
-/**
- * Refresh the access token using the refresh token in HttpOnly cookie
- * @returns {Promise<string>} New access token
- */
+// ===============================
+// Refresh Access Token
+// ===============================
 const refreshAccessToken = async () => {
+  // ❗ NEVER refresh on login page
+  if (window.location.pathname === "/login") {
+    return null;
+  }
+
   try {
-    console.log('Refreshing access token...');
-    // Get the API base URL from environment or configuration
     const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-    
-    // The refresh token is automatically sent as an HttpOnly cookie
-    const response = await axios.post(`${baseURL}/auth/refresh`, {}, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      withCredentials: true // Important to include cookies
-    });
-    
+
+    const response = await axios.post(
+      `${baseURL}/auth/refresh`,
+      {},
+      { withCredentials: true }
+    );
+
     const newToken = response.data.access_token;
-    
-    // Update token expiry time
     updateStoredToken(newToken);
-    
+
     return newToken;
   } catch (error) {
-    // If refresh fails, clear tokens and redirect to login
-    console.error('Token refresh failed:', error);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_email');
+    console.error("Token refresh failed");
+
+    // Clear local auth
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_email");
     tokenExpiryTime = null;
-    window.location.href = '/login';
+
+    // Redirect ONLY if not already on login
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+
     return null;
   }
 };
 
-// Get the API base URL from environment variable or use default
-// The backend routes already include '/api' in the prefix, so we don't need to include it here
+// ===============================
+// Axios Instance
+// ===============================
 const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-// Create an axios instance with default config
 const api = axios.create({
-  baseURL: apiBaseUrl, // Backend API URL from environment
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  // Add timeout to prevent hanging requests
-  timeout: 120000, // 120 second timeout (increased from 30s to handle LLM generation)
-  // Disable automatic retries
-  retry: false,
-  retryDelay: 0,
-  // Maximum content size to prevent memory issues
-  maxContentLength: 10 * 1024 * 1024, // 10MB
+  baseURL: apiBaseUrl,
+  headers: { "Content-Type": "application/json" },
+  timeout: 120000,
 });
 
-// Add a request interceptor to include the access token in the Authorization header and log requests
-api.interceptors.request.use(
-  async (config) => {
-    // First, initialize token expiry if we have a token but no expiry time
-    const token = localStorage.getItem('access_token');
-    if (token && !tokenExpiryTime) {
-      tokenExpiryTime = parseTokenExpiry(token);
-    }
-    
-    // If we have a token that is about to expire, refresh it proactively
-    if (token && isTokenExpired() && !isRefreshing && !config.url.includes('/auth/refresh')) {
-      console.log('Token is expired or about to expire, refreshing before request...');
-      isRefreshing = true;
-      
-      try {
-        // Get a fresh token
-        const newToken = await refreshAccessToken();
-        
-        // Update the token in the current request
-        if (newToken) {
-          config.headers.Authorization = `Bearer ${newToken}`;
-          
-        }
-      
-      } finally {
-        isRefreshing = false;
-      }
-    }
-    // Add the current token to the request
-    else if (token) {
-      // Add token to Authorization header
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    // Check if this is a sensitive request (auth related)
-    const isSensitiveRequest = (url) => {
-      const sensitiveEndpoints = [
-        '/auth/signin',
-        '/auth/signup',
-        '/forgot-password',
-        '/reset-password',
-        '/auth/refresh'
-      ];
-      return sensitiveEndpoints.some(endpoint => url.includes(endpoint));
-    };
-    
-    // Sanitize sensitive data for logging
-    const sanitizeDataForLogging = (url, data) => {
-      if (!data || !isSensitiveRequest(url)) return data;
-      
-      // For sensitive endpoints, don't log the data at all
-      if (isSensitiveRequest(url)) {
-        return "[Sensitive auth data omitted]";
-      }
-      
-      return data;
-    };
-    
-    // Log request details for debugging
-    console.group('API Request');
-    console.log('URL:', `${config.baseURL}${config.url}`);
-    console.log('Method:', config.method.toUpperCase());
-    console.log('Params:', config.params);
-    
-    // Log data differently based on content type, sanitizing if needed
-    if (config.data) {
-      if (config.data instanceof FormData) {
-        console.log('Data: [FormData]');
-        // For FormData, we'll just indicate it contains form data without logging contents
-        console.log('  Form data content omitted for security');
-      } else {
-        // For regular JSON data, sanitize sensitive data completely
-        const sanitizedData = sanitizeDataForLogging(config.url, config.data);
-        console.log('Data:', sanitizedData);
-      }
-    }
-    console.log('Headers:', config.headers);
-    console.groupEnd();
-    
-    return config;
-  },
-  (error) => {
-    console.error('Request Error:', error);
-    return Promise.reject(error);
+// ===============================
+// REQUEST INTERCEPTOR
+// ===============================
+api.interceptors.request.use(async (config) => {
+  const token = localStorage.getItem("access_token");
+
+  // Initialize expiry
+  if (token && !tokenExpiryTime) {
+    tokenExpiryTime = parseTokenExpiry(token);
   }
-);
 
-// Add a response interceptor to handle common errors and log responses
-api.interceptors.response.use(
-  (response) => {
-    // Check if this is a sensitive response
-    const isSensitiveResponse = (url) => {
-      const sensitiveEndpoints = [
-        '/auth/signin',
-        '/auth/signup',
-        '/auth/refresh',
-        '/forgot-password',
-        '/reset-password'
-      ];
-      return sensitiveEndpoints.some(endpoint => url.includes(endpoint));
-    };
+  const isLoginPage = window.location.pathname === "/login";
 
-    // Sanitize sensitive response data
-    const sanitizeResponseData = (url, data) => {
-      if (!data) return data;
-      
-      // For sensitive endpoints, don't log the actual data
-      if (isSensitiveResponse(url)) {
-        return "[Sensitive auth response omitted]";
+  // Refresh if needed (but NOT on login page)
+  if (
+    token &&
+    !isLoginPage &&
+    isTokenExpired() &&
+    !isRefreshing &&
+    !config.url.includes("/auth/refresh")
+  ) {
+    isRefreshing = true;
+
+    try {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        config.headers.Authorization = `Bearer ${newToken}`;
       }
-      
-      return data;
-    };
-    
-    // Log successful response
-    console.group('API Response');
-    console.log('URL:', response.config.url);
-    console.log('Status:', response.status);
-    console.log('Data:', sanitizeResponseData(response.config.url, response.data));
-    console.groupEnd();
-    
-    return response;
-  },
+    } finally {
+      isRefreshing = false;
+    }
+  } else if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+// ===============================
+// RESPONSE INTERCEPTOR
+// ===============================
+api.interceptors.response.use(
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
-    // Create sanitizing function for error responses
-    const sanitizeErrorResponseData = (url, data) => {
-      if (!data) return data;
-      
-      // Reuse the same sensitive endpoints pattern
-      const sensitiveEndpoints = [
-        '/auth/signin',
-        '/auth/signup',
-        '/auth/refresh',
-        '/forgot-password',
-        '/reset-password'
-      ];
-      
-      const isSensitive = sensitiveEndpoints.some(endpoint =>
-        url && url.includes(endpoint)
-      );
-      
-      // Completely remove sensitive data from logs
-      if (isSensitive) {
-        return "[Sensitive auth error omitted]";
-      }
-      
-      return data;
-    };
-    
-    // Log error response with sanitized data
-    console.group('API Error');
-    console.error('Request URL:', originalRequest?.url);
-    console.error('Status:', error.response?.status);
-    
-    // Don't log sensitive error data at all
-    const isSensitiveRequest = (url) => {
-      const sensitiveEndpoints = [
-        '/auth/signin',
-        '/auth/signup',
-        '/auth/refresh',
-        '/forgot-password',
-        '/reset-password'
-      ];
-      return url && sensitiveEndpoints.some(endpoint => url.includes(endpoint));
-    };
-    
-    if (isSensitiveRequest(originalRequest?.url)) {
-      console.error('Data:', "[Sensitive auth error data omitted]");
-    } else {
-      console.error('Data:', error.response?.data);
-    }
-    
-    console.error('Error:', error.message);
-    console.groupEnd();
-    
-    // Handle authentication errors - attempt token refresh for 401 errors
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      // If we're not already refreshing a token
+
+    // ===============================
+    // Handle 401 → try refresh once
+    // ===============================
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/signin") // ❗ DO NOT refresh during login
+    ) {
       if (!isRefreshing) {
-        console.log('Attempting to refresh access token');
         originalRequest._retry = true;
         isRefreshing = true;
-        
+
         try {
-          // Try to refresh the token
           const newToken = await refreshAccessToken();
-          
+
           if (newToken) {
-            // Update token in local storage
-            localStorage.setItem('access_token', newToken);
-            
-            // Update token in axios headers
-            originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-            
-            // Notify all waiting requests that token is refreshed
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
             onTokenRefreshed(newToken);
-            
-            console.log('Token refresh successful, retrying original request');
             return api(originalRequest);
           }
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
         } finally {
           isRefreshing = false;
         }
-      } else {
-        // If we're already refreshing, wait for the token
-        console.log('Waiting for token refresh to complete');
-        
-        // Create a new promise that will resolve when token is refreshed
-        return new Promise((resolve) => {
-          addRefreshSubscriber((token) => {
-            // Replace the token in the original request
-            originalRequest.headers['Authorization'] = `Bearer ${token}`;
-            // Retry the original request
-            resolve(api(originalRequest));
-          });
+      }
+
+      // Wait for refresh to complete
+      return new Promise((resolve) => {
+        addRefreshSubscriber((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          resolve(api(originalRequest));
         });
+      });
+    }
+
+    // ===============================
+    // Final 401 → logout cleanly
+    // ===============================
+    if (error.response?.status === 401 && originalRequest._retry) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user_email");
+      tokenExpiryTime = null;
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
       }
     }
-    // For 401 errors that couldn't be fixed with token refresh
-    else if (error.response && error.response.status === 401 && originalRequest._retry) {
-      console.log('Authentication error - redirecting to login');
-      // Clear the token and redirect to login
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('user_email');
-      window.location.href = '/login';
-    }
-    // For 403 errors (permission denied), don't redirect, just pass the error
-    else if (error.response && error.response.status === 403) {
-      console.log('Permission denied error - user lacks required permissions');
-      // Add a specific flag to identify permission errors
+
+    // ===============================
+    // 403 → permission issue (no redirect)
+    // ===============================
+    if (error.response?.status === 403) {
       error.isPermissionError = true;
-      error.permissionMessage = error.response.data.detail || 'You do not have permission to perform this action';
+      error.permissionMessage =
+        error.response.data?.detail || "Permission denied";
     }
-    
-    // Enhance error object with more details
-    if (error.response && error.response.data) {
-      error.detail = error.response.data.detail || 'An error occurred';
-      console.log('Error detail:', error.detail);
-    }
-    
+
     return Promise.reject(error);
   }
 );
 
 export default api;
+export { updateStoredToken, parseTokenExpiry };
