@@ -60,7 +60,7 @@ async def get_roles_endpoint(
         # Fetch roles based on user type
         if is_superadmin:
             # Superadmin can see all roles
-            roles = await db[ROLES_COLLECTION].find({}).to_list(length=None)
+            roles = await db[ROLES_COLLECTION].find({"role_name": {"$ne": "SUPER_ADMIN"}}).to_list(length=None)
         else:
             # Regular users can only see roles that were delegated to them
             assignable_role_ids = current_user.get("assignable_role_ids", [])

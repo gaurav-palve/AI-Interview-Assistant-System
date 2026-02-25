@@ -14,8 +14,7 @@ class ResetPasswordRequest(BaseModel):
     confirm_password: str
 
 @router.post("/reset-password")
-async def reset_password(request: ResetPasswordRequest,
-                         current_user: dict = Depends(get_current_user)):
+async def reset_password(request: ResetPasswordRequest):
     db = get_database()
     await otp_verification.verify_otp(db, request.email, request.otp, OTP_COLLECTION)
     
