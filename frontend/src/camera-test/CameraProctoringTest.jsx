@@ -498,8 +498,13 @@ export default function CameraProctoringTest({ autoStart = false, sessionId: pro
         </>
       )}
 
-      <div style={{ display: hideControls ? "block" : "flex", gap: 20, marginTop: hideControls ? 0 : 20 }}>
-        <div style={{ position: "relative", flex: hideControls ? 1 : "auto" }}>
+      <div style={{
+        display: hideControls ? "block" : "flex",
+        gap: 20,
+        marginTop: hideControls ? 0 : 20,
+        height: hideControls ? "100%" : "auto"
+      }}>
+        <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: hideControls ? 0 : 12 }}>
           <video
             ref={videoRef}
             autoPlay

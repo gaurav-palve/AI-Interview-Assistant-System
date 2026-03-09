@@ -1,548 +1,433 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Assessment as AssessmentIcon,
-  Person as PersonIcon,
-  Mic as MicIcon,
-  Code as CodeIcon,
-  BarChart as BarChartIcon,
   Star as StarIcon,
-  StarHalf as StarHalfIcon,
-  StarBorder as StarBorderIcon,
-  ContentCopy as ContentCopyIcon,
   Download as DownloadIcon,
-  Search as SearchIcon,
-  Refresh as RefreshIcon
-} from '@mui/icons-material';
-import interviewService from '../services/interviewService';
+  ExpandMore as ExpandMoreIcon,
+} from "@mui/icons-material";
+import pie_chart_outline from "@mui/icons-material/PieChartOutline";
+import DonutLargeIcon from "@mui/icons-material/DonutLarge";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts";
+
+import interviewService from "../services/interviewService";
+import Tooltip from "@mui/material/Tooltip";
 
 function CandidateAssessmentReports({ jobPostingId = null }) {
-  // State for real data from API
   const [candidateReports, setCandidateReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
   const [totalReports, setTotalReports] = useState(0);
-  
-  // State for filters
-  const [filters, setFilters] = useState({
-    candidate_name: '',
-    candidate_email: '',
-    job_role: '',
-    interview_id: ''
-  });
-  
-  // State for PDF download
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadId, setDownloadId] = useState(null);
-  // Function to fetch reports from API
+
+  /* ------------------- DATA FETCH ------------------- */
+
   const fetchReports = async () => {
     try {
       setLoading(true);
       setError(null);
-      // Prepare cleaned filters
-      const cleanedFilters = Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== '')
-      );
 
       let response;
       if (jobPostingId) {
-        response = await interviewService.getJobPostingCandidateReports(jobPostingId, page, pageSize, cleanedFilters);
+        response = await interviewService.getJobPostingCandidateReports(
+          jobPostingId,
+          page,
+          pageSize
+        );
       } else {
-        response = await interviewService.getCandidateReports(page, pageSize, cleanedFilters);
+        response = await interviewService.getCandidateReports(
+          page,
+          pageSize
+        );
       }
-      
-      // Process the reports data
-      const processedReports = response.reports.map(report => {
-        // Calculate overall score based on MCQ, Voice, and Coding data
+
+      const processedReports = response.reports.map((report) => {
         const mcqScore = calculateMcqScore(report.MCQ_data || []);
         const voiceScore = report.Voice_data?.overall_score * 10 || 0;
         const codingScore = calculateCodingScore(report.Coding_data || []);
-        
-        const overallScore = Math.round((mcqScore + voiceScore + codingScore) / 3);
-        
-        // Determine rating based on overall score
-        let rating = "Poor";
-        if (overallScore >= 85) rating = "Excellent";
-        else if (overallScore >= 70) rating = "Good";
-        else if (overallScore >= 50) rating = "Average";
-        
-        // Determine recommendation based on overall score
-        let recommendation = "Not Recommended";
-        if (overallScore >= 85) recommendation = "Hire";
-        else if (overallScore >= 70) recommendation = "Consider";
-        else if (overallScore >= 50) recommendation = "Consider with reservations";
-        
+
+        const overallScore = Math.round(
+          (mcqScore + voiceScore + codingScore) / 3
+        );
+
+        // Extract strengths from all assessment types
+        const mcqStrengths = extractMcqStrengths(report.MCQ_data || []);
+        const voiceStrengths = extractVoiceStrengths(report.Voice_data);
+        const codingStrengths = extractCodingStrengths(report.Coding_data || []);
+
+        // Combine all strengths
+        const allStrengths = [...mcqStrengths, ...voiceStrengths, ...codingStrengths];
+
         return {
           id: report.interview_id,
           name: report.candidate_name || "Unknown",
           email: report.candidate_email || "No email",
-          position: report.job_role || "Unknown Position",
-          photo: null,
+          position: report.job_role || "Unknown Role",
+
           mcq: {
             score: mcqScore,
-            details: `${getCorrectMcqCount(report.MCQ_data || [])}/${(report.MCQ_data || []).length} correct answers`,
-            strengths: extractMcqStrengths(report.MCQ_data || []),
-            weaknesses: "Areas for improvement"
+            strengths: mcqStrengths,
           },
+
           voice: {
             score: voiceScore,
-            details: report.Voice_data?.feedback || "No feedback available",
-            strengths: "Communication skills",
-            weaknesses: "Areas for improvement"
+            strengths: voiceStrengths,
           },
+
           coding: {
             score: codingScore,
-            details: "Code quality assessment",
-            strengths: "Problem-solving",
-            weaknesses: "Areas for improvement"
+            strengths: codingStrengths,
           },
+
           overall: {
-            rating: rating,
             score: overallScore,
-            recommendation: recommendation,
-            feedback: report.Voice_data?.feedback || "No feedback available"
+            strengths: allStrengths,
           },
-          // Store the original report data for reference
-          rawReport: report
         };
       });
-      
+
       setCandidateReports(processedReports);
+
       const pagination = response.pagination || {};
-      setTotalPages(pagination.total_pages ?? Math.max(1, Math.ceil((pagination.total ?? processedReports.length) / pageSize)));
-      setTotalReports(pagination.total ?? processedReports.length);
+      setTotalPages(pagination.total_pages || 1);
+      setTotalReports(pagination.total || processedReports.length);
     } catch (err) {
-      console.error("Error fetching reports:", err);
-      setError(err.detail || "Failed to load candidate reports");
+      setError("Failed to load reports");
     } finally {
       setLoading(false);
     }
   };
-  
-  // Helper functions for data processing
+
+  useEffect(() => {
+    fetchReports();
+  }, [page, jobPostingId]);
+
+  /* ------------------- HELPERS ------------------- */
+
   const calculateMcqScore = (mcqData) => {
-    if (!mcqData || mcqData.length === 0) return 0;
-    const correctCount = mcqData.filter(q => q.is_correct).length;
-    return Math.round((correctCount / mcqData.length) * 100);
+    if (!mcqData.length) return 0;
+    const correct = mcqData.filter((q) => q.is_correct).length;
+    return Math.round((correct / mcqData.length) * 100);
   };
-  
-  const getCorrectMcqCount = (mcqData) => {
-    if (!mcqData || mcqData.length === 0) return 0;
-    return mcqData.filter(q => q.is_correct).length;
-  };
-  
-  const extractMcqStrengths = (mcqData) => {
-    // This is a placeholder - in a real app, you might analyze the MCQs to determine strengths
-    return "Technical knowledge";
-  };
-  
+
   const calculateCodingScore = (codingData) => {
-    if (!codingData || codingData.length === 0) return 0;
-    const totalMarks = codingData.reduce((sum, item) => sum + (item.coding_marks || 0), 0);
-    const maxPossibleMarks = codingData.length * 10; // Assuming max score is 10 per coding question
-    return Math.round((totalMarks / maxPossibleMarks) * 100);
+    if (!codingData.length) return 0;
+    const total = codingData.reduce(
+      (sum, item) => sum + (item.coding_marks || 0),
+      0
+    );
+    return Math.round((total / (codingData.length * 10)) * 100);
   };
-  
-  // Calculate average scores for summary cards
-  const calculateAverageMcqScore = () => {
-    if (candidateReports.length === 0) return 0;
-    const total = candidateReports.reduce((sum, report) => sum + report.mcq.score, 0);
-    return Math.round(total / candidateReports.length);
+
+  const extractMcqStrengths = (mcqData) => {
+    // Return dummy strengths for display
+    return [
+      "Data Pipeline Architecture",
+      "ETL / ELT Expertise",
+      "Big Data Processing",
+      "SQL & Advanced Query Optimization",
+      "API & Data Integration",
+    ];
   };
-  
-  const calculateAverageVoiceScore = () => {
-    if (candidateReports.length === 0) return 0;
-    const total = candidateReports.reduce((sum, report) => sum + report.voice.score, 0);
-    return Math.round(total / candidateReports.length);
+
+  const extractVoiceStrengths = (voiceData) => {
+    // Return empty for now - can be populated later
+    return [];
   };
-  
-  const calculateAverageCodingScore = () => {
-    if (candidateReports.length === 0) return 0;
-    const total = candidateReports.reduce((sum, report) => sum + report.coding.score, 0);
-    return Math.round(total / candidateReports.length);
+
+  const extractCodingStrengths = (codingData) => {
+    // Return empty for now - can be populated later
+    return [];
   };
-  
-  // Function to handle PDF download
-  const handleDownloadPdf = async (interviewId) => {
+
+  const handleDownloadPdf = async (id) => {
     try {
       setDownloadingPdf(true);
-      setDownloadId(interviewId);
-      await interviewService.downloadReportPdf(interviewId);
+      setDownloadId(id);
+      await interviewService.downloadReportPdf(id);
     } catch (err) {
-      console.error("Error downloading PDF:", err);
-      setError(err.detail || "Failed to download PDF report");
+      console.error(err);
     } finally {
       setDownloadingPdf(false);
       setDownloadId(null);
     }
   };
-  
-  // Function to handle filter changes
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+  // Helper function to get initials from name
+  const getInitials = (name) => {
+    if (!name) return "??";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
-  
-  // Function to apply filters
-  const applyFilters = () => {
-    setPage(1); // Reset to first page when applying filters
-    fetchReports();
+
+  const renderCustomAngleTick = ({ payload, x, y }) => {
+    const { value } = payload;
+
+    let adjustedX = x;
+    let adjustedY = y;
+
+    // TOP label (MCQ)
+    if (value.includes("MCQ")) {
+      adjustedY = y - 3; // slightly higher
+    }
+
+    // BOTTOM LEFT (Coding)
+    if (value.includes("Coding")) {
+      adjustedX = x + 5;  // move more inside
+      adjustedY = y + 15;  // move more down
+    }
+
+    // BOTTOM RIGHT (Voice)
+    if (value.includes("Voice")) {
+      adjustedX = x - 5;  // move more inside
+      adjustedY = y + 15;  // move more down
+    }
+
+    return (
+      <text
+        x={adjustedX}
+        y={adjustedY}
+        textAnchor="middle"
+        fontSize="14"
+        fill="#374151"
+      >
+        {value}
+      </text>
+    );
   };
-  
-  // Function to reset filters
-  const resetFilters = () => {
-    setFilters({
-      candidate_name: '',
-      candidate_email: '',
-      job_role: '',
-      interview_id: ''
-    });
-    setPage(1);
-    fetchReports();
-  };
-  
-  // Fetch reports when component mounts or when page/pageSize changes
-  useEffect(() => {
-    fetchReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, jobPostingId, filters]);
+
+  /* ------------------- UI ------------------- */
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-          <AssessmentIcon className="mr-2 text-[#2563EB]" />
+      <div className="bg-white rounded-xl shadow-md p-6">
+
+        {/* Header */}
+        <h1 className="text-2xl font-bold flex items-center mb-6">
+          <AssessmentIcon className="mr-2 text-blue-600" />
           Candidate Assessment Reports
         </h1>
-        <p className="text-gray-600 mb-6">
-          View comprehensive assessment reports for candidates across multiple evaluation rounds including MCQ tests, voice interviews, and coding challenges.
-        </p>
-        
-        {/* Error message */}
+
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <div className="flex">
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
+          <div className="bg-red-50 p-4 text-red-600 rounded mb-4">
+            {error}
           </div>
         )}
-        
-          {/* Filter form */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
-            <SearchIcon className="mr-2 text-[#2563EB]" />
-            Filter Reports
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Candidate Name</label>
-              <input
-                type="text"
-                name="candidate_name"
-                value={filters.candidate_name}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="text"
-                name="candidate_email"
-                value={filters.candidate_email}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by email"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Job Role</label>
-              <input
-                type="text"
-                name="job_role"
-                value={filters.job_role}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by job role"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Interview ID</label>
-              <input
-                type="text"
-                name="interview_id"
-                value={filters.interview_id}
-                onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm"
-                placeholder="Search by ID"
-              />
-            </div>
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
           </div>
-          <div className="mt-4 flex justify-end space-x-3">
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Reset
-            </button>
-            <button
-              onClick={applyFilters}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#2563EB] hover:bg-primary-700"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
-       
-        {/* Candidate reports table */}
-        <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-              <span className="ml-3 text-gray-600">Loading candidate reports...</span>
-            </div>
-          ) : candidateReports.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-500 mb-4">No candidate reports found.</p>
-              <p className="text-gray-400 text-sm">Try adjusting your filters or adding new candidates.</p>
-            </div>
-          ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Candidate
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center">
-                    <AssessmentIcon className="h-4 w-4 mr-1 text-blue-600" />
-                    MCQ Test
-                  </div>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center">
-                    <MicIcon className="h-4 w-4 mr-1 text-purple-600" />
-                    Voice Interview
-                  </div>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <div className="flex items-center">
-                    <CodeIcon className="h-4 w-4 mr-1 text-green-600" />
-                    Coding Challenge
-                  </div>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Overall
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {candidateReports.map((candidate) => (
-                <tr key={candidate.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white">
-                        <PersonIcon className="h-6 w-6" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{candidate.name}</div>
-                        <div className="text-sm text-gray-500">{candidate.email}</div>
-                        <div className="text-xs text-gray-500">{candidate.position}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center mb-1">
-                      <div className="w-full bg-blue-100 rounded-full h-2.5 mr-2 w-24">
-                        <div 
-                          className="bg-blue-600 h-2.5 rounded-full" 
-                          style={{ width: `${candidate.mcq.score}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{candidate.mcq.score}%</span>
-                    </div>
-                    <div className="text-xs text-gray-500">{candidate.mcq.details}</div>
-                    <div className="mt-1 flex items-center">
-                      <span className="text-xs text-blue-700 font-medium mr-1">Strengths:</span>
-                      <span className="text-xs text-gray-500">{candidate.mcq.strengths}</span>
-                    </div>
-                  </td>
-                  {/* Voice Interview Column (YOUR REQUESTED CHANGES) */}
-                  <td className="px-6 py-4 w-48"> {/* 1. Ensures same column length as MCQ */}
-                      <div className="flex items-center mb-1">
-                          <div className="w-full bg-purple-100 rounded-full h-2.5 mr-2 w-24">
-                              <div 
-                                className="bg-purple-600 h-2.5 rounded-full" 
-                                style={{ width: `${candidate.voice.score}%` }}
-                              ></div>
+        ) : (
+          <>
+            {/* GRID: 2 columns at larger widths (zoom ≤80%), 1 column at smaller widths (zoom >80%) */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {candidateReports.map((candidate) => {
+
+                const chartData = [
+                  { subject: `MCQ (${candidate.mcq.score})`, value: candidate.mcq.score },
+                  { subject: `Coding (${candidate.coding.score})`, value: candidate.coding.score },
+                  { subject: `Voice (${candidate.voice.score})`, value: candidate.voice.score }
+                ];
+
+
+                return (
+                  <div
+                    key={candidate.id}
+                    className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition"
+                  >
+                    {/* Top Section - Responsive Flex Layout */}
+                    <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-6">
+
+                      {/* LEFT SIDE - TEXT CONTENT */}
+                      <div className="flex-1 w-full lg:w-auto">
+
+                        {/* Profile Row */}
+                        <div className="flex items-start gap-3">
+                          {/* Initials Avatar */}
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-bold text-base sm:text-lg">
+                              {getInitials(candidate.name)}
+                            </span>
                           </div>
-                          <span className="text-sm font-medium text-gray-900">{candidate.voice.score}%</span>
-                      </div>
-                      
-                      {/* 2. Scrollable Container for all text content */}
-                      <div className="mt-1 max-h-9 overflow-y-auto pr-1"> 
-                        <div className="text-xs text-gray-500">{candidate.voice.details}</div>
-                        <div className="mt-1 flex items-center">
-                          <span className="text-xs text-purple-700 font-medium mr-1">Strengths:</span>
-                          <span className="text-xs text-gray-500">{candidate.voice.strengths}</span>
+
+                          <div className="flex-1 min-w-0">
+                            <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
+                              {candidate.name}
+                            </h2>
+
+                            <p className="text-xs sm:text-sm text-gray-500 truncate mb-1">
+                              {candidate.email}
+                            </p>
+
+                            {/* Job Role and Overall Fit - Single Line */}
+                            <div className="flex items-center gap-2 flex-nowrap">
+
+                              <span className="text-blue-600 text-xs sm:text-sm font-medium">
+                                {candidate.position}
+                              </span>
+
+                              <span className="text-gray-400">•</span>
+
+                              <span className="text-green-600 text-xs sm:text-sm font-medium flex items-center gap-1 whitespace-nowrap">
+                                <CheckCircleIcon sx={{ fontSize: 14, color: '#10B981' }} />
+                                {candidate.overall.score}% Overall fit
+                              </span>
+                            </div>
+
+                          </div>
                         </div>
+
+                        {/* Strengths Section - Inline */}
+                        <div className="mt-4">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs sm:text-sm font-semibold text-gray-700">
+                              Top Strengths:
+                            </span>
+                            {candidate.mcq.strengths.map((skill, i) => (
+                              <span
+                                key={i}
+                                className="bg-gray-200 text-gray-700 text-xs px-2.5 py-1 rounded-full whitespace-nowrap"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
                       </div>
-                  </td>
-                  {/* Coding Challenge Column (YOUR REQUESTED CHANGES) */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center mb-1">
-                      <div className="w-full bg-green-100 rounded-full h-2.5 mr-2 w-24">
-                        <div 
-                          className="bg-green-600 h-2.5 rounded-full" 
-                          style={{ width: `${candidate.coding.score}%` }}
-                        ></div>
+
+                      {/* RIGHT SIDE - RADAR CHART */}
+                      <div className="w-full lg:w-[240px] h-[220px] sm:h-[240px] flex-shrink-0 mx-auto lg:mx-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart
+                            data={chartData}
+                            startAngle={90}
+                            endAngle={-270}
+                            outerRadius="65%"
+                            margin={{ top: 25, right: 25, bottom: 25, left: 25 }}
+                          >
+                            <PolarGrid stroke="#d1d5db" />
+
+                            <PolarAngleAxis
+                              dataKey="subject"
+                              tick={renderCustomAngleTick}
+                            />
+
+                            <PolarRadiusAxis
+                              domain={[0, 100]}
+                              tickCount={6}
+                              angle={120}   // ✅ correct right edge angle
+                              axisLine={false}
+                              tick={({ x, y, payload }) => (
+                                <text
+                                  x={x + 55}
+                                  y={y}
+                                  fill="#9ca3af"
+                                  fontSize={11}
+                                  textAnchor="start"
+                                // transform={`rotate(-30, ${x}, ${y})`}  // rotate same angle
+                                >
+                                  {payload.value}
+                                </text>
+                              )}
+                            />
+
+                            <Radar
+                              dataKey="value"
+                              stroke="#4f46e5"
+                              strokeWidth={2}
+                              fill="#4f46e5"
+                              fillOpacity={0.35}
+                            />
+                          </RadarChart>
+
+                        </ResponsiveContainer>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{candidate.coding.score}%</span>
                     </div>
-                    <div className="text-xs text-gray-500">{candidate.coding.details}</div>
-                    <div className="mt-1 flex items-center">
-                      <span className="text-xs text-green-700 font-medium mr-1">Strengths:</span>
-                      <span className="text-xs text-gray-500">{candidate.coding.strengths}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center mb-1">
-                      <div className="flex text-yellow-400">
-                        {[1, 2, 3, 4, 5].map((star) => {
-                          const rating = candidate.overall.score / 20; // Convert to 5-star scale
-                          return star <= Math.floor(rating) ? (
-                            <StarIcon key={star} className="h-4 w-4" />
-                          ) : star === Math.ceil(rating) && !Number.isInteger(rating) ? (
-                            <StarHalfIcon key={star} className="h-4 w-4" />
-                          ) : (
-                            <StarBorderIcon key={star} className="h-4 w-4" />
-                          );
-                        })}
+
+
+                    {/* Footer - Responsive */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-1 pt-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <StarIcon className="text-yellow-400 text-base sm:text-sm" />
+                        <span className="text-sm font-medium">
+                          {(candidate.overall.score / 20).toFixed(1)} Rating
+                        </span>
                       </div>
-                      <span className="ml-2 text-sm font-medium text-gray-900">{candidate.overall.score}%</span>
+
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+
+                        <button
+                          onClick={() => handleDownloadPdf(candidate.id)}
+                          disabled={downloadingPdf && downloadId === candidate.id}
+                          className="flex items-center text-sm bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 flex-1 sm:flex-initial justify-center"
+                        >
+                          <DownloadIcon className="text-sm mr-1" />
+                          {downloadingPdf && downloadId === candidate.id
+                            ? "Downloading..."
+                            : "Download"}
+                        </button>
+
+                        <button
+                          className="flex items-center justify-center text-sm bg-gray-100 p-2 rounded-lg hover:bg-gray-200 transition-colors"
+                          title="Expand"
+                        >
+                          <OpenInFullIcon sx={{ fontSize: 20 }} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-xs font-medium">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        candidate.overall.rating === 'Excellent' ? 'bg-green-100 text-green-800' : 
-                        candidate.overall.rating === 'Good' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {candidate.overall.rating}
-                      </span>
-                    </div>
-                    <div className="mt-1 text-xs text-gray-500">
-                      {candidate.overall.recommendation}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleDownloadPdf(candidate.id)}
-                      disabled={downloadingPdf && downloadId === candidate.id}
-                      className="text-primary-600 hover:text-primary-900 font-medium flex items-center"
-                    >
-                      {downloadingPdf && downloadId === candidate.id ? (
-                        <>
-                          <div className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-primary-600 rounded-full"></div>
-                          Downloading...
-                        </>
-                      ) : (
-                        <>
-                          <DownloadIcon className="h-4 w-4 mr-1" />
-                          Download PDF
-                        </>
-                      )}
-                    </button>
-                    <div className="flex justify-end mt-2 space-x-2">
-                      <button className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600">
-                        <BarChartIcon className="h-4 w-4" />
-                      </button>
-                      <button className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600">
-                        <ContentCopyIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          )}
-        </div>
-        
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-4 text-sm">
-          <div className="text-gray-700">
-            {loading ? (
-              <span>Loading...</span>
-            ) : (
-              <>
-                Showing <span className="font-medium">{(page - 1) * pageSize + 1}</span> to{' '}
-                <span className="font-medium">{Math.min(page * pageSize, totalReports)}</span> of{' '}
-                <span className="font-medium">{totalReports}</span> candidates
-              </>
-            )}
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1 || loading}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            {totalPages > 0 && (
-              <div className="flex space-x-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show first page, last page, current page, and pages around current
-                  const pageNum = i === 0 ? 1 :
-                                i === 4 ? totalPages :
-                                page <= 2 ? i + 1 :
-                                page >= totalPages - 1 ? totalPages - 4 + i :
-                                page - 2 + i;
-                  
-                  // Only render if we're showing sequential pages or first/last
-                  if (i === 0 || i === 4 || Math.abs(pageNum - page) <= 2) {
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setPage(pageNum)}
-                        disabled={loading}
-                        className={`px-3 py-1 border rounded-md text-sm font-medium ${
-                          pageNum === page
-                            ? 'bg-primary-50 border-primary-500 text-primary-600'
-                            : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  }
-                  return null;
-                })}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination - Responsive */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+              <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+                Showing {(page - 1) * pageSize + 1} to{" "}
+                {Math.min(page * pageSize, totalReports)} of{" "}
+                {totalReports} candidates
+              </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
               </div>
-            )}
-            <button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages || totalPages === 0 || loading}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 export default CandidateAssessmentReports;
+

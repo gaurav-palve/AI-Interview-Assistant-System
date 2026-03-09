@@ -312,8 +312,8 @@ async def get_candidate_mcqs(interview_id: str) -> str:
         existing_mcqs = await db[MCQS_COLLECTION].find_one({"interview_id": interview_id})
         
         if not existing_mcqs:
-            logger.warning(f"No MCQs found for interview {interview_id}")
-            raise HTTPException(status_code=404, detail="MCQs not found for this interview")
+            logger.info(f"No MCQs found for interview {interview_id} yet (still generating)")
+            return ""
         
         # Format MCQs for frontend consumption
         if isinstance(existing_mcqs["mcqs_text"], list):

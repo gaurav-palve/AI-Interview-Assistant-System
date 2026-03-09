@@ -25,8 +25,23 @@ import {
   Progress,
   Center
 } from "@chakra-ui/react";
-import { ChevronLeft, ChevronRight, LightMode, DarkMode } from "@mui/icons-material";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LightMode,
+  DarkMode,
+  Home as HomeIcon,
+  QuestionAnswer as QuestionIcon,
+  Mic as MicMuiIcon,
+  School as SchoolIcon,
+  Check as CheckMuiIcon,
+  ArrowForward as ArrowForwardIcon,
+  Menu as MenuIcon,
+  Code as CodeIcon
+} from "@mui/icons-material";
+import { Clock } from 'lucide-react';
 import { useParams, useNavigate } from "react-router-dom";
+import interviewService from '../services/interviewService';
 import ProblemDescription from "./ProblemDescription";
 import CameraProctorNew from "./CameraProctorNew";
 import CodeEditorPanel from "./CodeEditorPanel";
@@ -37,6 +52,9 @@ import {
   saveCodingAnswer
 } from "../services/codingService";
 import { CODE_SNIPPETS } from "../constants";
+import CodingResults from "./CodingResults";
+
+const INITIAL_TIME = 120; // 2 minutes
 
 const LeetCodeLayout = () => {
   const { interviewId } = useParams();
@@ -44,6 +62,7 @@ const LeetCodeLayout = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [interview, setInterview] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
   const editorRef = useRef(null);
   const rightPanelRef = useRef(null);
@@ -57,14 +76,16 @@ const LeetCodeLayout = () => {
   const [showTestResults, setShowTestResults] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
-  
+
   // Timer state - 40 minutes for all questions
-  const [timeRemaining, setTimeRemaining] = useState(500); // 40 minutes in seconds
+  const [timeRemaining, setTimeRemaining] = useState(INITIAL_TIME);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [actualTimeTaken, setActualTimeTaken] = useState(0);
   const toast = useToast();
-  
+
   // Handle cheating detection and show toast
   const handleCheatingDetected = useCallback((type, message) => {
     const cheatingTypeMap = {
@@ -90,24 +111,32 @@ const LeetCodeLayout = () => {
 
     console.warn(`Cheating detected: ${type}`, message);
   }, [toast]);
-  
+
   // Get the current question
   const currentQuestion = questions[currentQuestionIndex] || null;
-  
+
   // Background colors
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const panelBgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const successBg = useColorModeValue("green.50", "green.900");
   const errorBg = useColorModeValue("red.50", "red.900");
-  
+
   // Load questions when component mounts and auto-start camera
   useEffect(() => {
-    loadQuestions();
-    // Auto-start camera on component mount
-    setCameraReady(true);
-  }, []);
-  
+    const loadInitialData = async () => {
+      try {
+        const data = await interviewService.getCandidateInterview(interviewId);
+        setInterview(data);
+      } catch (err) {
+        console.error("Failed to load interview name:", err);
+      }
+      loadQuestions();
+      setCameraReady(true);
+    };
+    loadInitialData();
+  }, [interviewId]);
+
   // Scroll to test results when they are shown
   useEffect(() => {
     if (showTestResults && testResultsRef.current) {
@@ -117,7 +146,7 @@ const LeetCodeLayout = () => {
       }, 100);
     }
   }, [showTestResults, testResults]);
-  
+
   // Timer effect
   useEffect(() => {
     let timer;
@@ -133,23 +162,41 @@ const LeetCodeLayout = () => {
         });
       }, 1000);
     }
-    
+
     return () => {
       if (timer) clearInterval(timer);
     };
   }, [isTimerRunning, timeRemaining]);
-  
+
+  // Synchronize code when question or language changes
+  useEffect(() => {
+    if (questions.length > 0 && currentQuestion) {
+      const savedCode = questionCodes[currentQuestion.id]?.[language];
+      let targetCode = "";
+
+      if (savedCode !== undefined && savedCode !== null) {
+        targetCode = savedCode;
+      } else {
+        targetCode = currentQuestion.solutionTemplates?.[language] ||
+          currentQuestion.solutionTemplate ||
+          CODE_SNIPPETS[language] || "";
+      }
+
+      if (targetCode !== code) {
+        setCode(targetCode);
+      }
+    }
+  }, [currentQuestionIndex, language, questions.length]); // Intentionally omit questionCodes to avoid keystroke sync
+
   // Load questions from the database
   const loadQuestions = async () => {
     setIsLoading(true);
     setTestResults([]);
     setShowTestResults(false);
-    
+
     // Log the interview ID
     console.log("LeetCodeLayout component mounted with interviewId:", interviewId);
-    
-    // Don't modify the interview_id at all - use exactly what's in the URL
-    // This is the MongoDB ObjectId format like "68db8801735747049bd7952d"
+
     if (!interviewId) {
       console.log("No interview ID provided");
       toast({
@@ -162,17 +209,16 @@ const LeetCodeLayout = () => {
       setIsLoading(false);
       return;
     }
-    // No need for a toast here since we're using the exact interview ID from the URL
-    
+
     try {
       console.log("Fetching questions for interview ID:", interviewId);
-      
+
       // Fetch questions from the database using the interview ID
       const fetchedQuestions = await fetchCodingQuestions(interviewId);
-      
+
       if (!fetchedQuestions || fetchedQuestions.length === 0) {
         console.log("No questions found for interview ID:", interviewId);
-        
+
         // Generate questions on the fly if none exist
         toast({
           title: "Generating questions",
@@ -181,30 +227,30 @@ const LeetCodeLayout = () => {
           duration: 5000,
           isClosable: true,
         });
-        
+
         // Generate new questions
         try {
           const result = await generateCodingQuestions(interviewId, 3, 'medium');
           console.log("Generated new questions:", result);
-          
+
           // Fetch the newly generated questions
           const newQuestions = await fetchCodingQuestions(interviewId);
-          
+
           if (!newQuestions || newQuestions.length === 0) {
             throw new Error("Failed to generate and fetch questions");
           }
-          
+
           setQuestions(newQuestions);
           setCurrentQuestionIndex(0);
-          
+
           // Set initial code based on the first question's template
           if (newQuestions.length > 0) {
             const template = newQuestions[0].solutionTemplates?.[language] ||
-                            newQuestions[0].solutionTemplate ||
-                            CODE_SNIPPETS[language];
+              newQuestions[0].solutionTemplate ||
+              CODE_SNIPPETS[language];
             setCode(template);
           }
-          
+
           setIsLoading(false);
           return;
         } catch (genError) {
@@ -220,14 +266,14 @@ const LeetCodeLayout = () => {
           return;
         }
       }
-      
+
       // Add solution templates for different languages if they don't exist
       const enhancedQuestions = fetchedQuestions.map(question => {
         // If solutionTemplates doesn't exist, create it
         if (!question.solutionTemplates) {
           const functionName = question.functionSignature.split(' ')[1].split('(')[0];
           const params = question.functionSignature.split('(')[1].split(')')[0];
-          
+
           question.solutionTemplates = {
             javascript: `function ${functionName}(${params}) {\n  // Your code here\n  return null;\n}`,
             python: `def ${functionName.toLowerCase()}(${params}):\n    # Your code here\n    return None`,
@@ -236,13 +282,13 @@ const LeetCodeLayout = () => {
             php: `<?php\nfunction ${functionName}(${params}) {\n    // Your code here\n    return null;\n}\n?>`
           };
         }
-        
+
         return question;
       });
-      
+
       setQuestions(enhancedQuestions);
       setCurrentQuestionIndex(0);
-      
+
       toast({
         title: "Questions loaded",
         description: `Successfully loaded ${enhancedQuestions.length} coding questions`,
@@ -250,12 +296,12 @@ const LeetCodeLayout = () => {
         duration: 3000,
         isClosable: true,
       });
-      
+
       // Set initial code based on the first question's template
       if (enhancedQuestions.length > 0) {
-        const template = enhancedQuestions[0].solutionTemplates?.[language] || 
-                         enhancedQuestions[0].solutionTemplate || 
-                         CODE_SNIPPETS[language];
+        const template = enhancedQuestions[0].solutionTemplates?.[language] ||
+          enhancedQuestions[0].solutionTemplate ||
+          CODE_SNIPPETS[language];
         setCode(template);
       }
     } catch (error) {
@@ -271,53 +317,44 @@ const LeetCodeLayout = () => {
       setIsLoading(false);
     }
   };
-  
+
   // Navigate to the next question
   const nextQuestion = async () => {
     if (currentQuestionIndex < questions.length - 1) {
-      // Save current code to questionCodes state
-      if (editorRef.current && currentQuestion) {
-        const currentCode = editorRef.current.getValue();
+      const currentEditorCode = editorRef.current?.getValue();
+      const nextIndex = currentQuestionIndex + 1;
+      const nextQ = questions[nextIndex];
+
+      // 1. Save current question's code
+      if (currentEditorCode && currentQuestion) {
         setQuestionCodes(prev => ({
           ...prev,
-          [currentQuestion.id]: currentCode
+          [currentQuestion.id]: {
+            ...(prev[currentQuestion.id] || {}),
+            [language]: currentEditorCode
+          }
         }));
+        // Auto-save to backend
+        await autoSaveCurrentAnswer();
       }
-      
-      // Auto-save current answer before moving to next question
-      const saveSuccess = await autoSaveCurrentAnswer();
-      
-      if (!saveSuccess) {
-        // Notify user but still allow navigation
-        toast({
-          title: "Warning",
-          description: "Your answer may not have been saved. You can try submitting again later.",
-          status: "warning",
-          duration: 3000,
-          isClosable: true,
-        });
+
+      // 2. Set next question and its code
+      setCurrentQuestionIndex(nextIndex);
+
+      const nextSavedCode = questionCodes[nextQ.id]?.[language];
+      if (nextSavedCode) {
+        setCode(nextSavedCode);
+      } else {
+        const template = nextQ.solutionTemplates?.[language] ||
+          nextQ.solutionTemplate ||
+          CODE_SNIPPETS[language];
+        setCode(template);
       }
-      
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      
-      // Update code to the next question's template or saved code
-      const nextQuestion = questions[currentQuestionIndex + 1];
-      if (nextQuestion) {
-        // Check if we have saved code for this question
-        if (questionCodes[nextQuestion.id]) {
-          setCode(questionCodes[nextQuestion.id]);
-        } else {
-          const template = nextQuestion.solutionTemplates?.[language] ||
-                           nextQuestion.solutionTemplate ||
-                           CODE_SNIPPETS[language];
-          setCode(template);
-        }
-      }
-      
+
       // Clear test results
       setTestResults([]);
       setShowTestResults(false);
-      
+
       // Scroll back to top of right panel
       if (rightPanelRef.current) {
         rightPanelRef.current.scrollTop = 0;
@@ -328,119 +365,96 @@ const LeetCodeLayout = () => {
   // Navigate to the previous question
   const prevQuestion = async () => {
     if (currentQuestionIndex > 0) {
-      // Save current code to questionCodes state
-      if (editorRef.current && currentQuestion) {
-        const currentCode = editorRef.current.getValue();
+      const currentEditorCode = editorRef.current?.getValue();
+      const prevIndex = currentQuestionIndex - 1;
+      const prevQ = questions[prevIndex];
+
+      // 1. Save current question's code
+      if (currentEditorCode && currentQuestion) {
         setQuestionCodes(prev => ({
           ...prev,
-          [currentQuestion.id]: currentCode
+          [currentQuestion.id]: {
+            ...(prev[currentQuestion.id] || {}),
+            [language]: currentEditorCode
+          }
         }));
+        // Auto-save to backend
+        await autoSaveCurrentAnswer();
       }
-      
-      // Auto-save current answer before moving to previous question
-      const saveSuccess = await autoSaveCurrentAnswer();
-      
-      if (!saveSuccess) {
-        // Notify user but still allow navigation
-        toast({
-          title: "Warning",
-          description: "Your answer may not have been saved. You can try submitting again later.",
-          status: "warning",
-          duration: 3000,
-          isClosable: true,
-        });
+
+      // 2. Set previous question and its code
+      setCurrentQuestionIndex(prevIndex);
+
+      const prevSavedCode = questionCodes[prevQ.id]?.[language];
+      if (prevSavedCode) {
+        setCode(prevSavedCode);
+      } else {
+        const template = prevQ.solutionTemplates?.[language] ||
+          prevQ.solutionTemplate ||
+          CODE_SNIPPETS[language];
+        setCode(template);
       }
-      
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      
-      // Update code to the previous question's template or saved code
-      const prevQuestion = questions[currentQuestionIndex - 1];
-      if (prevQuestion) {
-        // Check if we have saved code for this question
-        if (questionCodes[prevQuestion.id]) {
-          setCode(questionCodes[prevQuestion.id]);
-        } else {
-          const template = prevQuestion.solutionTemplates?.[language] ||
-                           prevQuestion.solutionTemplate ||
-                           CODE_SNIPPETS[language];
-          setCode(template);
-        }
-      }
-      
+
       // Clear test results
       setTestResults([]);
       setShowTestResults(false);
-      
+
       // Scroll back to top of right panel
       if (rightPanelRef.current) {
         rightPanelRef.current.scrollTop = 0;
       }
     }
   };
-  
+
   // Handle code change
   const handleCodeChange = (newCode) => {
     setCode(newCode);
-    
-    // Also update the code in questionCodes for the current question
+
+    // Also update the code in questionCodes for the current question/language
     if (currentQuestion) {
       setQuestionCodes(prev => ({
         ...prev,
-        [currentQuestion.id]: newCode
+        [currentQuestion.id]: {
+          ...(prev[currentQuestion.id] || {}),
+          [language]: newCode
+        }
       }));
     }
   };
-  
+
   // Handle language change
   const handleLanguageChange = (newLanguage) => {
     setLanguage(newLanguage);
-    
-    // Update code based on the new language
-    if (currentQuestion) {
-      const template = currentQuestion.solutionTemplates?.[newLanguage] || 
-                       currentQuestion.solutionTemplate || 
-                       CODE_SNIPPETS[newLanguage];
-      setCode(template);
-    } else {
-      setCode(CODE_SNIPPETS[newLanguage] || "");
-    }
-    
+
     // Clear test results
     setTestResults([]);
     setShowTestResults(false);
   };
-  
+
   // Handle editor mount
   const handleEditorDidMount = (editor) => {
     editorRef.current = editor;
   };
-  
+
   // Run test cases
-  // Convert function signature based on language
   const getLanguageSpecificFunctionSignature = (jsSignature, lang) => {
     if (lang === 'javascript' || lang === 'typescript') {
       return jsSignature;
     }
-    
-    // Extract function name and parameters from JavaScript signature
+
     const functionName = jsSignature.split(' ')[1].split('(')[0];
     const params = jsSignature.split('(')[1].split(')')[0];
-    
-    // Convert to language-specific signature
+
     switch (lang) {
       case 'python':
-        // Convert camelCase to snake_case for Python
         const snakeCaseName = functionName.replace(/([A-Z])/g, '_$1').toLowerCase();
         return `def ${snakeCaseName}(${params})`;
       case 'java':
-        // Java methods are typically camelCase, same as JavaScript
         return `public String ${functionName}(${params})`;
       case 'csharp':
-        // C# methods are typically PascalCase
         const pascalCaseName = functionName.charAt(0).toUpperCase() + functionName.slice(1);
         return `public static string ${pascalCaseName}(${params})`;
       case 'php':
-        // PHP functions are typically snake_case or lowercase
         return `function ${functionName.toLowerCase()}(${params})`;
       default:
         return jsSignature;
@@ -458,19 +472,19 @@ const LeetCodeLayout = () => {
       });
       return;
     }
-    
+
     setIsRunningTests(true);
     setTestResults([]);
-    
+
     try {
       const userCode = editorRef.current.getValue();
-      
+
       // Get language-specific function signature
       const functionSignature = getLanguageSpecificFunctionSignature(
         currentQuestion.functionSignature,
         language
       );
-      
+
       // Use the backend API to evaluate the code
       const results = await evaluateCode(
         userCode,
@@ -478,13 +492,13 @@ const LeetCodeLayout = () => {
         language,
         functionSignature
       );
-      
+
       setTestResults(results);
       setShowTestResults(true);
-      
+
       // Check if all tests passed
       const allPassed = results.every(result => result.passed);
-      
+
       toast({
         title: allPassed ? "All tests passed!" : "Some tests failed",
         status: allPassed ? "success" : "error",
@@ -504,21 +518,25 @@ const LeetCodeLayout = () => {
       setIsRunningTests(false);
     }
   };
+
   // Format time from seconds to MM:SS
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-  
+
   // Handle timer expiration
   const handleTimeUp = async () => {
     // Auto-save all answers
     const saveSuccess = await autoSaveAllAnswers();
-    
-    // Show completion modal
-    setShowCompletionModal(true);
-    
+
+    // Calculate actual time taken
+    setActualTimeTaken(INITIAL_TIME - timeRemaining);
+
+    // Show completion results view
+    setShowResults(true);
+
     toast({
       title: "Time's up!",
       description: saveSuccess
@@ -528,137 +546,98 @@ const LeetCodeLayout = () => {
       duration: 5000,
       isClosable: true,
     });
-    
-    // If save failed, try one more time after a short delay
-    if (!saveSuccess) {
-      setTimeout(async () => {
-        const retrySuccess = await autoSaveAllAnswers();
-        if (retrySuccess) {
-          toast({
-            title: "Success",
-            description: "Your answers have been saved successfully on retry.",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      }, 3000);
-    }
   };
-  
+
   // Auto-save all answers
   const autoSaveAllAnswers = async () => {
     try {
-      // First save the current question's answer to our state
-      if (editorRef.current && currentQuestion) {
-        const currentCode = editorRef.current.getValue();
-        console.log("Auto-saving current question code:", {
-          questionId: currentQuestion.id,
-          codeLength: currentCode.length
-        });
+      const currentEditorCode = editorRef.current?.getValue();
+      const currentQId = currentQuestion?.id;
+
+      // Update local state for consistency
+      if (currentEditorCode && currentQId) {
         setQuestionCodes(prev => ({
           ...prev,
-          [currentQuestion.id]: currentCode
+          [currentQId]: {
+            ...(prev[currentQId] || {}),
+            [language]: currentEditorCode
+          }
         }));
       }
-      
-      // Now save all questions' answers to the backend
+
       const savePromises = [];
       let saveErrors = [];
-      
-      // For each question, save its answer
+
       for (const question of questions) {
-        // Get the code for this question (either from state or use template as fallback)
-        const questionCode = questionCodes[question.id] ||
-                           (question.solutionTemplates?.[language] ||
-                            question.solutionTemplate ||
-                            CODE_SNIPPETS[language]);
-        
+        // Find the best code to save for this question
+        let codeToSave = null;
+
+        // 1. For current question, always use current editor content
+        if (question.id === currentQId && currentEditorCode) {
+          codeToSave = currentEditorCode;
+        }
+        // 2. Otherwise check if we have saved code for ANY language for this question
+        else if (questionCodes[question.id]) {
+          // Prefer current language if it exists
+          if (questionCodes[question.id][language]) {
+            codeToSave = questionCodes[question.id][language];
+          } else {
+            // Otherwise find any language that has significant content
+            const langs = Object.keys(questionCodes[question.id]);
+            const bestLang = langs.find(l => questionCodes[question.id][l].length > 50) || langs[0];
+            codeToSave = questionCodes[question.id][bestLang];
+          }
+        }
+
+        // 3. Fallback to template
+        if (!codeToSave) {
+          codeToSave = question.solutionTemplates?.[language] ||
+            question.solutionTemplate ||
+            CODE_SNIPPETS[language];
+        }
+
         try {
-          console.log("Auto-saving question:", {
-            questionId: question.id,
-            questionIdType: typeof question.id,
-            codeLength: questionCode.length
-          });
-          
-          // Create a promise to save this question's answer
           const savePromise = saveCodingAnswer(
             interviewId,
             question.id,
-            questionCode,
-            [] // No test results for auto-save
+            codeToSave,
+            []
           );
-          
           savePromises.push(savePromise);
         } catch (err) {
-          console.error("Error in auto-save promise creation:", err);
-          saveErrors.push(`Failed to save question ${question.id}: ${err.message}`);
+          console.error(`Error saving question ${question.id}:`, err);
         }
       }
-      
-      // Wait for all saves to complete
+
       try {
-        const results = await Promise.all(savePromises);
-        console.log("Auto-save results:", results);
-        
-        if (saveErrors.length > 0) {
-          console.error("Errors during auto-save:", saveErrors);
-          toast({
-            title: "Warning",
-            description: "Some answers may not have been saved properly.",
-            status: "warning",
-            duration: 5000,
-            isClosable: true,
-          });
-          return false;
-        }
-        
-        console.log("Auto-saved all answers as time expired");
-        return true;
+        await Promise.all(savePromises);
+        return saveErrors.length === 0;
       } catch (promiseError) {
         console.error("Error in Promise.all for auto-save:", promiseError);
-        toast({
-          title: "Error",
-          description: "Failed to save answers: " + promiseError.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
         return false;
       }
     } catch (error) {
       console.error("Error auto-saving solutions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save your answers. Please try submitting manually.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
       return false;
     }
   };
-  
-  // Auto-save the current answer without running tests
+
+  // Auto-save the current answer
   const autoSaveCurrentAnswer = async () => {
     try {
       if (!editorRef.current || !currentQuestion) {
         return false;
       }
-      
-      // Get the current code from the editor
+
       const userCode = editorRef.current.getValue();
-      
+
       try {
-        // Submit the answer to the backend even if incomplete
         await saveCodingAnswer(
           interviewId,
           currentQuestion.id,
           userCode,
-          testResults.length > 0 ? testResults : [] // Use empty array if no tests were run
+          testResults.length > 0 ? testResults : []
         );
-        
-        console.log("Auto-saved answer for question", currentQuestion.id);
         return true;
       } catch (err) {
         console.error(`Failed to save answer for question ${currentQuestion.id}:`, err);
@@ -666,27 +645,19 @@ const LeetCodeLayout = () => {
       }
     } catch (error) {
       console.error("Error auto-saving solution:", error);
-      toast({
-        title: "Warning",
-        description: "Failed to save your current answer. Your progress may not be saved.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
       return false;
     }
   };
-  
+
   // Submit solution
   const handleSubmit = async () => {
     try {
       setIsProcessing(true);
-      
-      // Run tests first if not already run
+
       if (!testResults || testResults.length === 0) {
         await handleRunTests();
       }
-      
+
       if (!editorRef.current || !currentQuestion) {
         toast({
           title: "Cannot submit solution",
@@ -697,34 +668,21 @@ const LeetCodeLayout = () => {
         });
         return;
       }
-      
-      // Get the current code from the editor
+
       const userCode = editorRef.current.getValue();
-      
-      // Add detailed logging
-      console.group("Submitting Coding Answer");
-      console.log("Interview ID:", interviewId);
-      console.log("Question ID:", currentQuestion.id);
-      console.log("Question ID Type:", typeof currentQuestion.id);
-      console.log("Code Length:", userCode.length);
-      console.log("Test Results:", testResults);
-      console.groupEnd();
-      
+
       try {
-        // Submit the answer to the backend
-        const response = await saveCodingAnswer(
+        await saveCodingAnswer(
           interviewId,
           currentQuestion.id,
           userCode,
           testResults
         );
-        
-        console.log("Save Response:", response);
       } catch (saveError) {
         console.error("Error details:", saveError);
         throw saveError;
       }
-      
+
       toast({
         title: "Solution submitted",
         description: "Your solution has been saved successfully",
@@ -732,8 +690,7 @@ const LeetCodeLayout = () => {
         duration: 3000,
         isClosable: true,
       });
-      
-      // If there are more questions, prompt to move to the next one
+
       if (currentQuestionIndex < questions.length - 1) {
         setTimeout(() => {
           toast({
@@ -745,18 +702,12 @@ const LeetCodeLayout = () => {
           });
         }, 2000);
       } else {
-        // If this is the last question, show completion modal
-        setShowCompletionModal(true);
+        // If this is the last question, show completion view
+        setActualTimeTaken(INITIAL_TIME - timeRemaining);
+        setShowResults(true);
       }
     } catch (error) {
       console.error("Error submitting solution:", error);
-      
-      // Enhanced error logging
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
-      }
-      
       toast({
         title: "Error submitting solution",
         description: error.message || "An error occurred while submitting your solution",
@@ -764,40 +715,23 @@ const LeetCodeLayout = () => {
         duration: 5000,
         isClosable: true,
       });
-      
-      // Show a more detailed error toast with debugging information
-      toast({
-        title: "Debug Information",
-        description: `Please report this error: ${JSON.stringify({
-          interviewId: interviewId,
-          questionId: currentQuestion?.id,
-          error: error.message,
-          status: error.response?.status
-        })}`,
-        status: "warning",
-        duration: 10000,
-        isClosable: true,
-      });
     } finally {
       setIsProcessing(false);
     }
   };
-  
+
   // Handle interview completion
   const handleInterviewComplete = async () => {
     try {
       console.log("Updating interview status to completed for interview ID:", interviewId);
-      
-      // Make API call to update interview status to completed
       const response = await fetch(`http://localhost:8000/api/candidate/complete_interview/${interviewId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         }
       });
-      
+
       if (response.ok) {
-        console.log("Successfully updated interview status to completed");
         toast({
           title: "Success",
           description: "Interview completed successfully.",
@@ -805,429 +739,320 @@ const LeetCodeLayout = () => {
           duration: 3000,
           isClosable: true,
         });
-      } else {
-        console.error("Failed to update interview status to completed");
       }
     } catch (error) {
       console.error("Error updating interview status:", error);
     } finally {
-      // Navigate to thank you page regardless of status update success/failure
-      navigate('/interview-complete');
+      navigate(`/interview-complete/${interviewId}`);
     }
   };
-  
-  // Handle end interview button click
-  const handleEndInterview = async () => {
-    // Show confirmation dialog
-    setShowEndConfirmation(true);
-  };
-  
-  // Handle end interview confirmation
+
   const handleEndInterviewConfirm = async () => {
     setIsProcessing(true);
-    
-    // Save all answers
-    const saveSuccess = await autoSaveAllAnswers();
-    
-    if (saveSuccess) {
-      toast({
-        title: "Success",
-        description: "All your answers have been saved successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: "Warning",
-        description: "Some answers may not have been saved properly.",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-    
-    // Close confirmation dialog and show completion modal
+    await autoSaveAllAnswers();
+    setActualTimeTaken(INITIAL_TIME - timeRemaining);
     setShowEndConfirmation(false);
-    setShowCompletionModal(true);
+    setShowResults(true);
     setIsProcessing(false);
   };
 
+  if (isLoading) {
+    return (
+      <Flex h="100vh" bg="#050D27" items="center" justify="center">
+        <Box h="100vh" w="100vw" bg="#050D27" display="flex" alignItems="center" justifyContent="center">
+          <Text color="white">Loading questions...</Text>
+        </Box>
+      </Flex>
+    );
+  }
+
   return (
-    <Box bg={bgColor} minH="100vh" p={4}>
-      {/* Camera Component */}
-      {cameraReady && (
-        <div className="fixed top-1 right-4 z-50 w-64 h-30 rounded-lg overflow-hidden border border-white/20 bg-black shadow-xl">
-          <CameraProctorNew
-            autoStart={true}
-            sessionId={interviewId}
-            hideControls={true}
-            onCheatingDetected={handleCheatingDetected}
-          />
+    <div className="flex h-screen bg-[#020617] text-gray-300 font-sans overflow-hidden">
+      {/* Sidebar - Matching Reference exactly */}
+      <aside className="w-52 bg-[#081433] border-r border-white/5 flex flex-shrink-0 flex-col py-6 px-6">
+        <div className="px-6 flex items-center gap-2 mb-10">
+          <span className="text-white font-bold text-lg tracking-tight">RecruitIQ</span>
         </div>
-      )}
-      
-      {/* Timer display and End Interview button */}
-      <Flex justifyContent="center" mb={2} alignItems="center">
-        <Box
-          p={2}
-          borderRadius="md"
-          bg={timeRemaining < 300 ? "red.100" : "blue.100"}
-          color={timeRemaining < 300 ? "red.700" : "blue.700"}
-          fontWeight="bold"
-          fontSize="lg"
-          boxShadow="sm"
-          border="1px solid"
-          borderColor={timeRemaining < 300 ? "red.300" : "blue.300"}
-          mr={4}
-        >
-          Time Remaining for All Questions: {formatTime(timeRemaining)}
-        </Box>
-        
-        <Button
-          colorScheme="red"
-          onClick={handleEndInterview}
-          isDisabled={isProcessing}
-          size="md"
-          fontWeight="bold"
-          boxShadow="md"
-          _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-          borderWidth="1px"
-          borderColor="red.600"
-        >
-          End Interview
-        </Button>
-      </Flex>
-      
-      {/* Question navigation tabs */}
-      <Flex mb={2} justifyContent="center">
-        {questions.map((question, index) => (
-          <Button
-            key={index}
-            onClick={async () => {
-              if (currentQuestionIndex !== index) {
-                // Save current question's code before switching
-                if (editorRef.current && currentQuestion) {
-                  const currentCode = editorRef.current.getValue();
-                  setQuestionCodes(prev => ({
-                    ...prev,
-                    [currentQuestion.id]: currentCode
-                  }));
-                  
-                  // Auto-save current answer before switching questions
-                  const saveSuccess = await autoSaveCurrentAnswer();
-                  
-                  if (!saveSuccess) {
-                    // Notify user but still allow navigation
-                    toast({
-                      title: "Warning",
-                      description: "Your answer may not have been saved. You can try submitting again later.",
-                      status: "warning",
-                      duration: 3000,
-                      isClosable: true,
-                    });
-                  }
-                }
-                
-                // Switch to the selected question
-                setCurrentQuestionIndex(index);
-                
-                // Load the code for the selected question
-                const selectedQuestion = questions[index];
-                if (selectedQuestion) {
-                  if (questionCodes[selectedQuestion.id]) {
-                    setCode(questionCodes[selectedQuestion.id]);
-                  } else {
-                    const template = selectedQuestion.solutionTemplates?.[language] ||
-                                    selectedQuestion.solutionTemplate ||
-                                    CODE_SNIPPETS[language];
-                    setCode(template);
-                  }
-                }
-                
-                // Clear test results
-                setTestResults([]);
-                setShowTestResults(false);
-              }
-            }}
-            colorScheme={currentQuestionIndex === index ? "green" : "gray"}
-            variant={currentQuestionIndex === index ? "solid" : "outline"}
-            size="sm"
-            mx={1}
-            borderRadius="md"
-            fontWeight={currentQuestionIndex === index ? "bold" : "normal"}
-          >
-            Question {index + 1}
-          </Button>
-        ))}
-      </Flex>
-      
-      {/* Header with problem title and navigation */}
-      <Flex justifyContent="space-between" alignItems="center" mb={4}>
-        <HStack>
-          <Heading size="md">
-            Problem {currentQuestionIndex + 1}:
-          </Heading>
-          <Heading size="md" fontWeight="normal">
-            {currentQuestion?.title || "Loading..."}
-          </Heading>
-          {currentQuestion && (
-            <Badge 
-              colorScheme={
-                currentQuestion.difficulty === 'easy' ? 'green' : 
-                currentQuestion.difficulty === 'medium' ? 'yellow' : 'red'
-              }
-              ml={2}
+
+        <nav className="space-y-1">
+          {[
+            { label: 'Dashboard', icon: HomeIcon, active: false },
+            { label: 'Technical Assessment', icon: SchoolIcon, active: false },
+            { label: 'Voice Interview', icon: MicMuiIcon, active: false },
+            { label: 'Coding Round', icon: QuestionIcon, active: true }
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              className={`py-2 px-3 rounded-lg flex items-center gap-3 transition-all cursor-pointer ${item.active ? 'bg-[#0E1E4C] text-white border-l-2 border-white shadow-sm' : 'text-white hover:text-white'}`}
             >
-              {currentQuestion.difficulty.toUpperCase()}
-            </Badge>
-          )}
-        </HStack>
-        <HStack>
-          <IconButton
-            icon={<Icon as={colorMode === 'light' ? DarkMode : LightMode} />}
-            onClick={toggleColorMode}
-            aria-label={`Toggle ${colorMode === 'light' ? 'Dark' : 'Light'} Mode`}
-            size="sm"
-            variant="solid"
-            colorScheme="purple"
-            mr={2}
-            boxShadow="md"
-            _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-            borderWidth="1px"
-            borderColor="purple.400"
-          />
-          <Button
-            leftIcon={<Icon as={ChevronLeft} />}
-            onClick={prevQuestion}
-            isDisabled={currentQuestionIndex === 0 || isLoading}
-            size="sm"
-            colorScheme="blue"
-            variant="solid"
-            boxShadow="md"
-            _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-          >
-            Previous
-          </Button>
-          <Button
-            rightIcon={<Icon as={ChevronRight} />}
-            onClick={nextQuestion}
-            isDisabled={currentQuestionIndex === questions.length - 1 || isLoading}
-            size="sm"
-            colorScheme="blue"
-            variant="solid"
-            boxShadow="md"
-            _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-          >
-            Next
-          </Button>
-        </HStack>
-      </Flex>
-      
-      <Divider mb={4} />
-      
-      {/* Main content area with split layout */}
-      <Flex h="calc(100vh - 120px)" gap={4}>
-        {/* Left panel with problem description */}
-        <Box 
-          w="40%" 
-          bg={panelBgColor} 
-          borderRadius="md" 
-          border="1px" 
-          borderColor={borderColor}
-          overflow="auto"
-        >
-          <ProblemDescription 
-            question={currentQuestion} 
-            isLoading={isLoading} 
-          />
-        </Box>
-        
-        {/* Right panel with code editor, buttons, and test results */}
-        <Box 
-          ref={rightPanelRef}
-          w="60%" 
-          bg={panelBgColor} 
-          borderRadius="md" 
-          border="1px" 
-          borderColor={borderColor}
-          overflow="auto" // Make the entire right side scrollable
-        >
-          <Flex direction="column">
-            {/* Code editor */}
-            <Box height="65vh">
-              <CodeEditorPanel 
-                language={language}
-                code={code}
-                onCodeChange={handleCodeChange}
-                onLanguageChange={handleLanguageChange}
-                onEditorDidMount={handleEditorDidMount}
-                question={currentQuestion}
-              />
-            </Box>
-            
-            {/* Buttons */}
-            <Flex p={4} justifyContent="flex-end" borderTop="1px" borderColor={borderColor} bg={useColorModeValue("gray.50", "gray.700")}>
-              <HStack spacing={3}>
-                <Button
-                  colorScheme="blue"
-                  onClick={handleRunTests}
-                  isLoading={isRunningTests}
-                  isDisabled={isProcessing}
-                  loadingText="Running"
-                  size="md"
-                  fontWeight="bold"
-                  px={6}
-                  boxShadow="md"
-                  _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-                  borderWidth="1px"
-                  borderColor="blue.600"
-                >
-                  Run
-                </Button>
-                <Button
-                  colorScheme="green"
-                  onClick={handleSubmit}
-                  isLoading={isProcessing}
-                  isDisabled={isRunningTests}
-                  loadingText="Submitting"
-                  size="md"
-                  fontWeight="bold"
-                  px={6}
-                  boxShadow="md"
-                  _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-                  borderWidth="1px"
-                  borderColor="green.600"
-                >
-                  Submit
-                </Button>
-              </HStack>
-            </Flex>
-            
-            {/* Test results below the buttons */}
-            {showTestResults && (
-              <Box 
-                ref={testResultsRef} // Reference for auto-scrolling
-                id="test-results"
-                p={4} 
-                borderTop="1px" 
-                borderColor={borderColor}
-              >
-                <Heading size="sm" mb={3}>Test Results:</Heading>
-                <VStack align="stretch" spacing={3}>
-                  {testResults.map((result, index) => (
-                    <Box 
-                      key={index} 
-                      p={3} 
-                      borderRadius="md" 
-                      bg={result.passed ? successBg : errorBg}
-                      borderWidth="1px"
-                      borderColor={result.passed ? "green.200" : "red.200"}
-                    >
-                      <HStack mb={2}>
-                        <Text fontWeight="bold">Test Case {index + 1}:</Text>
-                        <Badge colorScheme={result.passed ? "green" : "red"}>
-                          {result.passed ? "PASSED" : "FAILED"}
-                        </Badge>
-                      </HStack>
-                      <VStack align="start" spacing={1}>
-                        <Text fontSize="sm"><strong>Input:</strong> {result.input}</Text>
-                        <Text fontSize="sm"><strong>Expected:</strong> {result.expected || result.expectedOutput}</Text>
-                        <Text fontSize="sm"><strong>Output:</strong> {result.output || result.actualOutput}</Text>
-                        {result.error && (
-                          <Text fontSize="sm" color="red.500"><strong>Error:</strong> {result.error}</Text>
-                        )}
-                      </VStack>
-                    </Box>
-                  ))}
-                </VStack>
-              </Box>
+              <item.icon sx={{ fontSize: 16 }} />
+              <span className="text-[12px] font-medium">{item.label}</span>
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col relative h-screen overflow-hidden bg-[#050D27]">
+
+        {/* Header - Simplified to candidate info only */}
+        <header className="h-10 bg-[#08143382] border-b border-white/5 flex items-center justify-end px-6 flex-shrink-0 z-10">
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-[11px] font-bold text-white leading-tight">Hello, {interview?.candidate_name?.split(' ')[0] || 'Candidate'}</p>
+              <p className="text-[8px] text-gray-400 font-medium uppercase tracking-wider">Candidate</p>
+            </div>
+            <div className="w-7 h-7 bg-white/5 rounded-full flex items-center justify-center text-gray-400 border border-white/10 cursor-pointer hover:bg-white/10 transition-all">
+              <MenuIcon sx={{ fontSize: 14 }} />
+            </div>
+          </div>
+        </header>
+
+        {/* Content Body */}
+        <div className="px-10 flex-1 overflow-y-auto w-full custom-scrollbar pt-4">
+          <div className="max-w-7xl mx-auto w-full">
+
+            {/* Unified Action Bar: Title, Bubbles, Submit, and Camera*/}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-8">
+                <h1 className="text-xl font-bold text-white tracking-tight">
+                  {showResults ? "Coding Test" : "Coding Round"}
+                </h1>
+              </div>
+
+              {!showResults && (
+                <div className="flex items-center gap-6">
+                  {/* Question Selection Bubbles*/}
+                  <div className="flex items-center gap-2 bg-[#081433] p-1 rounded-md border border-white/5">
+                    {questions.map((q, index) => {
+                      const isActive = currentQuestionIndex === index;
+                      const isCompleted = Object.values(questionCodes[q.id] || {}).some(code => code.length > 20);
+
+                      return (
+                        <div
+                          key={index}
+                          className={`w-8 h-8 flex items-center justify-center rounded-md cursor-pointer text-xs font-semibold transition-all border ${isActive ? 'bg-[#2563EB] text-white border-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.4)]' :
+                            isCompleted ? 'bg-[#22C55E] text-white border-green-400' : 'bg-transparent text-gray-500 border-white/10 hover:border-white/20'
+                            }`}
+                          onClick={async () => {
+                            if (currentQuestionIndex !== index) {
+                              if (editorRef.current && currentQuestion) {
+                                const currentEditorCode = editorRef.current.getValue();
+                                setQuestionCodes(prev => ({
+                                  ...prev,
+                                  [currentQuestion.id]: {
+                                    ...(prev[currentQuestion.id] || {}),
+                                    [language]: currentEditorCode
+                                  }
+                                }));
+                                await autoSaveCurrentAnswer();
+                              }
+
+                              const targetQ = questions[index];
+                              setCurrentQuestionIndex(index);
+
+                              // Load target question code locally to avoid stale state
+                              const targetSavedCode = questionCodes[targetQ.id]?.[language];
+                              if (targetSavedCode) {
+                                setCode(targetSavedCode);
+                              } else {
+                                const template = targetQ.solutionTemplates?.[language] ||
+                                  targetQ.solutionTemplate ||
+                                  CODE_SNIPPETS[language];
+                                setCode(template);
+                              }
+                              setTestResults([]);
+                              setShowTestResults(false);
+                            }
+                          }}
+                        >
+                          {index + 1}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isProcessing}
+                    className="h-10 px-6 bg-[#2563EB] text-white rounded-lg font-bold text-[12px] shadow-[0px_0px_16px_0px_rgba(37,99,235,0.6)] hover:bg-blue-700 transition-all flex items-center gap-2 uppercase tracking-widest"
+                  >
+                    {isProcessing ? 'Submitting...' : 'Submit Coding Test'}
+                    <ArrowForwardIcon sx={{ fontSize: 14 }} />
+                  </button>
+
+                  {/* Camera Preview */}
+                  {cameraReady && (
+                    <div className="w-32 h-20 rounded-lg border border-white/10 bg-black overflow-hidden shadow-2xl ring-1 ring-white/10">
+                      <CameraProctorNew
+                        autoStart={true}
+                        sessionId={interviewId}
+                        hideControls={true}
+                        onCheatingDetected={handleCheatingDetected}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Progress Tracker - Below Action Bar */}
+            <div className="flex items-center justify-between w-full relative px-0 mb-4 pt-2">
+              <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-[#1E293B] -translate-y-1/2 z-0" />
+              {[
+                { num: 1, label: 'Details', state: 'completed' },
+                { num: 2, label: 'Technical', state: 'completed' },
+                { num: 3, label: 'Voice', state: 'completed' },
+                { num: 4, label: 'Coding', state: showResults ? 'completed' : 'active' }
+              ].map((step, idx) => (
+                <div key={idx} className={`flex items-center gap-2 z-10 bg-[#050D27] ${idx === 0 ? 'pr-3' : idx === 3 ? 'pl-3' : 'px-3'}`}>
+                  {(step.state === 'completed' || step.num === 1 || step.num === 2 || step.num === 3 || (step.num === 4 && showResults)) ? (
+                    <div className="w-6 h-6 rounded-full bg-[#22C55E] flex items-center justify-center text-white ring-1 ring-white shadow-lg">
+                      <CheckMuiIcon sx={{ fontSize: 11 }} />
+                    </div>
+                  ) : (
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shadow-lg transition-all ${step.state === 'active' ? 'bg-[#2563EB] text-white ring-1 ring-white' : 'bg-[#0B1739] text-gray-400 border border-white/5'
+                      }`}>
+                      {step.num}
+                    </div>
+                  )}
+                  <span className={`text-[10px] uppercase font-bold tracking-wider ${(step.state === 'active' || (step.num === 4 && showResults) || step.state === 'completed' || step.num < 4) ? 'text-white' : 'text-gray-400'}`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Workspace or Results */}
+            {showResults ? (
+              <div className="flex flex-col items-center justify-center pt-8">
+                <CodingResults
+                  interviewId={interviewId}
+                  results={{ interview_id: interviewId, duration_seconds: actualTimeTaken }}
+                  onFinish={handleInterviewComplete}
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full items-stretch h-[calc(100vh-210px)] min-h-[500px]">
+                {/* Left Column: Problem Details */}
+                <div className="md:col-span-4 bg-[#0F172A] border border-[#1E293B] rounded-md flex flex-col overflow-hidden shadow-2xl">
+                  <div className="h-10 px-6 flex items-center justify-between border-b border-white/5 bg-[#08143340]">
+                    <h2 className="text-white font-bold text-[18px] tracking-tight">
+                      Question {currentQuestionIndex + 1}/{questions.length}
+                    </h2>
+                    <div className="flex items-center gap-2 text-[#00FF88]">
+                      <Clock className="w-5 h-5" />
+                      <span className="font-mono font-bold text-lg tracking-tighter">{formatTime(timeRemaining)}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar text-sm leading-relaxed">
+                    <ProblemDescription
+                      question={currentQuestion}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column: Editor & Output */}
+                <div className="md:col-span-8 bg-[#020617] border border-[#1E293B]/20 rounded-md flex flex-col overflow-hidden shadow-2xl relative">
+                  <div className="h-10 bg-[#0B1437]/80 border-b border-white/5 flex items-center justify-between px-6">
+                    <div className="flex items-center gap-2">
+                      {['javascript', 'python', 'java', 'csharp', 'php'].map((lang) => (
+                        <div
+                          key={lang}
+                          className={`px-3 py-1 rounded-md cursor-pointer text-[11px] font-bold uppercase tracking-widest transition-all ${language === lang
+                            ? 'text-white bg-[#2563EB20] border border-[#2563EB40] shadow-[0_0_15px_rgba(37,99,235,0.1)]'
+                            : 'text-gray-400 hover:text-gray-200'
+                            }`}
+                          onClick={() => handleLanguageChange(lang)}
+                        >
+                          {lang === 'javascript' ? 'JS' : lang === 'csharp' ? 'C#' : lang}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <button
+                        onClick={handleRunTests}
+                        disabled={isRunningTests || isProcessing}
+                        className="h-6 px-4 bg-[#0B1437] hover:bg-[#16255A] text-white rounded-md text-[12px] font-bold uppercase tracking-widest border border-[#1E293B] transition-all"
+                      >
+                        {isRunningTests ? 'Running...' : 'Run test'}
+                      </button>
+                      <span className="text-[12px] text-gray-400 font-bold opacity-90">Auto Save On</span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-h-0 bg-black">
+                    <CodeEditorPanel
+                      key={`${currentQuestionIndex}-${language}`}
+                      language={language}
+                      code={code}
+                      onCodeChange={handleCodeChange}
+                      onEditorDidMount={handleEditorDidMount}
+                      hideHeader={true}
+                      theme="vs-dark"
+                    />
+                  </div>
+
+                  <div className="h-48 bg-[#000000] flex flex-col">
+                    <div className="h-12 px-6 flex items-center bg-[#000000]">
+                      <span className="text-[14px] font-bold text-white tracking-wide">Console Output</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[#000000]">
+                      {showTestResults ? (
+                        <div className="space-y-3">
+                          {testResults.map((result, idx) => (
+                            <div key={idx} className={`p-3 rounded-md border text-[12px] leading-snug ${result.passed ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`font-bold ${result.passed ? 'text-green-400' : 'text-red-400'}`}>Test Case {idx + 1}</span>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${result.passed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{result.passed ? 'Passed' : 'Failed'}</span>
+                              </div>
+                              <div className="grid grid-cols-1 gap-1 text-gray-400 font-mono">
+                                <div><span className="text-gray-600">Input:</span> {result.input || (currentQuestion.testCases && currentQuestion.testCases[idx]?.input)}</div>
+                                <div><span className="text-gray-600">Expected:</span> {result.expectedOutput || result.expected || (currentQuestion.testCases && currentQuestion.testCases[idx]?.expectedOutput)}</div>
+                                <div><span className="text-gray-600">Output:</span> {result.actualOutput || result.output || result.result}</div>
+                                {result.error && <div className="text-red-400/80 mt-1 text-[11px]"><span className="text-red-400 font-bold">Error:</span> {result.error}</div>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-gray-600 space-y-2 opacity-50">
+                          <CodeIcon sx={{ fontSize: 24 }} />
+                          <span className="text-[11px] font-medium uppercase tracking-widest italic">Waiting for execution...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-          </Flex>
-        </Box>
-      </Flex>
-      
-      {/* End Interview Confirmation Modal */}
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
       <Modal isOpen={showEndConfirmation} onClose={() => setShowEndConfirmation(false)} isCentered>
         <ModalOverlay backdropFilter="blur(5px)" />
-        <ModalContent borderRadius="xl" boxShadow="2xl" p={2}>
-          <ModalHeader textAlign="center" fontSize="xl" color="red.600">End Interview Early?</ModalHeader>
+        <ModalContent bg="#0F172A" color="white" borderRadius="xl" border="1px solid" borderColor="white/10">
+          <ModalHeader textAlign="center" color="red.400" fontSize="md">End Session?</ModalHeader>
           <ModalBody>
-            <Text textAlign="center" fontSize="md" mb={4}>
-              Are you sure you want to end the interview now? This action cannot be undone.
-            </Text>
-            <Text textAlign="center" color="gray.600" mb={4}>
-              All your current answers will be saved before ending the interview.
-            </Text>
+            <p className="text-center text-sm text-gray-400 mb-4">Are you sure you want to end the session early? All progress will be saved.</p>
           </ModalBody>
           <ModalFooter justifyContent="center">
-            <Button
-              colorScheme="gray"
-              mr={3}
-              onClick={() => setShowEndConfirmation(false)}
-              isDisabled={isProcessing}
-            >
-              Cancel
-            </Button>
-            <Button
-              colorScheme="red"
-              onClick={handleEndInterviewConfirm}
-              isLoading={isProcessing}
-              loadingText="Saving..."
-              boxShadow="md"
-              _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-            >
-              End Interview
-            </Button>
+            <Button onClick={() => setShowEndConfirmation(false)} variant="ghost" color="gray.400">Cancel</Button>
+            <Button onClick={handleEndInterviewConfirm} bg="red.600" ml={4}>End Interview</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-      
-      {/* Interview Completion Modal */}
-      <Modal isOpen={showCompletionModal} onClose={() => {}} closeOnOverlayClick={false} isCentered>
-        <ModalOverlay backdropFilter="blur(10px)" />
-        <ModalContent borderRadius="xl" boxShadow="2xl" p={2}>
-          <ModalHeader textAlign="center" fontSize="2xl" color="green.600">Interview Complete!</ModalHeader>
-          <ModalBody>
-            <Center mb={6}>
-              <Box
-                p={4}
-                borderRadius="full"
-                bg="green.100"
-                color="green.700"
-                boxShadow="md"
-              >
-                <Icon as={() => (
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="#38A169" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M22 4L12 14.01L9 11.01" stroke="#38A169" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )} boxSize={16} />
-              </Box>
-            </Center>
-            <Text textAlign="center" fontSize="lg" mb={4}>
-              Thank you for completing the interview!
-            </Text>
-            <Text textAlign="center" color="gray.600" mb={6}>
-              We appreciate your time and effort. All your answers have been saved successfully. We will review your performance and be in touch with you soon.
-            </Text>
-            <Progress value={100} colorScheme="green" size="sm" borderRadius="full" mb={4} />
-          </ModalBody>
-          <ModalFooter justifyContent="center">
-            <Button
-              colorScheme="green"
-              size="lg"
-              onClick={handleInterviewComplete}
-              boxShadow="md"
-              _hover={{ transform: "translateY(-2px)", boxShadow: "lg" }}
-              px={8}
-            >
-              Finish
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
+
+      <style jsx="true">{`
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
+      `}</style>
+    </div >
   );
 };
 

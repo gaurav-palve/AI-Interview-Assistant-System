@@ -121,7 +121,7 @@ const interviewService = {
 
       // Get the token from localStorage
       const token = localStorage.getItem('access_token');
-      
+
       const response = await api.post('/interviews/resume/upload-resume', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -145,14 +145,14 @@ const interviewService = {
       if (currentMcqRequest) {
         currentMcqRequest.cancel("Operation canceled due to new request");
       }
-      
+
       // Create a new cancelable request
       const cancelToken = axios.CancelToken.source();
       currentMcqRequest = cancelToken;
-      
+
       // Add request ID for tracking
       const requestId = `mcq_${candidateEmail}_${Date.now()}`;
-      
+
       const response = await api.post('/interviews/generate-mcqs',
         {
           candidate_email: candidateEmail,
@@ -163,7 +163,7 @@ const interviewService = {
           timeout: 60000 // 60 second timeout
         }
       );
-      
+
       // Clear the current request reference
       currentMcqRequest = null;
       return response.data;
@@ -176,7 +176,7 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
     }
   },
-  
+
   /**
    * Get candidate interview by ID (public endpoint)
    * @param {string} interviewId - Interview ID
@@ -190,7 +190,7 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while fetching the interview' };
     }
   },
-  
+
   /**
    * Generate MCQs for candidate interview (public endpoint)
    * @param {string} interviewId - Interview ID
@@ -198,39 +198,22 @@ const interviewService = {
    */
   generateCandidateMCQs: async (interviewId) => {
     try {
-      // Cancel any in-flight request
-      if (currentCandidateMcqRequest) {
-        currentCandidateMcqRequest.cancel("Operation canceled due to new request");
-      }
-      
-      // Create a new cancelable request
-      const cancelToken = axios.CancelToken.source();
-      currentCandidateMcqRequest = cancelToken;
-      
       // Add request ID for tracking
       const requestId = `candidate_mcq_${interviewId}_${Date.now()}`;
-      
+
       const response = await api.post(`/candidate/generate-mcqs/${interviewId}`,
         { request_id: requestId },
         {
-          cancelToken: cancelToken.token,
           timeout: 60000 // 60 second timeout
         }
       );
-      
-      // Clear the current request reference
-      currentCandidateMcqRequest = null;
+
       return response.data;
     } catch (error) {
-      // Handle cancellation
-      if (axios.isCancel(error)) {
-        console.log('Candidate MCQ request canceled:', error.message);
-        throw { detail: 'Request canceled due to new request' };
-      }
       throw error.response?.data || { detail: 'An error occurred while generating MCQs' };
     }
   },
-  
+
   /**
    * Get MCQs for candidate interview (public endpoint)
    * @param {string} interviewId - Interview ID
@@ -245,7 +228,7 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while fetching MCQs' };
     }
   },
-  
+
   /**
    * Submit candidate answers for an interview (public endpoint)
    * @param {string} interviewId - Interview ID
@@ -264,7 +247,7 @@ const interviewService = {
         total_score: totalScore,
         max_score: maxScore
       };
-      
+
       const response = await api.post(`/candidate/submit-answers/${interviewId}`, submission);
       return response.data;
     } catch (error) {
@@ -290,7 +273,7 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while starting the camera' };
     }
   },
-  
+
   /**
    * Toggle cheating detection
    * @param {boolean} enable - Whether to enable detection
@@ -398,7 +381,7 @@ const interviewService = {
       throw error.response?.data || { detail: 'An error occurred while fetching job posting candidate reports' };
     }
   },
-  
+
   /**
    * Get candidate report by interview ID
    * @param {string} interviewId - Interview ID
@@ -424,24 +407,24 @@ const interviewService = {
     try {
       const response = await api.get(`/reports/download-report-pdf?interview_id=${interviewId}`, {
         responseType: 'blob'
-        
+
       });
-      
+
       // Create a blob URL and trigger download
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a temporary link and trigger download
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `Candidate_Assessment_Report_${interviewId}.pdf`);
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
-      
+
       return true;
     } catch (error) {
       console.error('Error downloading PDF:', error);
@@ -453,74 +436,74 @@ const interviewService = {
      * Get job statistics (status-wise counts)
      * @returns {Promise}
      */
-    getJobStatistics: async () => {
-      try {
-        const response = await api.get('/dashboard-stats/get-job-statistics');
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || { detail: 'An error occurred while fetching job statistics' };
-      }
-    },
-  
-    /**
-     * Get total users, total roles, and role-wise user counts
-     * @returns {Promise}
-     */
-    getUserRoleStatistics: async () => {
-      try {
-        const response = await api.get('/dashboard-stats/user-role-statistics');
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || {
-          detail: 'An error occurred while fetching user role statistics'
-        };
-      }
-    },
-  
-    /**
-     * Get role statistics
-     * @returns {Promise}
-     */
-    getRoleStatistics: async () => {
-      try {
-        const response = await api.get('/dashboard-stats/get-roles-stats');
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || {
-          detail: 'An error occurred while fetching role statistics'
-        };
-      }
-    },
+  getJobStatistics: async () => {
+    try {
+      const response = await api.get('/dashboard-stats/get-job-statistics');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { detail: 'An error occurred while fetching job statistics' };
+    }
+  },
 
-    /**
-     * Get user statistics (total, active, inactive)
-     * @returns {Promise}
-     */
-    getUserStatistics: async () => {
-      try {
-        const response = await api.get('/dashboard-stats/get-users-stats');
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || {
-          detail: 'An error occurred while fetching user statistics'
-        };
-      }
-    },
+  /**
+   * Get total users, total roles, and role-wise user counts
+   * @returns {Promise}
+   */
+  getUserRoleStatistics: async () => {
+    try {
+      const response = await api.get('/dashboard-stats/user-role-statistics');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || {
+        detail: 'An error occurred while fetching user role statistics'
+      };
+    }
+  },
 
-    /**
-     * Get interview statistics from dashboard stats
-     * @returns {Promise}
-     */
-    getInterviewsStats: async () => {
-      try {
-        const response = await api.get('/dashboard-stats/get-interviews-stats');
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || {
-          detail: 'An error occurred while fetching interview statistics'
-        };
-      }
-    },
+  /**
+   * Get role statistics
+   * @returns {Promise}
+   */
+  getRoleStatistics: async () => {
+    try {
+      const response = await api.get('/dashboard-stats/get-roles-stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || {
+        detail: 'An error occurred while fetching role statistics'
+      };
+    }
+  },
+
+  /**
+   * Get user statistics (total, active, inactive)
+   * @returns {Promise}
+   */
+  getUserStatistics: async () => {
+    try {
+      const response = await api.get('/dashboard-stats/get-users-stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || {
+        detail: 'An error occurred while fetching user statistics'
+      };
+    }
+  },
+
+  /**
+   * Get interview statistics from dashboard stats
+   * @returns {Promise}
+   */
+  getInterviewsStats: async () => {
+    try {
+      const response = await api.get('/dashboard-stats/get-interviews-stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || {
+        detail: 'An error occurred while fetching interview statistics'
+      };
+    }
+  },
 
 };
 

@@ -1,15 +1,22 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@chakra-ui/react';
 import interviewService from '../services/interviewService';
-import CameraProctorNew from '../components/CameraProctorNew';
-
-// Material UI Icons import using lucide-react (matching voice interview styling)
-import { Clock, Mic, ArrowRight, AlertCircle, Brain, Loader2, Volume2, Camera } from 'lucide-react';
+import {
+  Home as HomeIcon,
+  QuestionAnswer as QuestionIcon,
+  Mic as MicIcon,
+  School as SchoolIcon,
+  Check as CheckIcon,
+  ArrowForward as ArrowForwardIcon,
+  Info as InfoIcon,
+  Menu as MenuIcon
+} from '@mui/icons-material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 /**
  * VoiceInterviewInstructions page component
- * Provides instructions and a countdown timer before the voice interview
+ * Provides instructions and a confirmation before starting the voice interview
  */
 function VoiceInterviewInstructions() {
   const { interviewId } = useParams();
@@ -18,233 +25,189 @@ function VoiceInterviewInstructions() {
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [instructionTimer, setInstructionTimer] = useState(20); // 60 seconds countdown
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const timerRef = useRef(null);
-  const [cameraReady, setCameraReady] = useState(false);
 
-  // Handle cheating detection and show toast
-  const handleCheatingDetected = useCallback((type, message) => {
-    const cheatingTypeMap = {
-      'FACE_MISSING': { title: 'Warning: Face Not Visible', colorScheme: 'orange' },
-      'MULTIPLE_FACES': { title: 'Warning: Multiple Faces Detected', colorScheme: 'red' },
-      'LOOK_AWAY': { title: 'Warning: Looking Away', colorScheme: 'orange' },
-      'PHONE_DETECTED': { title: 'Warning: Phone Detected', colorScheme: 'red' },
-      'TAB_SWITCH': { title: 'Warning: Tab Switched', colorScheme: 'red' },
-      'WINDOW_BLUR': { title: 'Warning: Window Lost Focus', colorScheme: 'red' }
-    };
-
-    const config = cheatingTypeMap[type] || { title: 'Warning Detected', colorScheme: 'orange' };
-
-    toast({
-      title: config.title,
-      description: message,
-      status: type === 'PHONE_DETECTED' || type === 'MULTIPLE_FACES' || type === 'TAB_SWITCH' || type === 'WINDOW_BLUR' ? 'error' : 'warning',
-      duration: 4000,
-      isClosable: true,
-      position: 'top-right',
-      variant: 'solid'
-    });
-
-    console.warn(`Cheating detected: ${type}`, message);
-  }, [toast]);
-
-  // Fetch interview details on component mount
+  // Fetch interview details
   useEffect(() => {
     const fetchInterview = async () => {
-      console.info(`[VoiceInterviewInstructions] Fetching interview with ID: ${interviewId}`);
       try {
         setLoading(true);
         const data = await interviewService.getCandidateInterview(interviewId);
-        console.info('[VoiceInterviewInstructions] Interview data retrieved successfully', data);
         setInterview(data);
-        setError(null);
       } catch (err) {
-        console.error('[VoiceInterviewInstructions] Error fetching interview', err);
-        setError(err.detail || 'Failed to load interview details. Please check your interview link.');
+        setError(err.detail || 'Failed to load interview details.');
       } finally {
         setLoading(false);
       }
     };
+    if (interviewId) fetchInterview();
+  }, [interviewId]);
 
-    if (interviewId && !interview) {  // Only fetch if we don't already have interview data
-      fetchInterview();
-    }
-    // Auto-start camera on component mount
-    setCameraReady(true);
-    
-    return () => {
-      // Camera will be managed by the component
-    };
-  }, [interviewId, interview]);
-
-  // Timer effect for instruction reading
-  useEffect(() => {
-    if (instructionTimer > 0) {
-      timerRef.current = setTimeout(() => {
-        setInstructionTimer(instructionTimer - 1);
-      }, 1000);
-    } else if (instructionTimer === 0) {
-      // Timer finished, redirect to voice interview
-      // Camera will stay active during navigation
-      navigate(`/voice-interview/${interviewId}`);
+  const handleBeginInterview = () => {
+    if (!isConfirmed) {
+      toast({
+        title: "Agreement Required",
+        description: "Please confirm that you have read all the instructions.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: 'top'
+      });
+      return;
     }
 
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [instructionTimer, interviewId, navigate]);
-
-  // Format time for display (MM:SS)
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    // Navigate immediately as per user request to remove 5s countdown
+    navigate(`/voice-interview/${interviewId}`);
   };
 
-  // Render loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden flex items-center justify-center">
-        {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  if (loading) return null; // Or a themed loader
+  if (error) return <div className="p-10 text-white">{error}</div>;
+
+  return (
+    <div className="flex h-screen bg-[#020617] text-gray-300 font-sans overflow-hidden">
+      {/* Sidebar */}
+      <aside className="w-52 bg-[#081433] border-r border-white/5 flex flex-shrink-0 flex-col py-6 px-6">
+        <div className="flex items-center gap-2 mb-5">
+          {/* <div className="w-6 h-6 bg-[#2563EB] rounded-md flex items-center justify-center">
+            <span className="text-white font-bold text-xs">R</span>
+          </div> */}
+          <h1 className="text-white font-bold text-lg tracking-tight">RecruitIQ</h1>
         </div>
 
-        <div className="text-center relative z-10">
-          <Loader2 className="animate-spin h-12 w-12 text-purple-400 mx-auto mb-4" />
-          <p className="text-white/60">Loading voice interview instructions...</p>
-        </div>
-      </div>
-    );
-  }
+        <nav className="space-y-1">
+          {[
+            { label: 'Dashboard', icon: HomeIcon, active: false },
+            { label: 'Technical Assessment', icon: SchoolIcon, active: false },
+            { label: 'Voice Interview', icon: MicIcon, active: true },
+            { label: 'Coding Round', icon: QuestionIcon, active: false }
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              className={`py-2 px-3 rounded-md flex items-center gap-3 transition-all cursor-pointer ${item.active ? 'bg-[#0E1E4C] border-l-2 border-white text-white shadow-sm' : 'text-white hover:text-white'}`}
+            >
+              <item.icon sx={{ fontSize: 16 }} />
+              <span className="text-[12px] font-medium">{item.label}</span>
+            </div>
+          ))}
+        </nav>
+      </aside>
 
-  // Render error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        <div className="relative z-10 p-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 text-center">
-              <AlertCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
-              <h2 className="text-lg font-semibold text-red-200 mb-2">Error</h2>
-              <p className="text-red-100">{error}</p>
-              <button
-                onClick={() => navigate(-1)}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Go Back
-              </button>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col relative h-screen overflow-hidden">
+        {/* Header */}
+        <header className="h-12 bg-[#08143382] border-b border-white/5 flex items-center justify-between px-6 flex-shrink-0 z-10">
+          <div />
+          <div className="flex items-center gap-4 text-white">
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <p className="text-[13px] font-bold text-white">Hello, {interview?.candidate_name?.split(' ')[0] || 'Candidate'}</p>
+                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Candidate</p>
+              </div>
+              <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-gray-400 border border-white/10">
+                <MenuIcon sx={{ fontSize: 16 }} />
+              </div>
             </div>
           </div>
+        </header>
+
+        {/* Scrollable Container Wrapper */}
+        <div className="flex-1 overflow-y-auto w-full bg-[#050D27]">
+          <main className="p-6 max-w-4xl mx-auto w-full animate-fadeIn">
+            {/* Page Heading */}
+            <div className="mb-8">
+              <div className="flex items-baseline gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-white tracking-tight">AI Voice Round</h1>
+                <span className="text-white text-[11px] font-normal">8–10 questions evaluated by our AI interview model</span>
+              </div>
+            </div>
+
+            {/* Progress Tracker */}
+            <div className="flex items-center justify-between w-full mb-8 relative px-0">
+              <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-[#1E293B] -translate-y-1/2 z-0" />
+              {[
+                { num: 1, label: 'Details', state: 'completed' },
+                { num: 2, label: 'Technical', state: 'completed' },
+                { num: 3, label: 'Voice', state: 'active' },
+                { num: 4, label: 'Coding', state: 'pending' }
+              ].map((step, idx) => (
+                <div key={idx} className={`flex items-center gap-2 z-10 bg-[#050D27] ${idx === 0 ? 'pr-2' : idx === 3 ? 'pl-2' : 'px-2'}`}>
+                  {step.state === 'completed' ? (
+                    <div className="w-6 h-6 rounded-full bg-[#22C55E] flex items-center justify-center text-white ring-1 ring-white shadow-lg">
+                      <CheckIcon sx={{ fontSize: 11 }} />
+                    </div>
+                  ) : (
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[8px] shadow-lg transition-all ${step.state === 'active' ? 'bg-[#2563EB] text-white ring-1 ring-white' : 'bg-[#1E293B] text-gray-400 ring-1 ring-[#343B4F]'
+                      }`}>
+                      {step.num}
+                    </div>
+                  )}
+                  <span className={`text-[9px] font-bold tracking-tight ${step.state === 'active' ? 'text-white' : step.state === 'completed' ? 'text-white' : 'text-gray-400'}`}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Instructions Card */}
+            <div className="bg-[#0B1739] border border-[#1E293B] rounded-md flex flex-col min-h-0 backdrop-blur-sm overflow-hidden mb-3">
+              <div className="px-6 py-3 space-y-2">
+                <h3 className="text-white font-semibold text-[14px] tracking-wide">Voice Interview Instructions</h3>
+                <ul className="space-y-3.5">
+                  {[
+                    "This assessment will be conducted as an AI-enabled voice interview. Our model will ask questions and evaluate your spoken responses in real time.",
+                    "The interview consists of 8–10 questions based on your resume, technical expertise, problem-solving ability, and situational judgment.",
+                    "You will hear one question at a time. After each question, you'll have limited time to think and respond verbally.",
+                    "Please ensure: you are in a quiet environment with minimal background noise, your microphone is working properly, and you speak clearly at a moderate pace."
+                  ].map((text, idx) => (
+                    <li key={idx} className="flex gap-3 text-[12px] leading-relaxed text-white">
+                      <div className="w-1 h-1 rounded-full bg-white mt-2 flex-shrink-0" />
+                      <span>{text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div
+              onClick={() => setIsConfirmed(!isConfirmed)}
+              className={`flex items-center gap-3 p-3 rounded-md border transition-all mb-4 cursor-pointer ${isConfirmed ? 'bg-blue-500/5 border-blue-500/30' : 'bg-[#0B1739] border-[#1E293B] hover:border-gray-700'}`}
+            >
+              <div className={`w-4 h-4 border flex items-center justify-center transition-all ${isConfirmed ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-white'}`}>
+                {isConfirmed && <CheckIcon sx={{ fontSize: 12 }} className="text-white" />}
+              </div>
+              <span className="text-[11px] font-medium text-white">
+                I confirm that I have read all the instructions carefully and am ready to take this assessment.
+              </span>
+            </div>
+
+            {/* Action Bar */}
+            <div className="bg-[#0B1739] border border-[#1E293B] rounded-md p-2 flex items-center justify-between backdrop-blur-md">
+              <div className="flex items-center gap-2.5 px-1">
+                <InfoOutlinedIcon className="text-[#2563EB]" sx={{ fontSize: 16 }} />
+                <span className="text-[11px] text-[#2563EB] font-medium">Test your microphone before beginning.</span>
+              </div>
+              <button
+                onClick={handleBeginInterview}
+                disabled={!isConfirmed}
+                className={`h-9 px-4 rounded-md flex items-center gap-2 font-bold text-xs transition-all ${isConfirmed ? 'bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-[0px_0px_16px_0px_rgba(37,99,235,0.80)]' : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'}`}
+              >
+                Begin Voice Interview
+                <ArrowForwardIcon sx={{ fontSize: 14 }} />
+              </button>
+            </div>
+          </main>
         </div>
-      </div>
-    );
-  }
-
-return (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-
-    {/* HEADER */}
-    <header className="w-full px-10 py-6 flex justify-between items-center backdrop-blur-xl bg-white/5 border-b border-white/10 relative z-20">
-      <h1 className="text-3xl text-purple-300 font-bold">Voice Interview Instructions</h1>
-
-      {/* Timer */}
-      <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md">
-        <Clock className="w-5 h-5 text-yellow-400" />
-        <span className="font-mono font-bold">{formatTime(instructionTimer)}</span>
-      </div>
-    </header>
-
-    
-
-    {/* MAIN CONTENT AREA */}
-    <div className="w-full h-[calc(100vh-100px)] px-10 py-6 flex gap-10 relative z-10">
-
-      {/* LEFT PANEL - Main Instructions */}
-      <div className="w-1/2 bg-white/10 border border-white/10 rounded-2xl p-7 backdrop-blur-md overflow-hidden">
-
-        <h2 className="text-2xl font-bold mb-6">Ready for Your Voice Interview?</h2>
-
-        <div className="space-y-6 overflow-auto h-[calc(100%-80px)] pr-2">
-
-          <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-            <h3 className="text-lg font-semibold text-purple-300 flex items-center mb-2">
-              <Brain className="mr-2 h-5 w-5" /> What to Expect
-            </h3>
-            <p className="text-white/80">
-              You're about to begin an AI-powered voice interview. You'll interact with an AI
-              interviewer who will ask you technical questions. Speak clearly and confidently.
-            </p>
-          </div>
-
-          <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-            <h3 className="text-lg font-semibold text-purple-300 flex items-center mb-2">
-              <Mic className="mr-2 h-5 w-5" /> How It Works
-            </h3>
-            <ul className="text-white/80 space-y-2 ml-5 list-disc">
-              <li>The AI will ask you a series of technical questions</li>
-              <li>Answer each question confidently and clearly</li>
-              <li>Your responses are transcribed and analyzed</li>
-              <li>Camera proctoring stays active throughout</li>
-              <li>Total interview time: 15–20 mins</li>
-            </ul>
-          </div>
-
-          <div className="bg-white/5 rounded-xl p-5 border border-white/10">
-            <h3 className="text-lg font-semibold text-purple-300 flex items-center mb-2">
-              <ArrowRight className="mr-2 h-5 w-5" /> Tips for Success
-            </h3>
-            <ul className="text-white/80 space-y-2 ml-5 list-disc">
-              <li>Speak clearly and at normal pace</li>
-              <li>Take a moment before answering</li>
-              <li>Give examples when possible</li>
-              <li>If unsure, answer honestly</li>
-              <li>Stay calm and confident</li>
-            </ul>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* RIGHT PANEL */}
-      <div className="w-1/2 flex flex-col gap-6">
-
-        {/* CAMERA FIXED TOP RIGHT (Just Below Timer) */}
-        <div className="absolute right-10 top-[60px] w-56 h-56 rounded-lg overflow-hidden z-30">
-          {cameraReady && <CameraProctorNew autoStart={true} sessionId={interviewId} hideControls={true} onCheatingDetected={handleCheatingDetected} />}
-        </div>
-
-        {/* Guidelines Box */}
-        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
-          <h3 className="font-semibold text-purple-300 mb-3">Key Guidelines</h3>
-          <ul className="text-white/80 space-y-2 ml-5 list-disc">
-            <li>Ensure stable internet connection</li>
-            <li>Keep your face clearly visible</li>
-            <li>Avoid background noise</li>
-            <li>Stay focused and avoid moving away</li>
-          </ul>
-        </div>
-
-        {/* Footer Timer */}
-        <div className="bg-purple-900 py-4 text-center border border-blue-400/20 rounded-xl text-white font-medium">
-          🎤 Interview begins automatically in <b>{formatTime(instructionTimer)}</b>
-        </div>
-
       </div>
     </div>
-  </div>
-);
-
+  );
 }
 
 export default VoiceInterviewInstructions;
@@ -256,4 +219,3 @@ export default VoiceInterviewInstructions;
 
 
 
- 
