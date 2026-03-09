@@ -26,7 +26,6 @@ export const evaluateCode = async (code, testCases, language, functionSignature)
     console.log("Function signature:", functionSignature);
     const response = await api.post("/code/evaluate", {
       code,
-      code,
       testCases,
       language,
       functionSignature,
@@ -56,7 +55,7 @@ export const generateQuestion = async (difficulty = "easy", topic = null) => {
 export const generateCodingQuestions = async (interviewId, count = 3, difficulty = "medium") => {
   try {
     console.log("codingService: Generating questions with interview ID:", interviewId);
-    
+
     // Use the exact interview_id from the URL without any modifications
     // This is the MongoDB ObjectId format like "68db8801735747049bd7952d"
     const requestBody = {
@@ -64,9 +63,9 @@ export const generateCodingQuestions = async (interviewId, count = 3, difficulty
       count,
       difficulty,
     };
-    
+
     console.log("codingService: Request body:", requestBody);
-    
+
     const response = await api.post("/questions/generate-coding-questions", requestBody);
     console.log("codingService: Response:", response.data);
     return response.data;
@@ -81,7 +80,7 @@ export const fetchCodingQuestions = async (interviewId) => {
   try {
     // Use the exact interview_id from the URL without any modifications
     console.log("Fetching coding questions with interview ID:", interviewId);
-    
+
     const response = await api.get(`/questions/fetch-coding-questions/${interviewId}`);
     return response.data;
   } catch (error) {
@@ -94,16 +93,16 @@ export const fetchCodingQuestions = async (interviewId) => {
 export const saveCodingAnswer = async (interviewId, questionId, candidateAnswer, testResults) => {
   try {
     console.log("Saving coding answer with interview ID:", interviewId);
-    
+
     const requestBody = {
       interview_id: interviewId,
       question_id: questionId,
       candidate_answer: candidateAnswer,
       test_results: testResults
     };
-    
+
     console.log("saveCodingAnswer: Request body:", requestBody);
-    
+
     const response = await api.post("/questions/save-coding-answer", requestBody);
     console.log("saveCodingAnswer: Response:", response.data);
     return response.data;

@@ -1,211 +1,155 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { MessageCircle, User, Bot, Wifi, WifiOff } from 'lucide-react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { MessageCircle, Clock } from 'lucide-react';
 
 const TranscriptDisplay = ({
   transcript,
   isLive = false,
-  aiThinking = false,
-  connectionQuality = 'good',
+  duration = "00:00:00",
   className = ''
 }) => {
   const scrollRef = useRef(null);
   const [userScrolled, setUserScrolled] = useState(false);
-  const [hasNewMessages, setHasNewMessages] = useState(false);
 
-  // Check if user is near bottom
-  const isNearBottom = useCallback(() => {
-    if (!scrollRef.current) return true;
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-    return scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
-  }, []);
-
-  // Handle user scroll
-  const handleScroll = useCallback(() => {
-    if (scrollRef.current) {
-      const nearBottom = isNearBottom();
-      setUserScrolled(!nearBottom);
-      if (nearBottom) {
-        setHasNewMessages(false);
-      }
-    }
-  }, [isNearBottom]);
-
-  // Smart auto-scroll - only scroll if user is at bottom
-  useEffect(() => {
+  // Auto-scroll logic
+  const scrollToBottom = useCallback(() => {
     if (scrollRef.current && !userScrolled) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    } else if (userScrolled && transcript) {
-      setHasNewMessages(true);
     }
-  }, [transcript, userScrolled]);
+  }, [userScrolled]);
 
-  // Scroll to bottom function
-  const scrollToBottom = () => {
+  useEffect(() => {
+    scrollToBottom();
+  }, [transcript, scrollToBottom]);
+
+  const handleScroll = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      setUserScrolled(false);
-      setHasNewMessages(false);
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setUserScrolled(!isAtBottom);
     }
   };
 
-  const parseTranscript = (text) => {
-    if (!text) return [];
+  const parseTranscript = useMemo(() => {
+    if (!transcript) return [];
 
-    const lines = text.split('\n\n');
-    return lines.map((line, index) => {
-      const isCandidate = line.startsWith('You:');
-      const isInterviewer = line.startsWith('AI:');
+    // Split by double newline as these represent distinct entries
+    const entries = transcript.split('\n\n').filter(l => l.trim());
 
-      if (isCandidate) {
-        return {
-          id: index,
-          type: 'candidate',
-          text: line.replace('You:', '').trim(),
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-      } else if (isInterviewer) {
-        return {
-          id: index,
-          type: 'interviewer',
-          text: line.replace('AI:', '').trim(),
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-      }
-      return null;
+    return entries.map((entry, idx) => {
+      const colonIndex = entry.indexOf(':');
+      if (colonIndex === -1) return null;
+
+      const role = entry.substring(0, colonIndex).trim().toLowerCase();
+      const text = entry.substring(colonIndex + 1).trim();
+
+      const isAI = ['ai', 'assistant', 'interviewer', 'agent', 'bot', 'interviewer_bot', 'ai voice'].includes(role) || role.startsWith('ai');
+
+      return {
+        id: `${idx}-${text.length}`,
+        type: isAI ? 'ai' : 'user',
+        text: text
+      };
     }).filter(Boolean);
-  };
-
-  const messages = parseTranscript(transcript);
+  }, [transcript]);
 
   return (
-    <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl h-full flex flex-col ${className}`}>
+    <div className={`flex flex-col h-full bg-[#050D27] border border-white/5 rounded-md overflow-hidden shadow-2xl ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-500/20 rounded-lg">
-            <MessageCircle className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold">Live Transcript</h3>
-            <p className="text-white/60 text-sm">
-              {isLive ? 'Real-time conversation' : 'Interview transcript'}
-            </p>
-          </div>
+      <div className="flex items-center justify-between px-6 py-2 border-b border-white/5 bg-[#0B1739]">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+          <h3 className="text-white font-semibold text-base tracking-wide">Live Transcript</h3>
         </div>
-
-        {/* Status Indicators */}
-        <div className="flex items-center space-x-3">
-          {/* Connection Status */}
-          {isLive && (
-            <div className="flex items-center space-x-2">
-              {connectionQuality === 'excellent' || connectionQuality === 'good' ? (
-                <Wifi className="w-4 h-4 text-green-400" />
-              ) : (
-                <WifiOff className="w-4 h-4 text-red-400" />
-              )}
-              <span className={`text-xs font-medium capitalize ${
-                connectionQuality === 'excellent' ? 'text-green-400' :
-                connectionQuality === 'good' ? 'text-yellow-400' :
-                'text-red-400'
-              }`}>
-                {connectionQuality}
-              </span>
-            </div>
-          )}
-
-          {/* Live Indicator */}
-          {isLive && (
-            <div className="flex items-center space-x-2 bg-red-500/20 backdrop-blur-sm rounded-full px-3 py-1 border border-red-500/30">
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-red-200">LIVE</span>
-            </div>
-          )}
-
-          {/* AI Thinking Indicator */}
-          {aiThinking && (
-            <div className="flex items-center space-x-2 text-purple-400">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100"></div>
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200"></div>
-              </div>
-              <span className="text-xs font-medium">AI is thinking...</span>
-            </div>
-          )}
+        <div className="flex items-center gap-2 text-white/70">
+          <Clock className="w-4 h-4" />
+          <span className="text-sm font-mono tabular-nums">{duration}</span>
         </div>
       </div>
 
-      {/* Transcript Content */}
-      <div className="flex-1 relative">
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="bg-black/20 rounded-2xl p-6 h-full overflow-y-auto border border-white/10 custom-scrollbar"
-        >
-          {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-white/40">
-              <div className="text-center">
-                <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg mb-2">Transcript will appear here</p>
-                <p className="text-sm">Start the interview to begin the conversation</p>
+      {/* Messages Area */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="bg-[#0B1739] flex-1 overflow-y-auto p-4 py-2 space-y-4 scrollbar-hide"
+      >
+        {parseTranscript.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-20 text-center px-10">
+            <MessageCircle className="w-12 h-12 mb-4" />
+            <p className="text-sm">Conversation transcript will appear here in real-time</p>
+          </div>
+        ) : (
+          parseTranscript.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex w-full ${msg.type === 'ai' ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
+            >
+              <div className={`max-w-[85%] flex flex-col ${msg.type === 'ai' ? 'items-start' : 'items-end'}`}>
+                {msg.type === 'ai' ? (
+                  <>
+                    {/* AI Label */}
+                    <div className="mb-1 px-3 py-0 bg-[#0E1E4C] rounded-lg border border-white/10">
+                      <span className="text-[10px] font-normal text-white tracking-widest">AI Voice</span>
+                    </div>
+                    {/* AI Text */}
+                    <div className="text-left">
+                      <p className="text-white text-[14px] leading-relaxed font-inter font-normal">
+                        <span className="text-white mr-1 text-lg not-italic">“</span>
+                        {msg.text}
+                        <span className="text-white ml-1 text-lg not-italic">”</span>
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  /* User Bubble */
+                  <div className="bg-[#136C344D] border border-[#343B4F] rounded-tl-[10px] rounded-tr-[10px] rounded-bl-[10px] px-3 py-1 shadow-inner relative group-hover:border-[#1E4D4D]/80 transition-colors">
+                    <p className="text-white text-[14px] leading-relaxed font-inter font-normal text-right">
+                      <span className="opacity-40 mr-1 text-lg not-italic">“</span>
+                      {msg.text}
+                      <span className="opacity-40 ml-1 text-lg not-italic">”</span>
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="space-y-6">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'candidate' ? 'justify-end' : 'justify-start'} animate-[slideIn_0.3s_ease-out]`}
-                >
-                  <div className={`max-w-[80%] rounded-2xl p-4 ${
-                    message.type === 'interviewer'
-                      ? 'bg-gradient-to-r from-purple-600/30 to-blue-600/30 border border-purple-500/30'
-                      : 'bg-gradient-to-r from-blue-600/30 to-cyan-600/30 border border-blue-500/30'
-                  }`}>
-                    {/* Message Header */}
-                    <div className="flex items-center mb-3">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${
-                        message.type === 'interviewer' ? 'bg-purple-400' : 'bg-blue-400'
-                      }`} />
-                      <span className="text-xs font-medium text-white/60">
-                        {message.type === 'interviewer' ? 'AI Interviewer' : 'You'}
-                      </span>
-                      <span className="text-xs text-white/40 ml-auto">{message.timestamp}</span>
-                    </div>
-
-                    {/* Message Content */}
-                    <p className="text-white/90 leading-relaxed">{message.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* New Messages Indicator */}
-        {hasNewMessages && userScrolled && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-            <button
-              onClick={scrollToBottom}
-              className="bg-purple-600/90 backdrop-blur-sm rounded-full px-4 py-2 border border-purple-500/30 flex items-center space-x-2 hover:bg-purple-600 transition-all shadow-lg animate-bounce"
-            >
-              <span className="text-sm font-medium">New messages</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </button>
-          </div>
+          ))
         )}
       </div>
 
       {/* Footer */}
-      {isLive && (
-        <div className="mt-4 text-center">
-          <p className="text-xs text-white/50">
-            Transcript updates automatically • {messages.length} messages
-          </p>
+      <div className="px-6 py-2 border-t border-white/5 bg-[#0B1739] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* Animated Equalizer */}
+          <div className="flex items-end gap-[3px] h-4">
+            <div className="w-[3px] bg-[#43A8C6] animate-[equalizer_1s_ease-in-out_infinite]" />
+            <div className="w-[3px] bg-[#43A8C6] animate-[equalizer_1.2s_ease-in-out_infinite_delay-1] h-3" />
+            <div className="w-[3px] bg-[#43A8C6] animate-[equalizer_0.8s_ease-in-out_infinite_delay-20] h-2" />
+            <div className="w-[3px] bg-[#43A8C6] animate-[equalizer_1.1s_ease-in-out_infinite_delay-30] h-4" />
+            <div className="w-[3px] bg-[#43A8C6] animate-[equalizer_0.9s_ease-in-out_infinite_delay-40] h-3" />
+          </div>
+          <span className="text-[#43A8C6] text-xs text-base font-normal tracking-wide">Listening</span>
         </div>
-      )}
+
+        <div className="flex items-center gap-2 text-white">
+          <span className="text-xs font-medium tracking-tighter">Transcribing in real time</span>
+        </div>
+      </div>
+
+      <style jsx="true">{`
+        @keyframes equalizer {
+          0%, 100% { height: 40%; }
+          50% { height: 100%; }
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };

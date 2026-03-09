@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Code } from 'lucide-react';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import completedTick from "../../assets/completed-tick.gif";
 
 const VoiceInterviewResults = ({
   results,
@@ -9,44 +10,57 @@ const VoiceInterviewResults = ({
 }) => {
   const navigate = useNavigate();
 
-  if (!results) {
-    return (
-      <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl ${className}`}>
-        <div className="text-center text-white/60">
-          <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>No results available</p>
-        </div>
-      </div>
-    );
-  }
+  // Format time taken if available, otherwise use a placeholder
+  const timeTaken = results?.duration_seconds
+    ? new Date(results.duration_seconds * 1000).toISOString().substr(14, 5)
+    : "15:04"; // Default placeholder if missing
+
+  const handleContinue = () => {
+    const id = interviewId || results?.interview_id;
+    if (id) {
+      navigate(`/coding-instructions/${id}`);
+    }
+  };
 
   return (
-    <div className={`space-y-8 ${className}`}>
+    <div className={`flex items-center justify-center py-0 ${className}`}>
+      {/* Centered Summary Card */}
+      <div className="w-100 h-[390px] mt-4 bg-[radial-gradient(ellipse_45.36%_45.36%_at_50.00%_24.95%,_#112662_0%,_#0B1739_100%)] backdrop-blur-3xl rounded-md p-8 py-0 border border-white/5 shadow-2xl flex flex-col items-center text-center relative overflow-hidden group">
+        {/* Subtle Background Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-60 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute inset-0 rounded-md" />
+        <img
+          src={completedTick}
+          alt="Completed"
+          className="relative z-10 w-50 h-50 object-contain"
+        />
 
-      {/* Header */}
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/20 rounded-full mb-4">
-          <CheckCircle className="w-10 h-10 text-green-400" />
-        </div>
-        <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">
-          HR + Technical Voice Round Completed.
+        {/* Title Section */}
+        <h2 className="text-[22px] font-semibold text-white mb-3 tracking-tight leading-tight z-10">
+          AI Voice Round Completed
         </h2>
-        <p className="text-white/60">Please click on the Coding Round Button to proceed further </p>
-      </div>
 
-      {/* ONLY Next Button */}
-      <div className="flex justify-center">
+        <p className="text-white text-xs font-normal leading-[1.6] mb-4 max-w-[280px] z-10">
+          You've successfully submitted the voice interview. Your response have been recorded.
+        </p>
+
+        {/* Time Taken Box */}
+        <div className="w-60 max-w-[260px] bg-[#0B1739] border border-[#1E293B] rounded-lg py-2 mb-5 flex flex-col items-center z-10">
+          <span className="text-[26px] font-semibold text-white mb-0.5 leading-none tabular-nums">
+            {timeTaken}
+          </span>
+          <span className="text-[10px] font-normal text-white tracking-widest mt-1">
+            Time Taken
+          </span>
+        </div>
+
+        {/* Action Button */}
         <button
-          onClick={() => {
-            const id = interviewId || (results && results.interview_id) || 'default';
-            navigate(`/coding-instructions/${id}`);
-          }}
-          className="flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 
-          rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 
-          hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/25"
+          onClick={handleContinue}
+          className="w-60 h-10 bg-[#2563EB] text-white rounded-[6px] font-semibold text-[13px] shadow-[0px_0px_16px_0px_rgba(37,99,235,0.80)] transition-all flex items-center justify-center gap-2 group z-10"
         >
-          <Code className="w-5 h-5 mr-2" />
-          Next: Coding Round
+          Continue to Coding Round
+          <ArrowForwardIcon sx={{ fontSize: 16 }} />
         </button>
       </div>
     </div>
@@ -54,5 +68,3 @@ const VoiceInterviewResults = ({
 };
 
 export default VoiceInterviewResults;
-
- 
